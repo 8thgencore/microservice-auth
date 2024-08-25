@@ -4,6 +4,9 @@ endif
 
 LOCAL_BIN:=$(CURDIR)/bin
 CONFIG=.env.$(ENV)
+BINARY_NAME=main
+LOCAL_MIGRATION_DIR=$(MIGRATION_DIR)
+LOCAL_MIGRATION_DSN="host=localhost port=$(POSTGRES_PORT_LOCAL) dbname=$(POSTGRES_DB) user=$(POSTGRES_USER) password=$(POSTGRES_PASSWORD) sslmode=disable"
 
 # #################### #
 # DEPENDENCIES & TOOLS #
@@ -12,6 +15,7 @@ CONFIG=.env.$(ENV)
 install-deps:
 	GOBIN=$(LOCAL_BIN) go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.34.2
 	GOBIN=$(LOCAL_BIN) go install -mod=mod google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1
+	GOBIN=$(LOCAL_BIN) go install github.com/pressly/goose/v3/cmd/goose@v3.21.1
 
 get-deps:
 	go get -u google.golang.org/protobuf/cmd/protoc-gen-go
@@ -48,10 +52,29 @@ build-app:
 docker-net:
 	docker network create -d bridge service-net
 
-docker-build: docker-build-app
+docker-build: docker-build-app docker-build-migrator
 
 docker-build-app: check-env
 	docker buildx build --no-cache --platform linux/amd64 -t auth:${APP_IMAGE_TAG} --build-arg="ENV=${ENV}" --build-arg="CONFIG=${CONFIG}" .
+
+docker-build-migrator: check-env
+	docker buildx build --no-cache --platform linux/amd64 -t migrator-auth:${MIGRATOR_IMAGE_TAG} -f migrator.Dockerfile --build-arg="ENV=${ENV}" .
+
+# ###### #
+# DEPLOY #
+# ###### #
+
+docker-deploy: check-env docker-build
+	docker compose --env-file=.env.$(ENV) up -d
+
+local-migration-status: check-env
+	$(LOCAL_BIN)/goose -dir ${LOCAL_MIGRATION_DIR} postgres ${LOCAL_MIGRATION_DSN} status -v
+
+local-migration-up: check-env
+	$(LOCAL_BIN)/goose -dir ${LOCAL_MIGRATION_DIR} postgres ${LOCAL_MIGRATION_DSN} up -v
+
+local-migration-down: check-env
+	$(LOCAL_BIN)/goose -dir ${LOCAL_MIGRATION_DIR} postgres ${LOCAL_MIGRATION_DSN} down -v
 
 # #### #
 # STOP #
