@@ -36,7 +36,7 @@ jobs:
     needs: image-build-and-push
 
     steps:
-      - name: Deploy to Selectel Cloud via SSH action
+      - name: Deploy to Cloud via SSH action
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
