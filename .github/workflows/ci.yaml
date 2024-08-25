@@ -25,11 +25,14 @@ jobs:
       - name: Login to Docker Registry
         run: docker login -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.REGISTRY_PASSWORD }} $REGISTRY
 
+      - name: Create .env.stage file
+        run: echo "${{ secrets.ENV_STAGE }}" > .env.stage
+
       - name: Build and Push Docker Image
         run: |
           TAG=$(echo $GITHUB_SHA | head -c7)
           docker buildx create --use
-          docker buildx build --no-cache --push --tag $REGISTRY/$IMAGE_NAME:$TAG --build-arg="ENV=stage" --build-arg="CONFIG=stage.env" .
+          docker buildx build --no-cache --push --tag $REGISTRY/$IMAGE_NAME:$TAG --build-arg="ENV=stage" --build-arg="CONFIG=.env.stage" .
 
   deploy-image:
     runs-on: ubuntu-22.04
