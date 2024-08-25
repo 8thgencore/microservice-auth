@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: "docker.io"
-  IMAGE_NAME: "auth"
+  IMAGE_NAME: "microservice-auth"
   CONTAINER_NAME: "auth-container"
 
 jobs:
@@ -25,18 +25,23 @@ jobs:
       - name: Login to Docker Registry
         run: docker login -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.REGISTRY_PASSWORD }} $REGISTRY
 
+      - name: Create .env.stage file
+        run: echo "${{ secrets.ENV_STAGE }}" > .env.stage
+
       - name: Build and Push Docker Image
         run: |
           TAG=$(echo $GITHUB_SHA | head -c7)
           docker buildx create --use
-          docker buildx build --no-cache --push --tag $REGISTRY/$IMAGE_NAME:$TAG --build-arg="ENV=stage" --build-arg="CONFIG=stage.env" .
+          docker buildx build --no-cache --push \
+          --tag $REGISTRY/${{ secrets.REGISTRY_USERNAME }}/$IMAGE_NAME:$TAG \
+          --build-arg="ENV=stage" --build-arg="CONFIG=.env.stage" .
 
   deploy-image:
     runs-on: ubuntu-22.04
     needs: image-build-and-push
 
     steps:
-      - name: Deploy to Selectel Cloud via SSH action
+      - name: Deploy to Cloud via SSH action
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -58,4 +63,5 @@ jobs:
             docker rm $CONTAINER_NAME
             
             # Run a new container from a new image
-            docker run -d -p 50051:50051 --name $CONTAINER_NAME -t $REGISTRY/$IMAGE_NAME:$TAG_NAME
+            docker run -d -p 50051:50051 --name $CONTAINER_NAME \
+            -t $REGISTRY/${{ secrets.REGISTRY_USERNAME }}/$IMAGE_NAME:$TAG_NAME

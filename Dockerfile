@@ -1,4 +1,5 @@
 FROM golang:1.22.6-alpine3.19 AS builder
+
 ARG ENV
 
 RUN apk update && apk upgrade --available && \
@@ -13,6 +14,7 @@ RUN apk update && apk upgrade --available && \
     "auth"
 
 WORKDIR /opt/app/
+
 COPY . .
 
 RUN go mod download && go mod verify
@@ -20,6 +22,7 @@ RUN make build-app ENV=${ENV}
 RUN mkdir logs/
 
 FROM scratch
+
 ARG CONFIG
 
 WORKDIR /opt/app/

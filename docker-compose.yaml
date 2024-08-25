@@ -1,0 +1,15 @@
+services:
+  auth:
+    image: auth:${APP_IMAGE_TAG}
+    container_name: auth
+    env_file:
+      - .env.${ENV}
+    ports:
+      - "${GRPC_PORT}:${GRPC_PORT}"
+    networks:
+      - service-network
+
+networks:
+  service-network:
+    name: service-net
+    external: true
