@@ -36,7 +36,7 @@ ifeq ($(ENV),)
 endif
 
 run-local:
-	go run cmd/user/main.go
+	go run cmd/user/main.go -config .env.stage
 
 # ##### #
 # BUILD #
