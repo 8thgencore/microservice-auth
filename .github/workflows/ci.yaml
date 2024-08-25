@@ -7,7 +7,7 @@ on:
     branches: [ main, master ]
 
 env:
-  REGISTRY: "docker.io"
+  REGISTRY: "docker.io/${{ secrets.REGISTRY_USERNAME }}"
   IMAGE_NAME: "auth"
   CONTAINER_NAME: "auth-container"
 
