@@ -7,8 +7,8 @@ on:
     branches: [ main, master ]
 
 env:
-  REGISTRY: "docker.io/${{ secrets.REGISTRY_USERNAME }}"
-  IMAGE_NAME: "auth"
+  REGISTRY: "docker.io"
+  IMAGE_NAME: "microservice-auth"
   CONTAINER_NAME: "auth-container"
 
 jobs:
