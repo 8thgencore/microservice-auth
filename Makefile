@@ -1,4 +1,13 @@
+ifneq ($(ENV),)
+	include .env.$(ENV)
+endif
+
 LOCAL_BIN:=$(CURDIR)/bin
+CONFIG=.env.$(ENV)
+
+# #################### #
+# DEPENDENCIES & TOOLS #
+# #################### #
 
 install-deps:
 	GOBIN=$(LOCAL_BIN) go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.34.2
@@ -21,6 +30,32 @@ generate-user-api:
 	--plugin=protoc-gen-go-grpc=bin/protoc-gen-go-grpc \
 	api/user/v1/user.proto
 
+check-env:
+ifeq ($(ENV),)
+	$(error No environment specified)
+endif
 
 run-local:
 	go run cmd/user/main.go
+
+# ##### #
+# BUILD #
+# ##### #
+
+build-app:
+	GOOS=linux GOARCH=amd64 go build -o $(LOCAL_BIN)/${BINARY_NAME} cmd/user/main.go
+
+docker-net:
+	docker network create -d bridge service-net
+
+docker-build: docker-build-app
+
+docker-build-app: check-env
+	docker buildx build --no-cache --platform linux/amd64 -t auth:${APP_IMAGE_TAG} --build-arg="ENV=${ENV}" --build-arg="CONFIG=${CONFIG}" .
+
+# #### #
+# STOP #
+# #### #
+
+docker-stop: check-env
+	docker compose --env-file=.env.$(ENV) down

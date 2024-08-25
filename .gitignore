@@ -23,6 +23,8 @@ go.work.sum
 
 # env file
 .env
+.env.stage
+.env.prod
 
-# exclude bin directory
-bin/*
+# Directory with binary files
+/bin/
