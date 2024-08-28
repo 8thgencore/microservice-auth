@@ -23,8 +23,21 @@ go.work.sum
 
 # env file
 .env
+.env.local
 .env.stage
 .env.prod
 
 # Directory with binary files
 /bin/
+
+# Tests coverage
+coverage.*
+
+# Directory with vendor proto declarations
+/vendor.protogen/
+
+# Certificates and private keys
+/tls/
+
+# Logs
+/logs/

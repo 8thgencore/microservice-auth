@@ -2,28 +2,20 @@ package app
 
 import (
 	"context"
-	"flag"
-	"fmt"
 	"log"
 	"net"
 	"sync"
 
 	"github.com/8thgencore/microservice_auth/internal/config"
-	"github.com/8thgencore/microservice_auth/internal/config/env"
+	"github.com/8thgencore/microservice_auth/pkg/logger"
 	pb "github.com/8thgencore/microservice_auth/pkg/user/v1"
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
 // App structure contains main application structures.
 type App struct {
-}
-
-var configPath string
-
-func init() {
-	flag.StringVar(&configPath, "config", ".env", "Path to config file")
+	cfg *config.Config
 }
 
 // NewApp creates new App object.
@@ -40,7 +32,7 @@ func NewApp(ctx context.Context) (*App, error) {
 func (a *App) Run() error {
 
 	wg := sync.WaitGroup{}
-	wg.Add(1) // gRPC, HTTP and Swagger servers
+	wg.Add(1) // gRPC servers
 
 	go func() {
 		defer wg.Done()
@@ -59,6 +51,7 @@ func (a *App) Run() error {
 func (a *App) initDeps(ctx context.Context) error {
 	inits := []func(context.Context) error{
 		a.initConfig,
+		a.initLogger,
 		a.initGrpcServer,
 	}
 
@@ -72,13 +65,19 @@ func (a *App) initDeps(ctx context.Context) error {
 }
 
 func (a *App) initConfig(_ context.Context) error {
-	// Parse the command-line flags from os.Args[1:].
-	flag.Parse()
-
-	err := config.Load(configPath)
+	// Load configuration
+	cfg, err := config.NewConfig()
 	if err != nil {
-		log.Fatal("failed to load config: ", error.Error(err))
+		log.Fatal(err)
 	}
+	a.cfg = cfg
+
+	return nil
+}
+
+func (a *App) initLogger(_ context.Context) error {
+	logger.Init(string(a.cfg.Env))
+
 	return nil
 }
 
@@ -93,14 +92,9 @@ func (a *App) initGrpcServer(ctx context.Context) error {
 }
 
 func (a *App) runGrpcServer() error {
-	cfg, err := env.NewGrpcConfig()
+	lis, err := net.Listen(a.cfg.GRPC.Transport, a.cfg.GRPC.Address())
 	if err != nil {
-		log.Fatal("failed to get grpc config: ", error.Error(err))
-	}
-
-	lis, err := net.Listen(cfg.Transport(), cfg.Address())
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Fatalf("failed to listen grpc: %v", err)
 	}
 
 	s := grpc.NewServer()
@@ -114,31 +108,4 @@ func (a *App) runGrpcServer() error {
 	}
 
 	return nil
-}
-
-func (s *server) Create(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
-	fmt.Printf("Create user: %+v\n", req)
-	return &pb.CreateUserResponse{Id: 1}, nil
-}
-
-func (s *server) Get(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserResponse, error) {
-	fmt.Printf("Get user: %d\n", req.GetId())
-	return &pb.GetUserResponse{
-		Id:        req.GetId(),
-		Name:      "John Doe",
-		Email:     "john.doe@example.com",
-		Role:      pb.Role_USER,
-		CreatedAt: &timestamp.Timestamp{Seconds: 1623855600},
-		UpdatedAt: &timestamp.Timestamp{Seconds: 1623855600},
-	}, nil
-}
-
-func (s *server) Update(ctx context.Context, req *pb.UpdateUserRequest) (*pb.Empty, error) {
-	fmt.Printf("Update user: %+v\n", req)
-	return &pb.Empty{}, nil
-}
-
-func (s *server) Delete(ctx context.Context, req *pb.DeleteUserRequest) (*pb.Empty, error) {
-	fmt.Printf("Delete user: %d\n", req.GetId())
-	return &pb.Empty{}, nil
 }

@@ -3,54 +3,89 @@ syntax = "proto3";
 package user_v1;
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
+import "validate/validate.proto";
 
 option go_package =  "github.com/8thgencore/microservice-auth/pkg/user/v1;user_v1";
 
 service UserV1 {
-    rpc Create(CreateUserRequest) returns (CreateUserResponse);
-    rpc Get(GetUserRequest) returns (GetUserResponse);
-    rpc Update(UpdateUserRequest) returns (Empty);
-    rpc Delete(DeleteUserRequest) returns (Empty);
+    // Create is used for creating new user.
+    rpc Create(CreateRequest) returns (CreateResponse);
+    // Get is used to obtain user info.
+    rpc Get(GetRequest) returns (GetResponse);
+    // Update is used for updating user info.
+    rpc Update(UpdateRequest) returns (google.protobuf.Empty);
+    // Delete is used for deleting user.
+    rpc Delete(DeleteRequest) returns (google.protobuf.Empty);
 }
+
 enum Role {
-    USER = 0;
-    ADMIN = 1;
+	UNKNOWN = 0;
+	USER = 1;
+	ADMIN = 2;
 }
 
-message CreateUserRequest {
-    string name = 1;
-    string email = 2;
-    string password = 3;
-    string password_confirm = 4;
-    Role role = 5;
+message User {
+	// ID of the user.
+	int64 id = 1;
+	// Name of the user.
+	string name = 2;
+	// Email of the user.
+	string email = 3;
+	// Role of the user.
+	Role role = 4;
+	// Timestamp when user was created.
+	google.protobuf.Timestamp created_at = 5;
+	// Timestamp when user info was updated last time.
+	google.protobuf.Timestamp updated_at = 6;
 }
 
-message CreateUserResponse {
+
+message UserCreate {
+	// Name of the user to create.
+	string name = 1 [(validate.rules).string = {min_len: 1, max_len: 50}];
+	// Email of the user to create.
+	string email = 2 [(validate.rules).string.email = true];
+	// Password of the user to create.
+	string password = 3 [(validate.rules).string = {min_len: 8, max_len: 256}];
+	// Password confirmation of the user to create.
+	string password_confirm = 4 [(validate.rules).string = {min_len: 8, max_len: 256}];
+	// Role of the user to create.
+	Role role = 5 [(validate.rules).enum.defined_only = true];
+}
+
+message UserUpdate {
+	// ID of the user to update.
+	int64 id = 1 [(validate.rules).int64.gte = 1];
+	// [optional] Name of the user to update.
+	google.protobuf.StringValue name = 2 [(validate.rules).string = {ignore_empty: true, min_len: 1, max_len: 50}];
+	// [optional] Email of the user to update.
+	google.protobuf.StringValue email = 3 [(validate.rules).string = {email: true, ignore_empty: true}];
+	// Role of the user to update.
+	Role role = 4 [(validate.rules).enum.defined_only = true];
+}
+
+message CreateRequest {
+	UserCreate user = 1;
+}
+
+message CreateResponse {
+	int64 id = 1;
+}
+
+message GetRequest {
     int64 id = 1;
 }
 
-message GetUserRequest {
-    int64 id = 1;
+message GetResponse {
+	User user = 1;
 }
 
-message GetUserResponse {
-    int64 id = 1;
-    string name = 2;
-    string email = 3;
-    Role role = 4;
-    google.protobuf.Timestamp created_at = 5;
-    google.protobuf.Timestamp updated_at = 6;
+message UpdateRequest {
+	UserUpdate user = 1;
 }
 
-message UpdateUserRequest {
-    int64 id = 1;
-    google.protobuf.StringValue name = 2;
-    google.protobuf.StringValue email = 3;
-}
-
-message Empty {}
-
-message DeleteUserRequest {
+message DeleteRequest {
     int64 id = 1;
 }
