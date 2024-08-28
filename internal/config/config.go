@@ -1,26 +1,85 @@
 package config
 
 import (
+	"flag"
+	"fmt"
+	"log"
+	"net"
+	"os"
+	"strconv"
+	"time"
+
+	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
 )
 
-// GrpcConfig provides gRPC settings from config file.
-type GrpcConfig interface {
-	Address() string
-	Transport() string
-}
+type Env string
 
-// PgConfig provides PostgreSQL settings from config file.
-type PgConfig interface {
-	DSN() string
-}
+const (
+	Local Env = "local"
+	Dev   Env = "dev"
+	Prod  Env = "prod"
+)
 
-// Load reads .env config file.
-func Load(path string) error {
-	err := godotenv.Load(path)
-	if err != nil {
-		return err
+type (
+	Config struct {
+		Env      Env `env:"ENV" env-default:"local"`
+		GRPC     GRPC
+		Database DatabaseConfig
 	}
 
-	return nil
+	GRPC struct {
+		Host      string        `env:"GRPC_SERVER_HOST" env-default:"localhost"`
+		Port      int           `env:"GRPC_SERVER_PORT" env-default:"50051"`
+		Transport string        `env:"GRPC_SERVER_TRANSPORT" env-default:"tcp"`
+		Timeout   time.Duration `env:"GRPC_SERVER_TIMEOUT"`
+	}
+)
+
+func (c *GRPC) Address() string {
+	return net.JoinHostPort(c.Host, strconv.Itoa(c.Port))
+}
+
+type DatabaseConfig struct {
+	Host     string `env:"POSTGRES_HOST" env-required:"true"`
+	Port     string `env:"POSTGRES_PORT" env-required:"true"`
+	User     string `env:"POSTGRES_USER" env-required:"true"`
+	Password string `env:"POSTGRES_PASSWORD" env-required:"true"`
+	Name     string `env:"POSTGRES_DB" env-required:"true"`
+	DSN      string `env:"PG_DSN" env-required:"true"`
+}
+
+func NewConfig() (*Config, error) {
+	configPath := fetchConfigPath()
+
+	cfg := &Config{}
+	var err error
+
+	if configPath != "" {
+		err = godotenv.Load(configPath)
+	} else {
+		err = godotenv.Load()
+	}
+	if err != nil {
+		log.Printf("No loading .env file: %v", err)
+	}
+
+	if err = cleanenv.ReadEnv(cfg); err != nil {
+		return nil, fmt.Errorf("error reading env: %w", err)
+	}
+
+	return cfg, nil
+}
+
+func fetchConfigPath() string {
+	var configPath string
+	flag.StringVar(&configPath, "config", ".env", "Path to config file")
+
+	flag.Parse()
+
+	if configPath == "" {
+		configPath = os.Getenv("CONFIG_PATH")
+	}
+
+	return configPath
 }

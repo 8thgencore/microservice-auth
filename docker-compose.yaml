@@ -5,7 +5,7 @@ services:
     env_file:
       - .env.${ENV}
     ports:
-      - "${GRPC_PORT}:${GRPC_PORT}"
+      - "${GRPC_SERVER_PORT}:${GRPC_SERVER_PORT}"
     networks:
       - service-network
     depends_on:

@@ -1,10 +1,13 @@
+# Check if the ENV variable is set
 ifneq ($(ENV),)
 	include .env.$(ENV)
 endif
-
-LOCAL_BIN:=$(CURDIR)/bin
 CONFIG=.env.$(ENV)
-BINARY_NAME=main
+
+# Set the path to the local bin directory
+LOCAL_BIN:=$(CURDIR)/bin
+
+# Migration settings
 LOCAL_MIGRATION_DIR=$(MIGRATION_DIR)
 LOCAL_MIGRATION_DSN="host=localhost port=$(POSTGRES_PORT_LOCAL) dbname=$(POSTGRES_DB) user=$(POSTGRES_USER) password=$(POSTGRES_PASSWORD) sslmode=disable"
 
@@ -58,7 +61,7 @@ run-local:
 # ##### #
 
 build-app:
-	GOOS=linux GOARCH=amd64 go build -o $(LOCAL_BIN)/${BINARY_NAME} cmd/user/main.go
+	GOOS=linux GOARCH=amd64 go build -o $(LOCAL_BIN)/main cmd/user/main.go
 
 docker-net:
 	docker network create -d bridge service-net
