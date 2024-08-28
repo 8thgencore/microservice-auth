@@ -11,7 +11,7 @@ import (
 
 // Update is used for updating user info.
 func (i *Implementation) Update(ctx context.Context, req *pb.UpdateRequest) (*empty.Empty, error) {
-	err := i.userService.Update(ctx, converter.ToUserUpdateFromDesc(req.GetUser()))
+	err := i.userService.Update(ctx, converter.ToUserUpdateFromApi(req.GetUser()))
 	if err != nil {
 		return nil, err
 	}

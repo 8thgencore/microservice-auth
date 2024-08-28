@@ -9,7 +9,7 @@ import (
 
 // Create is used for creating new user.
 func (i *Implementation) Create(ctx context.Context, req *pb.CreateRequest) (*pb.CreateResponse, error) {
-	id, err := i.userService.Create(ctx, converter.ToUserCreateFromDesc(req.GetUser()))
+	id, err := i.userService.Create(ctx, converter.ToUserCreateFromApi(req.GetUser()))
 	if err != nil {
 		return nil, err
 	}
