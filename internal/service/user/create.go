@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/8thgencore/microservice_auth/internal/model"
-	errorsExt "github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -43,7 +42,7 @@ func (s *serv) Create(ctx context.Context, user *model.UserCreate) (int64, error
 	})
 
 	if err != nil {
-		if errorsExt.Cause(err) == ErrUserExists {
+		if errors.Is(err, ErrUserExists) {
 			return 0, ErrUserExists
 		}
 		return 0, errors.New("failed to create user")

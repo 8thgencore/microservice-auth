@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/8thgencore/microservice_auth/internal/config"
+	"github.com/8thgencore/microservice_auth/internal/interceptor"
 	"github.com/8thgencore/microservice_auth/pkg/closer"
 	"github.com/8thgencore/microservice_auth/pkg/logger"
 	pbUser "github.com/8thgencore/microservice_auth/pkg/user/v1"
@@ -94,7 +95,12 @@ func (a *App) initServiceProvider(_ context.Context) error {
 }
 
 func (a *App) initGRPCServer(ctx context.Context) error {
-	a.grpcServer = grpc.NewServer()
+	a.grpcServer = grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			interceptor.LogInterceptor,
+			interceptor.ValidateInterceptor,
+		),
+	)
 
 	// Upon the client's request, the server will automatically provide information on the supported methods.
 	reflection.Register(a.grpcServer)

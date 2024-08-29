@@ -2,10 +2,10 @@ package pg
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/8thgencore/microservice_auth/pkg/db"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/pkg/errors"
 )
 
 type pgClient struct {
@@ -17,7 +17,7 @@ func New(ctx context.Context, dsn string) (db.Client, error) {
 	dbc, err := pgxpool.New(ctx, dsn)
 
 	if err != nil {
-		return nil, errors.Errorf("failed to connect to db: %v", err)
+		return nil, fmt.Errorf("failed to connect to db: %v", err)
 	}
 
 	return &pgClient{
