@@ -39,6 +39,10 @@ func (impl *UserImplementation) Get(ctx context.Context, req *userv1.GetRequest)
 
 // Update is used for updating user info.
 func (impl *UserImplementation) Update(ctx context.Context, req *userv1.UpdateRequest) (*empty.Empty, error) {
+	if req == nil || req.GetUser() == nil {
+		return nil, fmt.Errorf("invalid request: user data is nil")
+	}
+
 	err := impl.userService.Update(ctx, converter.ToUserUpdateFromApi(req.GetUser()))
 	if err != nil {
 		return nil, err

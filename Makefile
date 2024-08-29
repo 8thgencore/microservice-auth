@@ -55,7 +55,7 @@ ifeq ($(ENV),)
 endif
 
 run-local:
-	go run cmd/user/main.go -config ${CONFIG}
+	$(LOCAL_BIN)/air
 
 # ##### #
 # BUILD #
