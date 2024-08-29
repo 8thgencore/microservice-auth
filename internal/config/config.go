@@ -21,32 +21,34 @@ const (
 	Prod  Env = "prod"
 )
 
-type (
-	Config struct {
-		Env      Env `env:"ENV" env-default:"local"`
-		GRPC     GRPC
-		Database DatabaseConfig
-	}
+type Config struct {
+	Env      Env `env:"ENV" env-default:"local"`
+	GRPC     GRPC
+	Database DatabaseConfig
+}
 
-	GRPC struct {
-		Host      string        `env:"GRPC_SERVER_HOST" env-default:"localhost"`
-		Port      int           `env:"GRPC_SERVER_PORT" env-default:"50051"`
-		Transport string        `env:"GRPC_SERVER_TRANSPORT" env-default:"tcp"`
-		Timeout   time.Duration `env:"GRPC_SERVER_TIMEOUT"`
-	}
-)
+type GRPC struct {
+	Host      string        `env:"GRPC_SERVER_HOST" env-default:"localhost"`
+	Port      int           `env:"GRPC_SERVER_PORT" env-default:"50051"`
+	Transport string        `env:"GRPC_SERVER_TRANSPORT" env-default:"tcp"`
+	Timeout   time.Duration `env:"GRPC_SERVER_TIMEOUT"`
+}
 
 func (c *GRPC) Address() string {
 	return net.JoinHostPort(c.Host, strconv.Itoa(c.Port))
 }
 
 type DatabaseConfig struct {
-	Host     string `env:"POSTGRES_HOST" env-required:"true"`
-	Port     string `env:"POSTGRES_PORT" env-required:"true"`
-	User     string `env:"POSTGRES_USER" env-required:"true"`
+	Host     string `env:"POSTGRES_HOST"     env-required:"true"`
+	Port     string `env:"POSTGRES_PORT"     env-required:"true"`
+	User     string `env:"POSTGRES_USER"     env-required:"true"`
 	Password string `env:"POSTGRES_PASSWORD" env-required:"true"`
-	Name     string `env:"POSTGRES_DB" env-required:"true"`
-	DSN      string `env:"PG_DSN" env-required:"true"`
+	Name     string `env:"POSTGRES_DB"       env-required:"true"`
+}
+
+func (c *DatabaseConfig) DSN() string {
+	return fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=disable",
+		c.Host, c.Port, c.Name, c.User, c.Password)
 }
 
 func NewConfig() (*Config, error) {

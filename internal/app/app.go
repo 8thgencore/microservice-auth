@@ -7,8 +7,10 @@ import (
 	"sync"
 
 	"github.com/8thgencore/microservice_auth/internal/config"
+	"github.com/8thgencore/microservice_auth/pkg/closer"
 	"github.com/8thgencore/microservice_auth/pkg/logger"
-	pb "github.com/8thgencore/microservice_auth/pkg/user/v1"
+	pbUser "github.com/8thgencore/microservice_auth/pkg/user/v1"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -16,13 +18,15 @@ import (
 // App structure contains main application structures.
 type App struct {
 	cfg *config.Config
+
+	serviceProvider *serviceProvider
+	grpcServer      *grpc.Server
 }
 
 // NewApp creates new App object.
 func NewApp(ctx context.Context) (*App, error) {
 	a := &App{}
-	err := a.initDeps(ctx)
-	if err != nil {
+	if err := a.initDeps(ctx); err != nil {
 		return nil, err
 	}
 	return a, nil
@@ -30,6 +34,10 @@ func NewApp(ctx context.Context) (*App, error) {
 
 // Run executes the application.
 func (a *App) Run() error {
+	defer func() {
+		closer.CloseAll()
+		closer.Wait()
+	}()
 
 	wg := sync.WaitGroup{}
 	wg.Add(1) // gRPC servers
@@ -37,8 +45,7 @@ func (a *App) Run() error {
 	go func() {
 		defer wg.Done()
 
-		err := a.runGrpcServer()
-		if err != nil {
+		if err := a.runGrpcServer(); err != nil {
 			log.Fatal("failed to run gRPC server: ", error.Error(err))
 		}
 	}()
@@ -52,12 +59,12 @@ func (a *App) initDeps(ctx context.Context) error {
 	inits := []func(context.Context) error{
 		a.initConfig,
 		a.initLogger,
-		a.initGrpcServer,
+		a.initServiceProvider,
+		a.initGRPCServer,
 	}
 
 	for _, f := range inits {
-		err := f(ctx)
-		if err != nil {
+		if err := f(ctx); err != nil {
 			return err
 		}
 	}
@@ -81,30 +88,37 @@ func (a *App) initLogger(_ context.Context) error {
 	return nil
 }
 
-// gRPC
-
-type server struct {
-	pb.UnimplementedUserV1Server
+func (a *App) initServiceProvider(_ context.Context) error {
+	a.serviceProvider = newServiceProvider(a.cfg)
+	return nil
 }
 
-func (a *App) initGrpcServer(ctx context.Context) error {
+func (a *App) initGRPCServer(ctx context.Context) error {
+	a.grpcServer = grpc.NewServer()
+
+	// Upon the client's request, the server will automatically provide information on the supported methods.
+	reflection.Register(a.grpcServer)
+
+	// Register service with corresponded interface.
+	pbUser.RegisterUserV1Server(a.grpcServer, a.serviceProvider.UserImpl(ctx))
+
 	return nil
 }
 
 func (a *App) runGrpcServer() error {
-	lis, err := net.Listen(a.cfg.GRPC.Transport, a.cfg.GRPC.Address())
+	cfg := a.serviceProvider.config.GRPC
+
+	// Open IP and port for server.
+	lis, err := net.Listen(cfg.Transport, cfg.Address())
 	if err != nil {
-		log.Fatalf("failed to listen grpc: %v", err)
+		return err
 	}
 
-	s := grpc.NewServer()
-	reflection.Register(s)
-	pb.RegisterUserV1Server(s, &server{})
+	logger.Info("gRPC server running on ", zap.String("address", cfg.Address()))
 
-	log.Printf("server listening at %v", lis.Addr())
-
-	if err = s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+	err = a.grpcServer.Serve(lis)
+	if err != nil {
+		return err
 	}
 
 	return nil

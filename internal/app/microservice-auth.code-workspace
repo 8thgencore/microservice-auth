@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../../microservice-chat"
+		},
+		{
+			"path": "../../../microservices_course"
+		}
+	],
+	"settings": {}
+}
