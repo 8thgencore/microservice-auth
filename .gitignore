@@ -41,3 +41,6 @@ coverage.*
 
 # Logs
 /logs/
+
+# air tmp directory
+tmp/
