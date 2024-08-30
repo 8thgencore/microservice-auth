@@ -6,6 +6,7 @@ import (
 	"net"
 	"sync"
 
+	"github.com/8thgencore/microservice_auth/internal/app/provider"
 	"github.com/8thgencore/microservice_auth/internal/config"
 	"github.com/8thgencore/microservice_auth/internal/interceptor"
 	"github.com/8thgencore/microservice_auth/pkg/closer"
@@ -20,7 +21,7 @@ import (
 type App struct {
 	cfg *config.Config
 
-	serviceProvider *serviceProvider
+	serviceProvider *provider.ServiceProvider
 	grpcServer      *grpc.Server
 }
 
@@ -90,7 +91,7 @@ func (a *App) initLogger(_ context.Context) error {
 }
 
 func (a *App) initServiceProvider(_ context.Context) error {
-	a.serviceProvider = newServiceProvider(a.cfg)
+	a.serviceProvider = provider.NewServiceProvider(a.cfg)
 	return nil
 }
 
@@ -112,7 +113,7 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 }
 
 func (a *App) runGrpcServer() error {
-	cfg := a.serviceProvider.config.GRPC
+	cfg := a.serviceProvider.Config.GRPC
 
 	// Open IP and port for server.
 	lis, err := net.Listen(cfg.Transport, cfg.Address())
