@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/8thgencore/microservice_auth/internal/app"
+	"github.com/8thgencore/microservice-auth/internal/app"
 )
 
 func main() {

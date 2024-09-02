@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/8thgencore/microservice_auth/internal/model"
+	"github.com/8thgencore/microservice-auth/internal/model"
 )
 
 // UserRepository is the interface for user info repository communication.

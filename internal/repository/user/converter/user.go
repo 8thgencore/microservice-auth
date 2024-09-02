@@ -1,8 +1,8 @@
 package converter
 
 import (
-	"github.com/8thgencore/microservice_auth/internal/model"
-	"github.com/8thgencore/microservice_auth/internal/repository/user/dao"
+	"github.com/8thgencore/microservice-auth/internal/model"
+	"github.com/8thgencore/microservice-auth/internal/repository/user/dao"
 )
 
 // ToUserFromRepo converts repository layer model to structure of service layer.

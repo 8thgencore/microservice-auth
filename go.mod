@@ -1,4 +1,4 @@
-module github.com/8thgencore/microservice_auth
+module github.com/8thgencore/microservice-auth
 
 go 1.23.0
 

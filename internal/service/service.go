@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/8thgencore/microservice_auth/internal/model"
+	"github.com/8thgencore/microservice-auth/internal/model"
 )
 
 // UserService is the interface for service communication.

@@ -1,13 +1,13 @@
 package user
 
 import (
-	"github.com/8thgencore/microservice_auth/internal/service"
-	pb "github.com/8thgencore/microservice_auth/pkg/user/v1"
+	"github.com/8thgencore/microservice-auth/internal/service"
+	userv1 "github.com/8thgencore/microservice-auth/pkg/user/v1"
 )
 
 // UserImplementation structure describes API layer.
 type UserImplementation struct {
-	pb.UnimplementedUserV1Server
+	userv1.UnimplementedUserV1Server
 	userService service.UserService
 }
 

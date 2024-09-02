@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/8thgencore/microservice_auth/pkg/db"
+	"github.com/8thgencore/microservice-auth/pkg/db"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

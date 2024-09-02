@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/8thgencore/microservice_auth/internal/model"
-	"github.com/8thgencore/microservice_auth/internal/repository"
-	"github.com/8thgencore/microservice_auth/pkg/db"
+	"github.com/8thgencore/microservice-auth/internal/model"
+	"github.com/8thgencore/microservice-auth/internal/repository"
+	"github.com/8thgencore/microservice-auth/pkg/db"
 	sq "github.com/Masterminds/squirrel"
 )
 

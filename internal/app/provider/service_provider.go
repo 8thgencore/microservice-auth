@@ -3,15 +3,15 @@ package provider
 import (
 	"context"
 
-	"github.com/8thgencore/microservice_auth/internal/config"
-	"github.com/8thgencore/microservice_auth/internal/delivery/user"
-	"github.com/8thgencore/microservice_auth/internal/repository"
-	"github.com/8thgencore/microservice_auth/internal/service"
-	"github.com/8thgencore/microservice_auth/pkg/db"
+	"github.com/8thgencore/microservice-auth/internal/config"
+	"github.com/8thgencore/microservice-auth/internal/delivery/user"
+	"github.com/8thgencore/microservice-auth/internal/repository"
+	"github.com/8thgencore/microservice-auth/internal/service"
+	"github.com/8thgencore/microservice-auth/pkg/db"
 
-	logRepository "github.com/8thgencore/microservice_auth/internal/repository/log"
-	userRepository "github.com/8thgencore/microservice_auth/internal/repository/user"
-	userService "github.com/8thgencore/microservice_auth/internal/service/user"
+	logRepository "github.com/8thgencore/microservice-auth/internal/repository/log"
+	userRepository "github.com/8thgencore/microservice-auth/internal/repository/user"
+	userService "github.com/8thgencore/microservice-auth/internal/service/user"
 )
 
 type ServiceProvider struct {

@@ -3,7 +3,7 @@ package interceptor
 import (
 	"context"
 
-	"github.com/8thgencore/microservice_auth/pkg/logger"
+	"github.com/8thgencore/microservice-auth/pkg/logger"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )

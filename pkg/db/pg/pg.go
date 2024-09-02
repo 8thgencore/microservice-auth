@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/8thgencore/microservice_auth/pkg/db"
-	"github.com/8thgencore/microservice_auth/pkg/db/prettier"
+	"github.com/8thgencore/microservice-auth/pkg/db"
+	"github.com/8thgencore/microservice-auth/pkg/db/prettier"
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"

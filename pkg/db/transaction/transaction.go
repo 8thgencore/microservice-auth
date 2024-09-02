@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/8thgencore/microservice_auth/pkg/db"
-	"github.com/8thgencore/microservice_auth/pkg/db/pg"
+	"github.com/8thgencore/microservice-auth/pkg/db"
+	"github.com/8thgencore/microservice-auth/pkg/db/pg"
 	"github.com/jackc/pgx/v5"
 )
 

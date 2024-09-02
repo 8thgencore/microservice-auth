@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/8thgencore/microservice_auth/internal/model"
+	"github.com/8thgencore/microservice-auth/internal/model"
 	"golang.org/x/crypto/bcrypt"
 )
 
