@@ -7,7 +7,7 @@ import (
 	"github.com/8thgencore/microservice-auth/internal/delivery/user"
 	"github.com/8thgencore/microservice-auth/internal/repository"
 	"github.com/8thgencore/microservice-auth/internal/service"
-	"github.com/8thgencore/microservice-auth/pkg/db"
+	"github.com/8thgencore/microservice-common/pkg/db"
 
 	logRepository "github.com/8thgencore/microservice-auth/internal/repository/log"
 	userRepository "github.com/8thgencore/microservice-auth/internal/repository/user"

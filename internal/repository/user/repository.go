@@ -11,7 +11,7 @@ import (
 	"github.com/8thgencore/microservice-auth/internal/repository/user/dao"
 	userService "github.com/8thgencore/microservice-auth/internal/service/user"
 
-	"github.com/8thgencore/microservice-auth/pkg/db"
+	"github.com/8thgencore/microservice-common/pkg/db"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"

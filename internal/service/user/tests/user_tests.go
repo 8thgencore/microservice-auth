@@ -8,8 +8,8 @@ import (
 
 	"github.com/8thgencore/microservice-auth/internal/model"
 	"github.com/8thgencore/microservice-auth/internal/repository"
-	"github.com/8thgencore/microservice-auth/pkg/db"
-	"github.com/8thgencore/microservice-auth/pkg/db/transaction"
+	"github.com/8thgencore/microservice-common/pkg/db"
+	"github.com/8thgencore/microservice-common/pkg/db/transaction"
 	"github.com/gojuno/minimock/v3"
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/require"

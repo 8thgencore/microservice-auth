@@ -3,11 +3,11 @@ package provider
 import (
 	"context"
 
-	"github.com/8thgencore/microservice-auth/pkg/closer"
-	"github.com/8thgencore/microservice-auth/pkg/db"
-	"github.com/8thgencore/microservice-auth/pkg/db/pg"
-	"github.com/8thgencore/microservice-auth/pkg/db/transaction"
-	"github.com/8thgencore/microservice-auth/pkg/logger"
+	"github.com/8thgencore/microservice-common/pkg/closer"
+	"github.com/8thgencore/microservice-common/pkg/db"
+	"github.com/8thgencore/microservice-common/pkg/db/pg"
+	"github.com/8thgencore/microservice-common/pkg/db/transaction"
+	"github.com/8thgencore/microservice-common/pkg/logger"
 	"go.uber.org/zap"
 )
 

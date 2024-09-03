@@ -3,7 +3,7 @@ package user
 import (
 	"github.com/8thgencore/microservice-auth/internal/repository"
 	"github.com/8thgencore/microservice-auth/internal/service"
-	"github.com/8thgencore/microservice-auth/pkg/db"
+	"github.com/8thgencore/microservice-common/pkg/db"
 )
 
 type serv struct {
