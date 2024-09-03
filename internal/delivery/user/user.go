@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/8thgencore/microservice-auth/internal/delivery/user/converter"
+	"github.com/8thgencore/microservice-auth/internal/converter"
 	"github.com/golang/protobuf/ptypes/empty"
 
 	userv1 "github.com/8thgencore/microservice-auth/pkg/user/v1"

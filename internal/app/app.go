@@ -11,7 +11,7 @@ import (
 	"github.com/8thgencore/microservice-auth/internal/interceptor"
 	"github.com/8thgencore/microservice-auth/pkg/closer"
 	"github.com/8thgencore/microservice-auth/pkg/logger"
-	pbUser "github.com/8thgencore/microservice-auth/pkg/user/v1"
+	userv1 "github.com/8thgencore/microservice-auth/pkg/user/v1"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -107,7 +107,7 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 	reflection.Register(a.grpcServer)
 
 	// Register service with corresponded interface.
-	pbUser.RegisterUserV1Server(a.grpcServer, a.serviceProvider.UserImpl(ctx))
+	userv1.RegisterUserV1Server(a.grpcServer, a.serviceProvider.UserImpl(ctx))
 
 	return nil
 }
