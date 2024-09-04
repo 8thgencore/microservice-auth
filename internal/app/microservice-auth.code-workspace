@@ -1,0 +1,13 @@
+{
+    "folders": [
+        {
+            "path": "../.."
+        },
+        {
+            "path": "../../../microservice-chat"
+        },
+        {
+            "path": "../../../microservice-common"
+        }
+    ]
+}

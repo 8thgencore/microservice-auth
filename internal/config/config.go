@@ -13,42 +13,54 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// Env represents the environment in which the application is running.
 type Env string
 
 const (
+	// Local environment.
 	Local Env = "local"
-	Dev   Env = "dev"
-	Prod  Env = "prod"
+	// Dev environment.
+	Dev Env = "dev"
+	// Prod environment.
+	Prod Env = "prod"
 )
 
-type (
-	Config struct {
-		Env      Env `env:"ENV" env-default:"local"`
-		GRPC     GRPC
-		Database DatabaseConfig
-	}
+// Config represents the configuration for the application.
+type Config struct {
+	Env      Env `env:"ENV" env-default:"local"`
+	GRPC     GRPC
+	Database DatabaseConfig
+}
 
-	GRPC struct {
-		Host      string        `env:"GRPC_SERVER_HOST" env-default:"localhost"`
-		Port      int           `env:"GRPC_SERVER_PORT" env-default:"50051"`
-		Transport string        `env:"GRPC_SERVER_TRANSPORT" env-default:"tcp"`
-		Timeout   time.Duration `env:"GRPC_SERVER_TIMEOUT"`
-	}
-)
+// GRPC represents the configuration for the GRPC server.
+type GRPC struct {
+	Host      string        `env:"GRPC_SERVER_HOST" env-default:"localhost"`
+	Port      int           `env:"GRPC_SERVER_PORT" env-default:"50051"`
+	Transport string        `env:"GRPC_SERVER_TRANSPORT" env-default:"tcp"`
+	Timeout   time.Duration `env:"GRPC_SERVER_TIMEOUT"`
+}
 
+// Address returns the address of the GRPC server in the format "host:port".
 func (c *GRPC) Address() string {
 	return net.JoinHostPort(c.Host, strconv.Itoa(c.Port))
 }
 
+// DatabaseConfig represents the configuration for the Postgres database.
 type DatabaseConfig struct {
-	Host     string `env:"POSTGRES_HOST" env-required:"true"`
-	Port     string `env:"POSTGRES_PORT" env-required:"true"`
-	User     string `env:"POSTGRES_USER" env-required:"true"`
+	Host     string `env:"POSTGRES_HOST"     env-required:"true"`
+	Port     string `env:"POSTGRES_PORT"     env-required:"true"`
+	User     string `env:"POSTGRES_USER"     env-required:"true"`
 	Password string `env:"POSTGRES_PASSWORD" env-required:"true"`
-	Name     string `env:"POSTGRES_DB" env-required:"true"`
-	DSN      string `env:"PG_DSN" env-required:"true"`
+	Name     string `env:"POSTGRES_DB"       env-required:"true"`
 }
 
+// DSN returns the data source name (DSN) for the database
+func (c *DatabaseConfig) DSN() string {
+	return fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=disable",
+		c.Host, c.Port, c.Name, c.User, c.Password)
+}
+
+// NewConfig creates a new instance of Config
 func NewConfig() (*Config, error) {
 	configPath := fetchConfigPath()
 

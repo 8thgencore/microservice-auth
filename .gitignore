@@ -8,6 +8,9 @@
 *.so
 *.dylib
 
+# vscode
+*.code-workspace
+
 # Test binary, built with `go test -c`
 *.test
 
@@ -41,3 +44,6 @@ coverage.*
 
 # Logs
 /logs/
+
+# air tmp directory
+tmp/

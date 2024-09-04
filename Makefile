@@ -11,20 +11,31 @@ LOCAL_BIN:=$(CURDIR)/bin
 LOCAL_MIGRATION_DIR=$(MIGRATION_DIR)
 LOCAL_MIGRATION_DSN="host=localhost port=$(POSTGRES_PORT_LOCAL) dbname=$(POSTGRES_DB) user=$(POSTGRES_USER) password=$(POSTGRES_PASSWORD) sslmode=disable"
 
+# Tests settings
+TESTS_PATH=./internal/service/...,./internal/api/...
+TESTS_ATTEMPTS=5
+TESTS_COVERAGE_FILE=coverage.out
+
+
 # #################### #
 # DEPENDENCIES & TOOLS #
 # #################### #
 
 install-deps:
+	GOBIN=$(LOCAL_BIN) go install github.com/air-verse/air@latest
 	GOBIN=$(LOCAL_BIN) go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.34.2
 	GOBIN=$(LOCAL_BIN) go install -mod=mod google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1
 	GOBIN=$(LOCAL_BIN) go install github.com/envoyproxy/protoc-gen-validate@v1.1.0
 	GOBIN=$(LOCAL_BIN) go install github.com/pressly/goose/v3/cmd/goose@v3.21.1
+	GOBIN=$(LOCAL_BIN) go install github.com/gojuno/minimock/v3/cmd/minimock@v3.4.0
+	GOBIN=$(LOCAL_BIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.3
 
 get-deps:
 	go get -u google.golang.org/protobuf/cmd/protoc-gen-go
 	go get -u google.golang.org/grpc/cmd/protoc-gen-go-grpc
 
+lint:
+	GOBIN=$(LOCAL_BIN) bin/golangci-lint run ./... --config .golangci.pipeline.yaml
 
 generate-api:
 	make generate-user-api
@@ -48,13 +59,35 @@ vendor-proto:
 			rm -rf vendor.protogen/protoc-gen-validate ;\
 		fi
 
+generate-mocks:
+	go generate ./internal/repository
+	go generate ./internal/service
+
 check-env:
 ifeq ($(ENV),)
 	$(error No environment specified)
 endif
 
 run-local:
-	go run cmd/user/main.go -config ${CONFIG}
+	$(LOCAL_BIN)/air
+
+
+# ##### #
+# TESTS #
+# ##### #
+
+test:
+	go clean -testcache
+	-go test ./... -v -covermode count -coverpkg=$(TESTS_PATH) -count $(TESTS_ATTEMPTS)
+
+test-coverage:
+	go clean -testcache
+	-go test ./... -v -coverprofile=$(TESTS_COVERAGE_FILE).tmp -covermode count -coverpkg=$(TESTS_PATH) -count $(TESTS_ATTEMPTS)
+	grep -v "mocks/" $(TESTS_COVERAGE_FILE).tmp > $(TESTS_COVERAGE_FILE)
+	rm $(TESTS_COVERAGE_FILE).tmp
+	go tool cover -html=$(TESTS_COVERAGE_FILE) -o coverage.html
+	go tool cover -func=$(TESTS_COVERAGE_FILE) | grep "total"
+
 
 # ##### #
 # BUILD #
