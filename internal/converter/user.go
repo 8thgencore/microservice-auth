@@ -26,8 +26,8 @@ func ToUserFromService(user *model.User) *userv1.User {
 	}
 }
 
-// ToUserCreateFromApi converts structure of API layer to service layer model.
-func ToUserCreateFromApi(user *userv1.UserCreate) *model.UserCreate {
+// ToUserCreateFromAPI converts structure of API layer to service layer model.
+func ToUserCreateFromAPI(user *userv1.UserCreate) *model.UserCreate {
 	return &model.UserCreate{
 		Name:            user.Name,
 		Email:           user.Email,
@@ -37,8 +37,8 @@ func ToUserCreateFromApi(user *userv1.UserCreate) *model.UserCreate {
 	}
 }
 
-// ToUserUpdateFromApi converts structure of API layer to service layer model.
-func ToUserUpdateFromApi(user *userv1.UserUpdate) *model.UserUpdate {
+// ToUserUpdateFromAPI converts structure of API layer to service layer model.
+func ToUserUpdateFromAPI(user *userv1.UserUpdate) *model.UserUpdate {
 	var (
 		name  sql.NullString
 		email sql.NullString

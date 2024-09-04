@@ -20,6 +20,7 @@ import (
 	dbMocks "github.com/8thgencore/microservice-common/pkg/db/mocks"
 )
 
+// TestCreate tests the creation of a new user.
 func TestCreate(t *testing.T) {
 	t.Parallel()
 
@@ -194,6 +195,7 @@ func TestCreate(t *testing.T) {
 	}
 }
 
+// TestGet tests the retrieval of an existing user.
 func TestGet(t *testing.T) {
 	t.Parallel()
 	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
@@ -341,6 +343,7 @@ func TestGet(t *testing.T) {
 	}
 }
 
+// TestUpdate tests the update of an existing user.
 func TestUpdate(t *testing.T) {
 	t.Parallel()
 	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
@@ -485,6 +488,7 @@ func TestUpdate(t *testing.T) {
 	}
 }
 
+// TestDelete tests the deletion of an existing user.
 func TestDelete(t *testing.T) {
 	t.Parallel()
 	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository

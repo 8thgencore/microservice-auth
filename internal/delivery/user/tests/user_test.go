@@ -108,7 +108,7 @@ func TestCreate(t *testing.T) {
 			t.Parallel()
 
 			userServiceMock := tt.userServiceMock(mc)
-			api := userAPI.NewUserImplementation(userServiceMock)
+			api := userAPI.NewImplementation(userServiceMock)
 
 			res, err := api.Create(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)
@@ -212,7 +212,7 @@ func TestGet(t *testing.T) {
 			t.Parallel()
 
 			userServiceMock := tt.userServiceMock(mc)
-			api := userAPI.NewUserImplementation(userServiceMock)
+			api := userAPI.NewImplementation(userServiceMock)
 
 			res, err := api.Get(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)
@@ -314,7 +314,7 @@ func TestUpdate(t *testing.T) {
 			t.Parallel()
 
 			userServiceMock := tt.userServiceMock(mc)
-			api := userAPI.NewUserImplementation(userServiceMock)
+			api := userAPI.NewImplementation(userServiceMock)
 
 			res, err := api.Update(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)
@@ -391,7 +391,7 @@ func TestDelete(t *testing.T) {
 			t.Parallel()
 
 			userServiceMock := tt.userServiceMock(mc)
-			api := userAPI.NewUserImplementation(userServiceMock)
+			api := userAPI.NewImplementation(userServiceMock)
 
 			res, err := api.Delete(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)

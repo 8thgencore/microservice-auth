@@ -11,12 +11,12 @@ import (
 )
 
 // Create is used for creating new user.
-func (impl *UserImplementation) Create(ctx context.Context, req *userv1.CreateRequest) (*userv1.CreateResponse, error) {
+func (impl *Implementation) Create(ctx context.Context, req *userv1.CreateRequest) (*userv1.CreateResponse, error) {
 	if req == nil || req.GetUser() == nil {
 		return nil, fmt.Errorf("invalid request: user data is nil")
 	}
 
-	id, err := impl.userService.Create(ctx, converter.ToUserCreateFromApi(req.GetUser()))
+	id, err := impl.userService.Create(ctx, converter.ToUserCreateFromAPI(req.GetUser()))
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,8 @@ func (impl *UserImplementation) Create(ctx context.Context, req *userv1.CreateRe
 	}, nil
 }
 
-func (impl *UserImplementation) Get(ctx context.Context, req *userv1.GetRequest) (*userv1.GetResponse, error) {
+// Get is used for getting user info.
+func (impl *Implementation) Get(ctx context.Context, req *userv1.GetRequest) (*userv1.GetResponse, error) {
 	user, err := impl.userService.Get(ctx, req.GetId())
 	if err != nil {
 		return nil, err
@@ -38,12 +39,12 @@ func (impl *UserImplementation) Get(ctx context.Context, req *userv1.GetRequest)
 }
 
 // Update is used for updating user info.
-func (impl *UserImplementation) Update(ctx context.Context, req *userv1.UpdateRequest) (*empty.Empty, error) {
+func (impl *Implementation) Update(ctx context.Context, req *userv1.UpdateRequest) (*empty.Empty, error) {
 	if req == nil || req.GetUser() == nil {
 		return nil, fmt.Errorf("invalid request: user data is nil")
 	}
 
-	err := impl.userService.Update(ctx, converter.ToUserUpdateFromApi(req.GetUser()))
+	err := impl.userService.Update(ctx, converter.ToUserUpdateFromAPI(req.GetUser()))
 	if err != nil {
 		return nil, err
 	}
@@ -52,8 +53,8 @@ func (impl *UserImplementation) Update(ctx context.Context, req *userv1.UpdateRe
 }
 
 // Delete is used for deleting user.
-func (imlp *UserImplementation) Delete(ctx context.Context, req *userv1.DeleteRequest) (*empty.Empty, error) {
-	err := imlp.userService.Delete(ctx, req.GetId())
+func (impl *Implementation) Delete(ctx context.Context, req *userv1.DeleteRequest) (*empty.Empty, error) {
+	err := impl.userService.Delete(ctx, req.GetId())
 	if err != nil {
 		return nil, err
 	}

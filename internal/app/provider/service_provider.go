@@ -14,6 +14,7 @@ import (
 	userService "github.com/8thgencore/microservice-auth/internal/service/user"
 )
 
+// ServiceProvider is a struct that provides access to various services and repositories.
 type ServiceProvider struct {
 	Config *config.Config
 
@@ -25,16 +26,17 @@ type ServiceProvider struct {
 
 	userService service.UserService
 
-	userImpl *user.UserImplementation
+	userImpl *user.Implementation
 }
 
+// NewServiceProvider creates a new instance of ServiceProvider with the given configuration.
 func NewServiceProvider(config *config.Config) *ServiceProvider {
 	return &ServiceProvider{
 		Config: config,
 	}
 }
 
-// Repository
+// UserRepository returns a user repository.
 func (s *ServiceProvider) UserRepository(ctx context.Context) repository.UserRepository {
 	if s.userRepository == nil {
 		s.userRepository = userRepository.NewRepository(s.DatabaseClient(ctx))
@@ -42,6 +44,7 @@ func (s *ServiceProvider) UserRepository(ctx context.Context) repository.UserRep
 	return s.userRepository
 }
 
+// LogRepository returns a log repository.
 func (s *ServiceProvider) LogRepository(ctx context.Context) repository.LogRepository {
 	if s.logRepository == nil {
 		s.logRepository = logRepository.NewRepository(s.DatabaseClient(ctx))
@@ -49,7 +52,7 @@ func (s *ServiceProvider) LogRepository(ctx context.Context) repository.LogRepos
 	return s.logRepository
 }
 
-// Service
+// UserService returns a user service.
 func (s *ServiceProvider) UserService(ctx context.Context) service.UserService {
 	if s.userService == nil {
 		s.userService = userService.NewService(s.UserRepository(ctx), s.LogRepository(ctx), s.TxManager(ctx))
@@ -57,9 +60,10 @@ func (s *ServiceProvider) UserService(ctx context.Context) service.UserService {
 	return s.userService
 }
 
-func (s *ServiceProvider) UserImpl(ctx context.Context) *user.UserImplementation {
+// UserImpl returns a user implementation.
+func (s *ServiceProvider) UserImpl(ctx context.Context) *user.Implementation {
 	if s.userImpl == nil {
-		s.userImpl = user.NewUserImplementation(s.UserService(ctx))
+		s.userImpl = user.NewImplementation(s.UserService(ctx))
 	}
 	return s.userImpl
 }
