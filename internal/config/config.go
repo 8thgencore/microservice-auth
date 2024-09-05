@@ -29,6 +29,8 @@ const (
 type Config struct {
 	Env      Env `env:"ENV" env-default:"local"`
 	GRPC     GRPC
+	HTTP     HTTPConfig
+	Swagger  SwaggerConfig
 	Database DatabaseConfig
 }
 
@@ -45,6 +47,28 @@ func (c *GRPC) Address() string {
 	return net.JoinHostPort(c.Host, strconv.Itoa(c.Port))
 }
 
+// HTTPConfig represents the configuration for the HTTP server.
+type HTTPConfig struct {
+	Host string `env:"HTTP_HOST" env-default:"0.0.0.0"`
+	Port int    `env:"HTTP_PORT" env-default:"8480"`
+}
+
+// Address returns the address of the HTTP server in the format "host:port".
+func (c *HTTPConfig) Address() string {
+	return net.JoinHostPort(c.Host, strconv.Itoa(c.Port))
+}
+
+// SwaggerConfig represents the configuration for the Swagger server.
+type SwaggerConfig struct {
+	Host string `env:"SWAGGER_HOST" env-default:"0.0.0.0"`
+	Port int    `env:"SWAGGER_PORT" env-default:"8490"`
+}
+
+// Address returns the address of the Swagger server in the format "host:port".
+func (c *SwaggerConfig) Address() string {
+	return net.JoinHostPort(c.Host, strconv.Itoa(c.Port))
+}
+
 // DatabaseConfig represents the configuration for the Postgres database.
 type DatabaseConfig struct {
 	Host     string `env:"POSTGRES_HOST"     env-required:"true"`
@@ -54,13 +78,13 @@ type DatabaseConfig struct {
 	Name     string `env:"POSTGRES_DB"       env-required:"true"`
 }
 
-// DSN returns the data source name (DSN) for the database
+// DSN returns the data source name (DSN) for the database.
 func (c *DatabaseConfig) DSN() string {
 	return fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=disable",
 		c.Host, c.Port, c.Name, c.User, c.Password)
 }
 
-// NewConfig creates a new instance of Config
+// NewConfig creates a new instance of Config.
 func NewConfig() (*Config, error) {
 	configPath := fetchConfigPath()
 
