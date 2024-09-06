@@ -59,7 +59,6 @@ generate-api: check-env
 	make generate-user-api
 
 generate-user-api:
-	mkdir -p pkg/swagger
 	make generate-user-api-v1
 	$(LOCAL_BIN)/statik -src=pkg/swagger/ -include='*.css,*.html,*.js,*.json,*.png'
 

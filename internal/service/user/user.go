@@ -79,6 +79,11 @@ func (s *serv) Get(ctx context.Context, id int64) (*model.User, error) {
 func (s *serv) Update(ctx context.Context, user *model.UserUpdate) error {
 	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
 		var errTx error
+		_, errTx = s.userRepository.Get(ctx, user.ID)
+		if errTx != nil {
+			return errTx
+		}
+
 		errTx = s.userRepository.Update(ctx, user)
 		if errTx != nil {
 			return errTx
@@ -103,6 +108,11 @@ func (s *serv) Update(ctx context.Context, user *model.UserUpdate) error {
 func (s *serv) Delete(ctx context.Context, id int64) error {
 	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
 		var errTx error
+		_, errTx = s.userRepository.Get(ctx, id)
+		if errTx != nil {
+			return errTx
+		}
+
 		errTx = s.userRepository.Delete(ctx, id)
 		if errTx != nil {
 			return errTx
