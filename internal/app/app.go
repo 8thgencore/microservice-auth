@@ -127,6 +127,7 @@ func (a *App) initServiceProvider(_ context.Context) error {
 
 func (a *App) initGRPCServer(ctx context.Context) error {
 	a.grpcServer = grpc.NewServer(
+		grpc.Creds(insecure.NewCredentials()),
 		grpc.ChainUnaryInterceptor(
 			interceptor.LogInterceptor,
 			interceptor.ValidateInterceptor,
@@ -150,6 +151,7 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	}
 
 	mux := runtime.NewServeMux()
+
 	if err := userv1.RegisterUserV1HandlerFromEndpoint(ctx, mux, cfg.GRPC.Address(), opts); err != nil {
 		return err
 	}
@@ -159,9 +161,9 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 		AllowedMethods:   []string{"GET", "POST", "DELETE", "PATCH", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Content-Type", "Content-Length", "Authorization"},
 		AllowCredentials: true,
-		AllowOriginFunc: func(origin string) bool {
-			return true
-		},
+		// AllowOriginFunc: func(_ string) bool {
+		// 	return true
+		// },
 	})
 
 	a.httpServer = &http.Server{
@@ -195,13 +197,13 @@ func (a *App) initSwaggerServer(_ context.Context) error {
 func (a *App) runGrpcServer() error {
 	cfg := a.serviceProvider.Config.GRPC
 
+	logger.Info("gRPC server running on ", zap.String("address", cfg.Address()))
+
 	// Open IP and port for server.
 	lis, err := net.Listen(cfg.Transport, cfg.Address())
 	if err != nil {
 		return err
 	}
-
-	logger.Info("gRPC server running on ", zap.String("address", cfg.Address()))
 
 	err = a.grpcServer.Serve(lis)
 	if err != nil {
