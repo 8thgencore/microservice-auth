@@ -43,15 +43,19 @@ install-deps:
 	GOBIN=$(LOCAL_BIN) go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.22.0
 	GOBIN=$(LOCAL_BIN) go install github.com/rakyll/statik@v0.1.7
 
+# Fetch Go dependencies
 get-deps:
 	go get -u google.golang.org/protobuf/cmd/protoc-gen-go
 	go get -u google.golang.org/grpc/cmd/protoc-gen-go-grpc
 
+# Linting
 lint:
 	GOBIN=$(LOCAL_BIN) bin/golangci-lint run ./... --config .golangci.pipeline.yaml
 
-generate-api:
-	make check-env
+# ############### #
+# CODE GENERATION #
+# ############### #
+generate-api: check-env
 	make generate-user-api
 
 generate-user-api:
@@ -76,7 +80,6 @@ generate-user-api-v1:
 	sed -i -e 's/{HTTP_HOST}/$(HTTP_HOST)/g' pkg/swagger/api.swagger.json
 	sed -i -e 's/{HTTP_PORT}/$(HTTP_PORT)/g' pkg/swagger/api.swagger.json
 
-
 vendor-proto:
 		@if [ ! -d vendor.protogen/validate ]; then \
 			mkdir -p vendor.protogen/validate &&\
@@ -100,10 +103,6 @@ vendor-proto:
 generate-mocks:
 	go generate ./internal/repository
 	go generate ./internal/service
-
-
-run-local:
-	$(LOCAL_BIN)/air
 
 # ##### #
 # TESTS #
@@ -161,3 +160,10 @@ local-migration-down: check-env
 
 docker-stop: check-env
 	docker compose --env-file=.env.$(ENV) down
+
+# ########### #
+# DEVELOPMENT #
+# ########### #
+
+dev:
+	$(LOCAL_BIN)/air
