@@ -47,3 +47,9 @@ coverage.*
 
 # air tmp directory
 tmp/
+
+# swagger file
+pkg/swagger/api.swagger.json
+
+# statik directory
+statik/
