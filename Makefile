@@ -1,3 +1,5 @@
+MAKEFLAGS += --no-print-directory
+
 # Check if the ENV variable is set
 ifneq ($(ENV),)
 	include .env.$(ENV)
@@ -16,6 +18,14 @@ TESTS_PATH=./internal/service/...,./internal/api/...
 TESTS_ATTEMPTS=5
 TESTS_COVERAGE_FILE=coverage.out
 
+# Warning message to ensure correct environment export
+.PHONY: check-env
+check-env:
+ifndef ENV
+	$(error "Please run 'export ENV=dev|stage|prod' and 'export $$(xargs < .env.$(ENV))' before executing make")
+else 
+	@echo "[INFO] Running make with environment: $(ENV)"
+endif
 
 # #################### #
 # DEPENDENCIES & TOOLS #
@@ -41,13 +51,13 @@ lint:
 	GOBIN=$(LOCAL_BIN) bin/golangci-lint run ./... --config .golangci.pipeline.yaml
 
 generate-api:
+	make check-env
 	make generate-user-api
 
 generate-user-api:
 	mkdir -p pkg/swagger
 	make generate-user-api-v1
 	$(LOCAL_BIN)/statik -src=pkg/swagger/ -include='*.css,*.html,*.js,*.json,*.png'
-
 
 generate-user-api-v1:
 	mkdir -p pkg/user/v1 pkg/swagger
@@ -91,14 +101,9 @@ generate-mocks:
 	go generate ./internal/repository
 	go generate ./internal/service
 
-check-env:
-ifeq ($(ENV),)
-	$(error No environment specified)
-endif
 
 run-local:
 	$(LOCAL_BIN)/air
-
 
 # ##### #
 # TESTS #
@@ -115,7 +120,6 @@ test-coverage:
 	rm $(TESTS_COVERAGE_FILE).tmp
 	go tool cover -html=$(TESTS_COVERAGE_FILE) -o coverage.html
 	go tool cover -func=$(TESTS_COVERAGE_FILE) | grep "total"
-
 
 # ##### #
 # BUILD #
