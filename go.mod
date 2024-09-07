@@ -31,8 +31,6 @@ require (
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/polshe-v/microservices_auth v0.0.0-20240708124346-52c41cf5e103
-	github.com/rakyll/statik v0.1.7
 	github.com/rs/cors v1.11.1
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/net v0.29.0 // indirect
