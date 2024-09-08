@@ -3,10 +3,9 @@ package app
 import (
 	"context"
 	"log"
+	"net"
 	"net/http"
 	"sync"
-
-	"net"
 
 	"github.com/8thgencore/microservice-auth/internal/app/provider"
 	"github.com/8thgencore/microservice-auth/internal/config"

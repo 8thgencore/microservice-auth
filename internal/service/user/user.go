@@ -40,7 +40,6 @@ func (s *serv) Create(ctx context.Context, user *model.UserCreate) (int64, error
 
 		return nil
 	})
-
 	if err != nil {
 		if errors.Is(err, ErrUserExists) {
 			return 0, ErrUserExists
@@ -69,7 +68,6 @@ func (s *serv) Get(ctx context.Context, id int64) (*model.User, error) {
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, errors.New("failed to read user info")
 	}
@@ -98,7 +96,6 @@ func (s *serv) Update(ctx context.Context, user *model.UserUpdate) error {
 
 		return nil
 	})
-
 	if err != nil {
 		return errors.New("failed to update user info")
 	}
@@ -127,7 +124,6 @@ func (s *serv) Delete(ctx context.Context, id int64) error {
 
 		return nil
 	})
-
 	if err != nil {
 		return errors.New("failed to delete user")
 	}

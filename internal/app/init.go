@@ -59,6 +59,7 @@ func (a *App) initServiceProvider(_ context.Context) error {
 	a.serviceProvider = provider.NewServiceProvider(a.cfg)
 	return nil
 }
+
 func (a *App) initGRPCServer(ctx context.Context) error {
 	a.grpcServer = grpc.NewServer(
 		grpc.Creds(insecure.NewCredentials()),
