@@ -19,11 +19,14 @@ RUN apk update && apk upgrade --available && \
 
 WORKDIR /opt/app/
 
-# Copy the entire application code into the working directory
-COPY . .
+# Copy the go.mod and go.sum first to install dependencies
+COPY go.mod go.sum ./
 
 # Download the Go module dependencies and verify them
 RUN go mod download && go mod verify
+
+# Copy the entire application code into the working directory
+COPY . .
 
 # Build the application using the 'make' command, passing the environment as a variable
 RUN make build-app ENV=${ENV}
