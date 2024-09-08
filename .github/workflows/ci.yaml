@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 env:
   REGISTRY: "docker.io"
@@ -27,6 +27,9 @@ jobs:
 
       - name: Create .env.stage file
         run: echo "${{ secrets.ENV_STAGE }}" > .env.stage
+
+      - name: Export environment variables from .env.stage
+        run: export $(xargs < .env.stage)
 
       - name: Build and Push Docker Image
         run: |
@@ -52,16 +55,16 @@ jobs:
           script: |
             # Set up variables
             TAG_NAME=$(echo $GITHUB_SHA | head -c7)
-            
+
             # Login into Registry
             docker login -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.REGISTRY_PASSWORD }} $REGISTRY
-            
+
             # Stop running container
             docker stop $CONTAINER_NAME
-            
+
             # Remove old container
             docker rm $CONTAINER_NAME
-            
+
             # Run a new container from a new image
             docker run -d -p 50051:50051 --name $CONTAINER_NAME \
             -t $REGISTRY/${{ secrets.REGISTRY_USERNAME }}/$IMAGE_NAME:$TAG_NAME

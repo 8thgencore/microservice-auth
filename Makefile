@@ -63,10 +63,6 @@ generate-api: check-env
 	make generate-user-api
 
 generate-user-api:
-	make generate-user-api-v1
-	$(LOCAL_BIN)/statik -src=pkg/swagger/ -include='*.css,*.html,*.js,*.json,*.png'
-
-generate-user-api-v1:
 	mkdir -p pkg/user/v1 pkg/swagger
 	protoc --proto_path api/user/v1 --proto_path vendor.protogen \
 	--go_out=pkg/user/v1 --go_opt=paths=source_relative \
