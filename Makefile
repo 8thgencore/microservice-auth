@@ -39,9 +39,9 @@ install-deps:
 	GOBIN=$(LOCAL_BIN) go install github.com/pressly/goose/v3/cmd/goose@v3.21.1
 	GOBIN=$(LOCAL_BIN) go install github.com/gojuno/minimock/v3/cmd/minimock@v3.4.0
 	GOBIN=$(LOCAL_BIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.3
+	GOBIN=$(LOCAL_BIN) go install mvdan.cc/gofumpt@latest
 	GOBIN=$(LOCAL_BIN) go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.22.0
 	GOBIN=$(LOCAL_BIN) go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.22.0
-	GOBIN=$(LOCAL_BIN) go install github.com/rakyll/statik@v0.1.7
 
 # Fetch Go dependencies
 get-deps:
@@ -52,6 +52,10 @@ get-deps:
 lint:
 	GOBIN=$(LOCAL_BIN) bin/golangci-lint run ./... --config .golangci.pipeline.yaml
 
+# Formating
+format:
+	GOBIN=$(LOCAL_BIN) bin/gofumpt -l -w .
+
 # ############### #
 # CODE GENERATION #
 # ############### #
@@ -59,11 +63,6 @@ generate-api: check-env
 	make generate-user-api
 
 generate-user-api:
-	mkdir -p pkg/swagger
-	make generate-user-api-v1
-	$(LOCAL_BIN)/statik -src=pkg/swagger/ -include='*.css,*.html,*.js,*.json,*.png'
-
-generate-user-api-v1:
 	mkdir -p pkg/user/v1 pkg/swagger
 	protoc --proto_path api/user/v1 --proto_path vendor.protogen \
 	--go_out=pkg/user/v1 --go_opt=paths=source_relative \

@@ -10,7 +10,7 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/jackc/pgerrcode v0.0.0-20240316143900-6e2875d9b438
-	github.com/jackc/pgx/v5 v5.6.0
+	github.com/jackc/pgx/v5 v5.7.0
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
@@ -31,8 +31,6 @@ require (
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/polshe-v/microservices_auth v0.0.0-20240708124346-52c41cf5e103
-	github.com/rakyll/statik v0.1.7
 	github.com/rs/cors v1.11.1
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/net v0.29.0 // indirect
