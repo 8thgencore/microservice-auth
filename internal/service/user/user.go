@@ -15,6 +15,9 @@ var ErrUserNameExists = errors.New("user with provided name already exists")
 // ErrUserEmailExists - custom error for email duplicate.
 var ErrUserEmailExists = errors.New("user with provided email already exists")
 
+// ErrUserEmailExists - custom error if user not found.
+var ErrUserNotFound = errors.New("user not found")
+
 func (s *serv) Create(ctx context.Context, user *model.UserCreate) (int64, error) {
 	if user.Password != user.PasswordConfirm {
 		return 0, errors.New("passwords don't match")
@@ -60,6 +63,9 @@ func (s *serv) Get(ctx context.Context, id int64) (*model.User, error) {
 		return s.logUserAction(ctx, "Read user info", id)
 	})
 	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			return nil, ErrUserNotFound
+		}
 		return nil, errors.New("failed to read user info")
 	}
 	return user, nil

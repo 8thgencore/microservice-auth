@@ -97,6 +97,9 @@ func (r *repo) Get(ctx context.Context, id int64) (*model.User, error) {
 	var user dao.User
 	err = r.db.DB().ScanOneContext(ctx, &user, q, args...)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, userService.ErrUserNotFound
+		}
 		return nil, err
 	}
 
