@@ -30,6 +30,7 @@ type Config struct {
 	Env      Env `env:"ENV" env-default:"local"`
 	GRPC     GRPC
 	HTTP     HTTPConfig
+	TLS      TLS
 	Swagger  SwaggerConfig
 	Database DatabaseConfig
 }
@@ -82,6 +83,12 @@ type DatabaseConfig struct {
 func (c *DatabaseConfig) DSN() string {
 	return fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=disable",
 		c.Host, c.Port, c.Name, c.User, c.Password)
+}
+
+// TLS represents the configuration for the TLS.
+type TLS struct {
+	CertPath string `env:"TLS_CERT_PATH"`
+	KeyPath  string `env:"TLS_KEY_PATH"`
 }
 
 // NewConfig creates a new instance of Config.

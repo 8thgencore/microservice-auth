@@ -18,6 +18,9 @@ TESTS_PATH=./internal/service/...,./internal/api/...
 TESTS_ATTEMPTS=5
 TESTS_COVERAGE_FILE=coverage.out
 
+# TLS settings
+TLS_PATH=tls
+
 # Warning message to ensure correct environment export
 .PHONY: check-env
 check-env:
@@ -102,6 +105,21 @@ vendor-proto:
 generate-mocks:
 	go generate ./internal/repository
 	go generate ./internal/service
+
+# Generation of a CA (Certification Authority)
+generate-ca: 
+	mkdir tls
+	openssl genpkey -algorithm ed25519 -out $(TLS_PATH)/ca.key
+	openssl req -new -x509 -key $(TLS_PATH)/ca.key -out $(TLS_PATH)/ca.pem -days 365 -sha256 -subj "/CN=My CA"
+
+# Generating a CA-signed certificate
+generate-cert: $(TLS_PATH)/ca.key $(TLS_PATH)/ca.pem
+	openssl genpkey -algorithm ed25519 -out $(TLS_PATH)/auth.key
+	openssl req -new -key $(TLS_PATH)/auth.key -config openssl.cnf -out $(TLS_PATH)/auth.csr
+	openssl x509 -req -in $(TLS_PATH)/auth.csr -CA $(TLS_PATH)/ca.pem -CAkey $(TLS_PATH)/ca.key \
+	-extfile openssl.cnf -extensions req_ext \
+	-out $(TLS_PATH)/auth.pem -days 365 -sha256
+	rm -rf $(TLS_PATH)/auth.csr
 
 # ##### #
 # TESTS #

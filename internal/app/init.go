@@ -16,7 +16,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/rs/cors"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -61,8 +61,14 @@ func (a *App) initServiceProvider(_ context.Context) error {
 }
 
 func (a *App) initGRPCServer(ctx context.Context) error {
+	creds, err := credentials.NewServerTLSFromFile(a.cfg.TLS.CertPath, a.cfg.TLS.KeyPath)
+	if err != nil {
+		return err
+	}
+	// creds = insecure.NewCredentials()
+
 	a.grpcServer = grpc.NewServer(
-		grpc.Creds(insecure.NewCredentials()),
+		grpc.Creds(creds),
 		grpc.ChainUnaryInterceptor(
 			interceptor.LogInterceptor,
 			interceptor.ValidateInterceptor,
@@ -77,15 +83,19 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 }
 
 func (a *App) initHTTPServer(ctx context.Context) error {
-	cfg := a.serviceProvider.Config
+	creds, err := credentials.NewClientTLSFromFile(a.cfg.TLS.CertPath, "")
+	if err != nil {
+		return err
+	}
+	// creds = insecure.NewCredentials()
 
 	opts := []grpc.DialOption{
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithTransportCredentials(creds),
 	}
 
 	mux := runtime.NewServeMux()
 
-	if err := userv1.RegisterUserV1HandlerFromEndpoint(ctx, mux, cfg.GRPC.Address(), opts); err != nil {
+	if err := userv1.RegisterUserV1HandlerFromEndpoint(ctx, mux, a.cfg.GRPC.Address(), opts); err != nil {
 		return err
 	}
 
@@ -97,7 +107,7 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	})
 
 	a.httpServer = &http.Server{
-		Addr:              cfg.HTTP.Address(),
+		Addr:              a.cfg.HTTP.Address(),
 		Handler:           corsMiddleware.Handler(mux),
 		ReadHeaderTimeout: 15 * time.Second,
 	}
