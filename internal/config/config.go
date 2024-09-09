@@ -36,10 +36,10 @@ type Config struct {
 
 // GRPC represents the configuration for the GRPC server.
 type GRPC struct {
-	Host      string        `env:"GRPC_SERVER_HOST" env-default:"localhost"`
-	Port      int           `env:"GRPC_SERVER_PORT" env-default:"50051"`
-	Transport string        `env:"GRPC_SERVER_TRANSPORT" env-default:"tcp"`
-	Timeout   time.Duration `env:"GRPC_SERVER_TIMEOUT"`
+	Host      string        `env:"GRPC_HOST" env-default:"localhost"`
+	Port      int           `env:"GRPC_PORT" env-default:"50051"`
+	Transport string        `env:"GRPC_TRANSPORT" env-default:"tcp"`
+	Timeout   time.Duration `env:"GRPC_TIMEOUT"`
 }
 
 // Address returns the address of the GRPC server in the format "host:port".
