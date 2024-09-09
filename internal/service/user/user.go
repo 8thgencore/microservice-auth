@@ -9,8 +9,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// ErrUserExists - custom error for user name duplicate.
-var ErrUserExists = errors.New("user with provided name or email already exists")
+// ErrUserNameExists - custom error for user name duplicate.
+var ErrUserNameExists = errors.New("user with provided name already exists")
+
+// ErrUserEmailExists - custom error for email duplicate.
+var ErrUserEmailExists = errors.New("user with provided email already exists")
 
 func (s *serv) Create(ctx context.Context, user *model.UserCreate) (int64, error) {
 	if user.Password != user.PasswordConfirm {
@@ -22,7 +25,6 @@ func (s *serv) Create(ctx context.Context, user *model.UserCreate) (int64, error
 		return 0, errors.New("failed to process password")
 	}
 	user.Password = string(hashedPassword)
-
 	var id int64
 	err = s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
 		var errTx error
@@ -31,18 +33,14 @@ func (s *serv) Create(ctx context.Context, user *model.UserCreate) (int64, error
 			return errTx
 		}
 
-		errTx = s.logRepository.Log(ctx, &model.Log{
-			Text: fmt.Sprintf("Created user with id: %d", id),
-		})
-		if errTx != nil {
-			return errTx
-		}
-
-		return nil
+		return s.logUserAction(ctx, "Created user", id)
 	})
 	if err != nil {
-		if errors.Is(err, ErrUserExists) {
-			return 0, ErrUserExists
+		if errors.Is(err, ErrUserNameExists) {
+			return 0, ErrUserNameExists
+		}
+		if errors.Is(err, ErrUserEmailExists) {
+			return 0, ErrUserEmailExists
 		}
 		return 0, errors.New("failed to create user")
 	}
@@ -59,14 +57,7 @@ func (s *serv) Get(ctx context.Context, id int64) (*model.User, error) {
 			return errTx
 		}
 
-		errTx = s.logRepository.Log(ctx, &model.Log{
-			Text: fmt.Sprintf("Read info about user with id: %d", id),
-		})
-		if errTx != nil {
-			return errTx
-		}
-
-		return nil
+		return s.logUserAction(ctx, "Read user info", id)
 	})
 	if err != nil {
 		return nil, errors.New("failed to read user info")
@@ -76,8 +67,7 @@ func (s *serv) Get(ctx context.Context, id int64) (*model.User, error) {
 
 func (s *serv) Update(ctx context.Context, user *model.UserUpdate) error {
 	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
-		var errTx error
-		_, errTx = s.userRepository.Get(ctx, user.ID)
+		_, errTx := s.userRepository.Get(ctx, user.ID)
 		if errTx != nil {
 			return errTx
 		}
@@ -87,18 +77,14 @@ func (s *serv) Update(ctx context.Context, user *model.UserUpdate) error {
 			return errTx
 		}
 
-		errTx = s.logRepository.Log(ctx, &model.Log{
-			Text: fmt.Sprintf("Updated user with id: %d", user.ID),
-		})
-		if errTx != nil {
-			return errTx
-		}
-
-		return nil
+		return s.logUserAction(ctx, "Updated user", user.ID)
 	})
 	if err != nil {
-		if errors.Is(err, ErrUserExists) {
-			return ErrUserExists
+		if errors.Is(err, ErrUserNameExists) {
+			return ErrUserNameExists
+		}
+		if errors.Is(err, ErrUserEmailExists) {
+			return ErrUserEmailExists
 		}
 		return errors.New("failed to update user info")
 	}
@@ -107,8 +93,7 @@ func (s *serv) Update(ctx context.Context, user *model.UserUpdate) error {
 
 func (s *serv) Delete(ctx context.Context, id int64) error {
 	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
-		var errTx error
-		_, errTx = s.userRepository.Get(ctx, id)
+		_, errTx := s.userRepository.Get(ctx, id)
 		if errTx != nil {
 			return errTx
 		}
@@ -118,17 +103,17 @@ func (s *serv) Delete(ctx context.Context, id int64) error {
 			return errTx
 		}
 
-		errTx = s.logRepository.Log(ctx, &model.Log{
-			Text: fmt.Sprintf("Deleted user with id: %d", id),
-		})
-		if errTx != nil {
-			return errTx
-		}
-
-		return nil
+		return s.logUserAction(ctx, "Deleted user", id)
 	})
 	if err != nil {
 		return errors.New("failed to delete user")
 	}
 	return nil
+}
+
+// logUserAction is a helper function to log actions performed on a user.
+func (s *serv) logUserAction(ctx context.Context, action string, userID int64) error {
+	return s.logRepository.Log(ctx, &model.Log{
+		Text: fmt.Sprintf("%s with id: %d", action, userID),
+	})
 }
