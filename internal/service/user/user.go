@@ -97,6 +97,9 @@ func (s *serv) Update(ctx context.Context, user *model.UserUpdate) error {
 		return nil
 	})
 	if err != nil {
+		if errors.Is(err, ErrUserExists) {
+			return ErrUserExists
+		}
 		return errors.New("failed to update user info")
 	}
 	return nil

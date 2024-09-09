@@ -125,6 +125,10 @@ func (r *repo) Update(ctx context.Context, user *model.UserUpdate) error {
 
 	_, err = r.db.DB().ExecContext(ctx, q, args...)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
+			return userService.ErrUserExists
+		}
 		return err
 	}
 
