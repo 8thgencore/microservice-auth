@@ -17,19 +17,33 @@ type TokenOperationsMock struct {
 	t          minimock.Tester
 	finishOnce sync.Once
 
-	funcGenerate          func(user model.User, secretKey []byte, duration time.Duration) (s1 string, err error)
-	funcGenerateOrigin    string
-	inspectFuncGenerate   func(user model.User, secretKey []byte, duration time.Duration)
-	afterGenerateCounter  uint64
-	beforeGenerateCounter uint64
-	GenerateMock          mTokenOperationsMockGenerate
+	funcGenerateAccessToken          func(user model.User, secretKey []byte, duration time.Duration) (s1 string, err error)
+	funcGenerateAccessTokenOrigin    string
+	inspectFuncGenerateAccessToken   func(user model.User, secretKey []byte, duration time.Duration)
+	afterGenerateAccessTokenCounter  uint64
+	beforeGenerateAccessTokenCounter uint64
+	GenerateAccessTokenMock          mTokenOperationsMockGenerateAccessToken
 
-	funcVerify          func(tokenStr string, secretKey []byte) (up1 *model.UserClaims, err error)
-	funcVerifyOrigin    string
-	inspectFuncVerify   func(tokenStr string, secretKey []byte)
-	afterVerifyCounter  uint64
-	beforeVerifyCounter uint64
-	VerifyMock          mTokenOperationsMockVerify
+	funcGenerateRefreshToken          func(userID int64, secretKey []byte, duration time.Duration) (s1 string, err error)
+	funcGenerateRefreshTokenOrigin    string
+	inspectFuncGenerateRefreshToken   func(userID int64, secretKey []byte, duration time.Duration)
+	afterGenerateRefreshTokenCounter  uint64
+	beforeGenerateRefreshTokenCounter uint64
+	GenerateRefreshTokenMock          mTokenOperationsMockGenerateRefreshToken
+
+	funcVerifyAccessToken          func(tokenStr string, secretKey []byte) (up1 *model.UserClaims, err error)
+	funcVerifyAccessTokenOrigin    string
+	inspectFuncVerifyAccessToken   func(tokenStr string, secretKey []byte)
+	afterVerifyAccessTokenCounter  uint64
+	beforeVerifyAccessTokenCounter uint64
+	VerifyAccessTokenMock          mTokenOperationsMockVerifyAccessToken
+
+	funcVerifyRefreshToken          func(tokenStr string, secretKey []byte) (rp1 *model.RefreshClaims, err error)
+	funcVerifyRefreshTokenOrigin    string
+	inspectFuncVerifyRefreshToken   func(tokenStr string, secretKey []byte)
+	afterVerifyRefreshTokenCounter  uint64
+	beforeVerifyRefreshTokenCounter uint64
+	VerifyRefreshTokenMock          mTokenOperationsMockVerifyRefreshToken
 }
 
 // NewTokenOperationsMock returns a mock for mm_tokens.TokenOperations
@@ -40,63 +54,69 @@ func NewTokenOperationsMock(t minimock.Tester) *TokenOperationsMock {
 		controller.RegisterMocker(m)
 	}
 
-	m.GenerateMock = mTokenOperationsMockGenerate{mock: m}
-	m.GenerateMock.callArgs = []*TokenOperationsMockGenerateParams{}
+	m.GenerateAccessTokenMock = mTokenOperationsMockGenerateAccessToken{mock: m}
+	m.GenerateAccessTokenMock.callArgs = []*TokenOperationsMockGenerateAccessTokenParams{}
 
-	m.VerifyMock = mTokenOperationsMockVerify{mock: m}
-	m.VerifyMock.callArgs = []*TokenOperationsMockVerifyParams{}
+	m.GenerateRefreshTokenMock = mTokenOperationsMockGenerateRefreshToken{mock: m}
+	m.GenerateRefreshTokenMock.callArgs = []*TokenOperationsMockGenerateRefreshTokenParams{}
+
+	m.VerifyAccessTokenMock = mTokenOperationsMockVerifyAccessToken{mock: m}
+	m.VerifyAccessTokenMock.callArgs = []*TokenOperationsMockVerifyAccessTokenParams{}
+
+	m.VerifyRefreshTokenMock = mTokenOperationsMockVerifyRefreshToken{mock: m}
+	m.VerifyRefreshTokenMock.callArgs = []*TokenOperationsMockVerifyRefreshTokenParams{}
 
 	t.Cleanup(m.MinimockFinish)
 
 	return m
 }
 
-type mTokenOperationsMockGenerate struct {
+type mTokenOperationsMockGenerateAccessToken struct {
 	optional           bool
 	mock               *TokenOperationsMock
-	defaultExpectation *TokenOperationsMockGenerateExpectation
-	expectations       []*TokenOperationsMockGenerateExpectation
+	defaultExpectation *TokenOperationsMockGenerateAccessTokenExpectation
+	expectations       []*TokenOperationsMockGenerateAccessTokenExpectation
 
-	callArgs []*TokenOperationsMockGenerateParams
+	callArgs []*TokenOperationsMockGenerateAccessTokenParams
 	mutex    sync.RWMutex
 
 	expectedInvocations       uint64
 	expectedInvocationsOrigin string
 }
 
-// TokenOperationsMockGenerateExpectation specifies expectation struct of the TokenOperations.Generate
-type TokenOperationsMockGenerateExpectation struct {
+// TokenOperationsMockGenerateAccessTokenExpectation specifies expectation struct of the TokenOperations.GenerateAccessToken
+type TokenOperationsMockGenerateAccessTokenExpectation struct {
 	mock               *TokenOperationsMock
-	params             *TokenOperationsMockGenerateParams
-	paramPtrs          *TokenOperationsMockGenerateParamPtrs
-	expectationOrigins TokenOperationsMockGenerateExpectationOrigins
-	results            *TokenOperationsMockGenerateResults
+	params             *TokenOperationsMockGenerateAccessTokenParams
+	paramPtrs          *TokenOperationsMockGenerateAccessTokenParamPtrs
+	expectationOrigins TokenOperationsMockGenerateAccessTokenExpectationOrigins
+	results            *TokenOperationsMockGenerateAccessTokenResults
 	returnOrigin       string
 	Counter            uint64
 }
 
-// TokenOperationsMockGenerateParams contains parameters of the TokenOperations.Generate
-type TokenOperationsMockGenerateParams struct {
+// TokenOperationsMockGenerateAccessTokenParams contains parameters of the TokenOperations.GenerateAccessToken
+type TokenOperationsMockGenerateAccessTokenParams struct {
 	user      model.User
 	secretKey []byte
 	duration  time.Duration
 }
 
-// TokenOperationsMockGenerateParamPtrs contains pointers to parameters of the TokenOperations.Generate
-type TokenOperationsMockGenerateParamPtrs struct {
+// TokenOperationsMockGenerateAccessTokenParamPtrs contains pointers to parameters of the TokenOperations.GenerateAccessToken
+type TokenOperationsMockGenerateAccessTokenParamPtrs struct {
 	user      *model.User
 	secretKey *[]byte
 	duration  *time.Duration
 }
 
-// TokenOperationsMockGenerateResults contains results of the TokenOperations.Generate
-type TokenOperationsMockGenerateResults struct {
+// TokenOperationsMockGenerateAccessTokenResults contains results of the TokenOperations.GenerateAccessToken
+type TokenOperationsMockGenerateAccessTokenResults struct {
 	s1  string
 	err error
 }
 
-// TokenOperationsMockGenerateOrigins contains origins of expectations of the TokenOperations.Generate
-type TokenOperationsMockGenerateExpectationOrigins struct {
+// TokenOperationsMockGenerateAccessTokenOrigins contains origins of expectations of the TokenOperations.GenerateAccessToken
+type TokenOperationsMockGenerateAccessTokenExpectationOrigins struct {
 	origin          string
 	originUser      string
 	originSecretKey string
@@ -108,367 +128,741 @@ type TokenOperationsMockGenerateExpectationOrigins struct {
 // Optional() makes method check to work in '0 or more' mode.
 // It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
 // catch the problems when the expected method call is totally skipped during test run.
-func (mmGenerate *mTokenOperationsMockGenerate) Optional() *mTokenOperationsMockGenerate {
-	mmGenerate.optional = true
-	return mmGenerate
+func (mmGenerateAccessToken *mTokenOperationsMockGenerateAccessToken) Optional() *mTokenOperationsMockGenerateAccessToken {
+	mmGenerateAccessToken.optional = true
+	return mmGenerateAccessToken
 }
 
-// Expect sets up expected params for TokenOperations.Generate
-func (mmGenerate *mTokenOperationsMockGenerate) Expect(user model.User, secretKey []byte, duration time.Duration) *mTokenOperationsMockGenerate {
-	if mmGenerate.mock.funcGenerate != nil {
-		mmGenerate.mock.t.Fatalf("TokenOperationsMock.Generate mock is already set by Set")
+// Expect sets up expected params for TokenOperations.GenerateAccessToken
+func (mmGenerateAccessToken *mTokenOperationsMockGenerateAccessToken) Expect(user model.User, secretKey []byte, duration time.Duration) *mTokenOperationsMockGenerateAccessToken {
+	if mmGenerateAccessToken.mock.funcGenerateAccessToken != nil {
+		mmGenerateAccessToken.mock.t.Fatalf("TokenOperationsMock.GenerateAccessToken mock is already set by Set")
 	}
 
-	if mmGenerate.defaultExpectation == nil {
-		mmGenerate.defaultExpectation = &TokenOperationsMockGenerateExpectation{}
+	if mmGenerateAccessToken.defaultExpectation == nil {
+		mmGenerateAccessToken.defaultExpectation = &TokenOperationsMockGenerateAccessTokenExpectation{}
 	}
 
-	if mmGenerate.defaultExpectation.paramPtrs != nil {
-		mmGenerate.mock.t.Fatalf("TokenOperationsMock.Generate mock is already set by ExpectParams functions")
+	if mmGenerateAccessToken.defaultExpectation.paramPtrs != nil {
+		mmGenerateAccessToken.mock.t.Fatalf("TokenOperationsMock.GenerateAccessToken mock is already set by ExpectParams functions")
 	}
 
-	mmGenerate.defaultExpectation.params = &TokenOperationsMockGenerateParams{user, secretKey, duration}
-	mmGenerate.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
-	for _, e := range mmGenerate.expectations {
-		if minimock.Equal(e.params, mmGenerate.defaultExpectation.params) {
-			mmGenerate.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmGenerate.defaultExpectation.params)
+	mmGenerateAccessToken.defaultExpectation.params = &TokenOperationsMockGenerateAccessTokenParams{user, secretKey, duration}
+	mmGenerateAccessToken.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmGenerateAccessToken.expectations {
+		if minimock.Equal(e.params, mmGenerateAccessToken.defaultExpectation.params) {
+			mmGenerateAccessToken.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmGenerateAccessToken.defaultExpectation.params)
 		}
 	}
 
-	return mmGenerate
+	return mmGenerateAccessToken
 }
 
-// ExpectUserParam1 sets up expected param user for TokenOperations.Generate
-func (mmGenerate *mTokenOperationsMockGenerate) ExpectUserParam1(user model.User) *mTokenOperationsMockGenerate {
-	if mmGenerate.mock.funcGenerate != nil {
-		mmGenerate.mock.t.Fatalf("TokenOperationsMock.Generate mock is already set by Set")
+// ExpectUserParam1 sets up expected param user for TokenOperations.GenerateAccessToken
+func (mmGenerateAccessToken *mTokenOperationsMockGenerateAccessToken) ExpectUserParam1(user model.User) *mTokenOperationsMockGenerateAccessToken {
+	if mmGenerateAccessToken.mock.funcGenerateAccessToken != nil {
+		mmGenerateAccessToken.mock.t.Fatalf("TokenOperationsMock.GenerateAccessToken mock is already set by Set")
 	}
 
-	if mmGenerate.defaultExpectation == nil {
-		mmGenerate.defaultExpectation = &TokenOperationsMockGenerateExpectation{}
+	if mmGenerateAccessToken.defaultExpectation == nil {
+		mmGenerateAccessToken.defaultExpectation = &TokenOperationsMockGenerateAccessTokenExpectation{}
 	}
 
-	if mmGenerate.defaultExpectation.params != nil {
-		mmGenerate.mock.t.Fatalf("TokenOperationsMock.Generate mock is already set by Expect")
+	if mmGenerateAccessToken.defaultExpectation.params != nil {
+		mmGenerateAccessToken.mock.t.Fatalf("TokenOperationsMock.GenerateAccessToken mock is already set by Expect")
 	}
 
-	if mmGenerate.defaultExpectation.paramPtrs == nil {
-		mmGenerate.defaultExpectation.paramPtrs = &TokenOperationsMockGenerateParamPtrs{}
+	if mmGenerateAccessToken.defaultExpectation.paramPtrs == nil {
+		mmGenerateAccessToken.defaultExpectation.paramPtrs = &TokenOperationsMockGenerateAccessTokenParamPtrs{}
 	}
-	mmGenerate.defaultExpectation.paramPtrs.user = &user
-	mmGenerate.defaultExpectation.expectationOrigins.originUser = minimock.CallerInfo(1)
+	mmGenerateAccessToken.defaultExpectation.paramPtrs.user = &user
+	mmGenerateAccessToken.defaultExpectation.expectationOrigins.originUser = minimock.CallerInfo(1)
 
-	return mmGenerate
+	return mmGenerateAccessToken
 }
 
-// ExpectSecretKeyParam2 sets up expected param secretKey for TokenOperations.Generate
-func (mmGenerate *mTokenOperationsMockGenerate) ExpectSecretKeyParam2(secretKey []byte) *mTokenOperationsMockGenerate {
-	if mmGenerate.mock.funcGenerate != nil {
-		mmGenerate.mock.t.Fatalf("TokenOperationsMock.Generate mock is already set by Set")
+// ExpectSecretKeyParam2 sets up expected param secretKey for TokenOperations.GenerateAccessToken
+func (mmGenerateAccessToken *mTokenOperationsMockGenerateAccessToken) ExpectSecretKeyParam2(secretKey []byte) *mTokenOperationsMockGenerateAccessToken {
+	if mmGenerateAccessToken.mock.funcGenerateAccessToken != nil {
+		mmGenerateAccessToken.mock.t.Fatalf("TokenOperationsMock.GenerateAccessToken mock is already set by Set")
 	}
 
-	if mmGenerate.defaultExpectation == nil {
-		mmGenerate.defaultExpectation = &TokenOperationsMockGenerateExpectation{}
+	if mmGenerateAccessToken.defaultExpectation == nil {
+		mmGenerateAccessToken.defaultExpectation = &TokenOperationsMockGenerateAccessTokenExpectation{}
 	}
 
-	if mmGenerate.defaultExpectation.params != nil {
-		mmGenerate.mock.t.Fatalf("TokenOperationsMock.Generate mock is already set by Expect")
+	if mmGenerateAccessToken.defaultExpectation.params != nil {
+		mmGenerateAccessToken.mock.t.Fatalf("TokenOperationsMock.GenerateAccessToken mock is already set by Expect")
 	}
 
-	if mmGenerate.defaultExpectation.paramPtrs == nil {
-		mmGenerate.defaultExpectation.paramPtrs = &TokenOperationsMockGenerateParamPtrs{}
+	if mmGenerateAccessToken.defaultExpectation.paramPtrs == nil {
+		mmGenerateAccessToken.defaultExpectation.paramPtrs = &TokenOperationsMockGenerateAccessTokenParamPtrs{}
 	}
-	mmGenerate.defaultExpectation.paramPtrs.secretKey = &secretKey
-	mmGenerate.defaultExpectation.expectationOrigins.originSecretKey = minimock.CallerInfo(1)
+	mmGenerateAccessToken.defaultExpectation.paramPtrs.secretKey = &secretKey
+	mmGenerateAccessToken.defaultExpectation.expectationOrigins.originSecretKey = minimock.CallerInfo(1)
 
-	return mmGenerate
+	return mmGenerateAccessToken
 }
 
-// ExpectDurationParam3 sets up expected param duration for TokenOperations.Generate
-func (mmGenerate *mTokenOperationsMockGenerate) ExpectDurationParam3(duration time.Duration) *mTokenOperationsMockGenerate {
-	if mmGenerate.mock.funcGenerate != nil {
-		mmGenerate.mock.t.Fatalf("TokenOperationsMock.Generate mock is already set by Set")
+// ExpectDurationParam3 sets up expected param duration for TokenOperations.GenerateAccessToken
+func (mmGenerateAccessToken *mTokenOperationsMockGenerateAccessToken) ExpectDurationParam3(duration time.Duration) *mTokenOperationsMockGenerateAccessToken {
+	if mmGenerateAccessToken.mock.funcGenerateAccessToken != nil {
+		mmGenerateAccessToken.mock.t.Fatalf("TokenOperationsMock.GenerateAccessToken mock is already set by Set")
 	}
 
-	if mmGenerate.defaultExpectation == nil {
-		mmGenerate.defaultExpectation = &TokenOperationsMockGenerateExpectation{}
+	if mmGenerateAccessToken.defaultExpectation == nil {
+		mmGenerateAccessToken.defaultExpectation = &TokenOperationsMockGenerateAccessTokenExpectation{}
 	}
 
-	if mmGenerate.defaultExpectation.params != nil {
-		mmGenerate.mock.t.Fatalf("TokenOperationsMock.Generate mock is already set by Expect")
+	if mmGenerateAccessToken.defaultExpectation.params != nil {
+		mmGenerateAccessToken.mock.t.Fatalf("TokenOperationsMock.GenerateAccessToken mock is already set by Expect")
 	}
 
-	if mmGenerate.defaultExpectation.paramPtrs == nil {
-		mmGenerate.defaultExpectation.paramPtrs = &TokenOperationsMockGenerateParamPtrs{}
+	if mmGenerateAccessToken.defaultExpectation.paramPtrs == nil {
+		mmGenerateAccessToken.defaultExpectation.paramPtrs = &TokenOperationsMockGenerateAccessTokenParamPtrs{}
 	}
-	mmGenerate.defaultExpectation.paramPtrs.duration = &duration
-	mmGenerate.defaultExpectation.expectationOrigins.originDuration = minimock.CallerInfo(1)
+	mmGenerateAccessToken.defaultExpectation.paramPtrs.duration = &duration
+	mmGenerateAccessToken.defaultExpectation.expectationOrigins.originDuration = minimock.CallerInfo(1)
 
-	return mmGenerate
+	return mmGenerateAccessToken
 }
 
-// Inspect accepts an inspector function that has same arguments as the TokenOperations.Generate
-func (mmGenerate *mTokenOperationsMockGenerate) Inspect(f func(user model.User, secretKey []byte, duration time.Duration)) *mTokenOperationsMockGenerate {
-	if mmGenerate.mock.inspectFuncGenerate != nil {
-		mmGenerate.mock.t.Fatalf("Inspect function is already set for TokenOperationsMock.Generate")
+// Inspect accepts an inspector function that has same arguments as the TokenOperations.GenerateAccessToken
+func (mmGenerateAccessToken *mTokenOperationsMockGenerateAccessToken) Inspect(f func(user model.User, secretKey []byte, duration time.Duration)) *mTokenOperationsMockGenerateAccessToken {
+	if mmGenerateAccessToken.mock.inspectFuncGenerateAccessToken != nil {
+		mmGenerateAccessToken.mock.t.Fatalf("Inspect function is already set for TokenOperationsMock.GenerateAccessToken")
 	}
 
-	mmGenerate.mock.inspectFuncGenerate = f
+	mmGenerateAccessToken.mock.inspectFuncGenerateAccessToken = f
 
-	return mmGenerate
+	return mmGenerateAccessToken
 }
 
-// Return sets up results that will be returned by TokenOperations.Generate
-func (mmGenerate *mTokenOperationsMockGenerate) Return(s1 string, err error) *TokenOperationsMock {
-	if mmGenerate.mock.funcGenerate != nil {
-		mmGenerate.mock.t.Fatalf("TokenOperationsMock.Generate mock is already set by Set")
+// Return sets up results that will be returned by TokenOperations.GenerateAccessToken
+func (mmGenerateAccessToken *mTokenOperationsMockGenerateAccessToken) Return(s1 string, err error) *TokenOperationsMock {
+	if mmGenerateAccessToken.mock.funcGenerateAccessToken != nil {
+		mmGenerateAccessToken.mock.t.Fatalf("TokenOperationsMock.GenerateAccessToken mock is already set by Set")
 	}
 
-	if mmGenerate.defaultExpectation == nil {
-		mmGenerate.defaultExpectation = &TokenOperationsMockGenerateExpectation{mock: mmGenerate.mock}
+	if mmGenerateAccessToken.defaultExpectation == nil {
+		mmGenerateAccessToken.defaultExpectation = &TokenOperationsMockGenerateAccessTokenExpectation{mock: mmGenerateAccessToken.mock}
 	}
-	mmGenerate.defaultExpectation.results = &TokenOperationsMockGenerateResults{s1, err}
-	mmGenerate.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
-	return mmGenerate.mock
+	mmGenerateAccessToken.defaultExpectation.results = &TokenOperationsMockGenerateAccessTokenResults{s1, err}
+	mmGenerateAccessToken.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmGenerateAccessToken.mock
 }
 
-// Set uses given function f to mock the TokenOperations.Generate method
-func (mmGenerate *mTokenOperationsMockGenerate) Set(f func(user model.User, secretKey []byte, duration time.Duration) (s1 string, err error)) *TokenOperationsMock {
-	if mmGenerate.defaultExpectation != nil {
-		mmGenerate.mock.t.Fatalf("Default expectation is already set for the TokenOperations.Generate method")
+// Set uses given function f to mock the TokenOperations.GenerateAccessToken method
+func (mmGenerateAccessToken *mTokenOperationsMockGenerateAccessToken) Set(f func(user model.User, secretKey []byte, duration time.Duration) (s1 string, err error)) *TokenOperationsMock {
+	if mmGenerateAccessToken.defaultExpectation != nil {
+		mmGenerateAccessToken.mock.t.Fatalf("Default expectation is already set for the TokenOperations.GenerateAccessToken method")
 	}
 
-	if len(mmGenerate.expectations) > 0 {
-		mmGenerate.mock.t.Fatalf("Some expectations are already set for the TokenOperations.Generate method")
+	if len(mmGenerateAccessToken.expectations) > 0 {
+		mmGenerateAccessToken.mock.t.Fatalf("Some expectations are already set for the TokenOperations.GenerateAccessToken method")
 	}
 
-	mmGenerate.mock.funcGenerate = f
-	mmGenerate.mock.funcGenerateOrigin = minimock.CallerInfo(1)
-	return mmGenerate.mock
+	mmGenerateAccessToken.mock.funcGenerateAccessToken = f
+	mmGenerateAccessToken.mock.funcGenerateAccessTokenOrigin = minimock.CallerInfo(1)
+	return mmGenerateAccessToken.mock
 }
 
-// When sets expectation for the TokenOperations.Generate which will trigger the result defined by the following
+// When sets expectation for the TokenOperations.GenerateAccessToken which will trigger the result defined by the following
 // Then helper
-func (mmGenerate *mTokenOperationsMockGenerate) When(user model.User, secretKey []byte, duration time.Duration) *TokenOperationsMockGenerateExpectation {
-	if mmGenerate.mock.funcGenerate != nil {
-		mmGenerate.mock.t.Fatalf("TokenOperationsMock.Generate mock is already set by Set")
+func (mmGenerateAccessToken *mTokenOperationsMockGenerateAccessToken) When(user model.User, secretKey []byte, duration time.Duration) *TokenOperationsMockGenerateAccessTokenExpectation {
+	if mmGenerateAccessToken.mock.funcGenerateAccessToken != nil {
+		mmGenerateAccessToken.mock.t.Fatalf("TokenOperationsMock.GenerateAccessToken mock is already set by Set")
 	}
 
-	expectation := &TokenOperationsMockGenerateExpectation{
-		mock:               mmGenerate.mock,
-		params:             &TokenOperationsMockGenerateParams{user, secretKey, duration},
-		expectationOrigins: TokenOperationsMockGenerateExpectationOrigins{origin: minimock.CallerInfo(1)},
+	expectation := &TokenOperationsMockGenerateAccessTokenExpectation{
+		mock:               mmGenerateAccessToken.mock,
+		params:             &TokenOperationsMockGenerateAccessTokenParams{user, secretKey, duration},
+		expectationOrigins: TokenOperationsMockGenerateAccessTokenExpectationOrigins{origin: minimock.CallerInfo(1)},
 	}
-	mmGenerate.expectations = append(mmGenerate.expectations, expectation)
+	mmGenerateAccessToken.expectations = append(mmGenerateAccessToken.expectations, expectation)
 	return expectation
 }
 
-// Then sets up TokenOperations.Generate return parameters for the expectation previously defined by the When method
-func (e *TokenOperationsMockGenerateExpectation) Then(s1 string, err error) *TokenOperationsMock {
-	e.results = &TokenOperationsMockGenerateResults{s1, err}
+// Then sets up TokenOperations.GenerateAccessToken return parameters for the expectation previously defined by the When method
+func (e *TokenOperationsMockGenerateAccessTokenExpectation) Then(s1 string, err error) *TokenOperationsMock {
+	e.results = &TokenOperationsMockGenerateAccessTokenResults{s1, err}
 	return e.mock
 }
 
-// Times sets number of times TokenOperations.Generate should be invoked
-func (mmGenerate *mTokenOperationsMockGenerate) Times(n uint64) *mTokenOperationsMockGenerate {
+// Times sets number of times TokenOperations.GenerateAccessToken should be invoked
+func (mmGenerateAccessToken *mTokenOperationsMockGenerateAccessToken) Times(n uint64) *mTokenOperationsMockGenerateAccessToken {
 	if n == 0 {
-		mmGenerate.mock.t.Fatalf("Times of TokenOperationsMock.Generate mock can not be zero")
+		mmGenerateAccessToken.mock.t.Fatalf("Times of TokenOperationsMock.GenerateAccessToken mock can not be zero")
 	}
-	mm_atomic.StoreUint64(&mmGenerate.expectedInvocations, n)
-	mmGenerate.expectedInvocationsOrigin = minimock.CallerInfo(1)
-	return mmGenerate
+	mm_atomic.StoreUint64(&mmGenerateAccessToken.expectedInvocations, n)
+	mmGenerateAccessToken.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmGenerateAccessToken
 }
 
-func (mmGenerate *mTokenOperationsMockGenerate) invocationsDone() bool {
-	if len(mmGenerate.expectations) == 0 && mmGenerate.defaultExpectation == nil && mmGenerate.mock.funcGenerate == nil {
+func (mmGenerateAccessToken *mTokenOperationsMockGenerateAccessToken) invocationsDone() bool {
+	if len(mmGenerateAccessToken.expectations) == 0 && mmGenerateAccessToken.defaultExpectation == nil && mmGenerateAccessToken.mock.funcGenerateAccessToken == nil {
 		return true
 	}
 
-	totalInvocations := mm_atomic.LoadUint64(&mmGenerate.mock.afterGenerateCounter)
-	expectedInvocations := mm_atomic.LoadUint64(&mmGenerate.expectedInvocations)
+	totalInvocations := mm_atomic.LoadUint64(&mmGenerateAccessToken.mock.afterGenerateAccessTokenCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmGenerateAccessToken.expectedInvocations)
 
 	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
 }
 
-// Generate implements mm_tokens.TokenOperations
-func (mmGenerate *TokenOperationsMock) Generate(user model.User, secretKey []byte, duration time.Duration) (s1 string, err error) {
-	mm_atomic.AddUint64(&mmGenerate.beforeGenerateCounter, 1)
-	defer mm_atomic.AddUint64(&mmGenerate.afterGenerateCounter, 1)
+// GenerateAccessToken implements mm_tokens.TokenOperations
+func (mmGenerateAccessToken *TokenOperationsMock) GenerateAccessToken(user model.User, secretKey []byte, duration time.Duration) (s1 string, err error) {
+	mm_atomic.AddUint64(&mmGenerateAccessToken.beforeGenerateAccessTokenCounter, 1)
+	defer mm_atomic.AddUint64(&mmGenerateAccessToken.afterGenerateAccessTokenCounter, 1)
 
-	mmGenerate.t.Helper()
+	mmGenerateAccessToken.t.Helper()
 
-	if mmGenerate.inspectFuncGenerate != nil {
-		mmGenerate.inspectFuncGenerate(user, secretKey, duration)
+	if mmGenerateAccessToken.inspectFuncGenerateAccessToken != nil {
+		mmGenerateAccessToken.inspectFuncGenerateAccessToken(user, secretKey, duration)
 	}
 
-	mm_params := TokenOperationsMockGenerateParams{user, secretKey, duration}
+	mm_params := TokenOperationsMockGenerateAccessTokenParams{user, secretKey, duration}
 
 	// Record call args
-	mmGenerate.GenerateMock.mutex.Lock()
-	mmGenerate.GenerateMock.callArgs = append(mmGenerate.GenerateMock.callArgs, &mm_params)
-	mmGenerate.GenerateMock.mutex.Unlock()
+	mmGenerateAccessToken.GenerateAccessTokenMock.mutex.Lock()
+	mmGenerateAccessToken.GenerateAccessTokenMock.callArgs = append(mmGenerateAccessToken.GenerateAccessTokenMock.callArgs, &mm_params)
+	mmGenerateAccessToken.GenerateAccessTokenMock.mutex.Unlock()
 
-	for _, e := range mmGenerate.GenerateMock.expectations {
+	for _, e := range mmGenerateAccessToken.GenerateAccessTokenMock.expectations {
 		if minimock.Equal(*e.params, mm_params) {
 			mm_atomic.AddUint64(&e.Counter, 1)
 			return e.results.s1, e.results.err
 		}
 	}
 
-	if mmGenerate.GenerateMock.defaultExpectation != nil {
-		mm_atomic.AddUint64(&mmGenerate.GenerateMock.defaultExpectation.Counter, 1)
-		mm_want := mmGenerate.GenerateMock.defaultExpectation.params
-		mm_want_ptrs := mmGenerate.GenerateMock.defaultExpectation.paramPtrs
+	if mmGenerateAccessToken.GenerateAccessTokenMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmGenerateAccessToken.GenerateAccessTokenMock.defaultExpectation.Counter, 1)
+		mm_want := mmGenerateAccessToken.GenerateAccessTokenMock.defaultExpectation.params
+		mm_want_ptrs := mmGenerateAccessToken.GenerateAccessTokenMock.defaultExpectation.paramPtrs
 
-		mm_got := TokenOperationsMockGenerateParams{user, secretKey, duration}
+		mm_got := TokenOperationsMockGenerateAccessTokenParams{user, secretKey, duration}
 
 		if mm_want_ptrs != nil {
 
 			if mm_want_ptrs.user != nil && !minimock.Equal(*mm_want_ptrs.user, mm_got.user) {
-				mmGenerate.t.Errorf("TokenOperationsMock.Generate got unexpected parameter user, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-					mmGenerate.GenerateMock.defaultExpectation.expectationOrigins.originUser, *mm_want_ptrs.user, mm_got.user, minimock.Diff(*mm_want_ptrs.user, mm_got.user))
+				mmGenerateAccessToken.t.Errorf("TokenOperationsMock.GenerateAccessToken got unexpected parameter user, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGenerateAccessToken.GenerateAccessTokenMock.defaultExpectation.expectationOrigins.originUser, *mm_want_ptrs.user, mm_got.user, minimock.Diff(*mm_want_ptrs.user, mm_got.user))
 			}
 
 			if mm_want_ptrs.secretKey != nil && !minimock.Equal(*mm_want_ptrs.secretKey, mm_got.secretKey) {
-				mmGenerate.t.Errorf("TokenOperationsMock.Generate got unexpected parameter secretKey, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-					mmGenerate.GenerateMock.defaultExpectation.expectationOrigins.originSecretKey, *mm_want_ptrs.secretKey, mm_got.secretKey, minimock.Diff(*mm_want_ptrs.secretKey, mm_got.secretKey))
+				mmGenerateAccessToken.t.Errorf("TokenOperationsMock.GenerateAccessToken got unexpected parameter secretKey, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGenerateAccessToken.GenerateAccessTokenMock.defaultExpectation.expectationOrigins.originSecretKey, *mm_want_ptrs.secretKey, mm_got.secretKey, minimock.Diff(*mm_want_ptrs.secretKey, mm_got.secretKey))
 			}
 
 			if mm_want_ptrs.duration != nil && !minimock.Equal(*mm_want_ptrs.duration, mm_got.duration) {
-				mmGenerate.t.Errorf("TokenOperationsMock.Generate got unexpected parameter duration, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-					mmGenerate.GenerateMock.defaultExpectation.expectationOrigins.originDuration, *mm_want_ptrs.duration, mm_got.duration, minimock.Diff(*mm_want_ptrs.duration, mm_got.duration))
+				mmGenerateAccessToken.t.Errorf("TokenOperationsMock.GenerateAccessToken got unexpected parameter duration, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGenerateAccessToken.GenerateAccessTokenMock.defaultExpectation.expectationOrigins.originDuration, *mm_want_ptrs.duration, mm_got.duration, minimock.Diff(*mm_want_ptrs.duration, mm_got.duration))
 			}
 
 		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
-			mmGenerate.t.Errorf("TokenOperationsMock.Generate got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-				mmGenerate.GenerateMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+			mmGenerateAccessToken.t.Errorf("TokenOperationsMock.GenerateAccessToken got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmGenerateAccessToken.GenerateAccessTokenMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
 		}
 
-		mm_results := mmGenerate.GenerateMock.defaultExpectation.results
+		mm_results := mmGenerateAccessToken.GenerateAccessTokenMock.defaultExpectation.results
 		if mm_results == nil {
-			mmGenerate.t.Fatal("No results are set for the TokenOperationsMock.Generate")
+			mmGenerateAccessToken.t.Fatal("No results are set for the TokenOperationsMock.GenerateAccessToken")
 		}
 		return (*mm_results).s1, (*mm_results).err
 	}
-	if mmGenerate.funcGenerate != nil {
-		return mmGenerate.funcGenerate(user, secretKey, duration)
+	if mmGenerateAccessToken.funcGenerateAccessToken != nil {
+		return mmGenerateAccessToken.funcGenerateAccessToken(user, secretKey, duration)
 	}
-	mmGenerate.t.Fatalf("Unexpected call to TokenOperationsMock.Generate. %v %v %v", user, secretKey, duration)
+	mmGenerateAccessToken.t.Fatalf("Unexpected call to TokenOperationsMock.GenerateAccessToken. %v %v %v", user, secretKey, duration)
 	return
 }
 
-// GenerateAfterCounter returns a count of finished TokenOperationsMock.Generate invocations
-func (mmGenerate *TokenOperationsMock) GenerateAfterCounter() uint64 {
-	return mm_atomic.LoadUint64(&mmGenerate.afterGenerateCounter)
+// GenerateAccessTokenAfterCounter returns a count of finished TokenOperationsMock.GenerateAccessToken invocations
+func (mmGenerateAccessToken *TokenOperationsMock) GenerateAccessTokenAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmGenerateAccessToken.afterGenerateAccessTokenCounter)
 }
 
-// GenerateBeforeCounter returns a count of TokenOperationsMock.Generate invocations
-func (mmGenerate *TokenOperationsMock) GenerateBeforeCounter() uint64 {
-	return mm_atomic.LoadUint64(&mmGenerate.beforeGenerateCounter)
+// GenerateAccessTokenBeforeCounter returns a count of TokenOperationsMock.GenerateAccessToken invocations
+func (mmGenerateAccessToken *TokenOperationsMock) GenerateAccessTokenBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmGenerateAccessToken.beforeGenerateAccessTokenCounter)
 }
 
-// Calls returns a list of arguments used in each call to TokenOperationsMock.Generate.
+// Calls returns a list of arguments used in each call to TokenOperationsMock.GenerateAccessToken.
 // The list is in the same order as the calls were made (i.e. recent calls have a higher index)
-func (mmGenerate *mTokenOperationsMockGenerate) Calls() []*TokenOperationsMockGenerateParams {
-	mmGenerate.mutex.RLock()
+func (mmGenerateAccessToken *mTokenOperationsMockGenerateAccessToken) Calls() []*TokenOperationsMockGenerateAccessTokenParams {
+	mmGenerateAccessToken.mutex.RLock()
 
-	argCopy := make([]*TokenOperationsMockGenerateParams, len(mmGenerate.callArgs))
-	copy(argCopy, mmGenerate.callArgs)
+	argCopy := make([]*TokenOperationsMockGenerateAccessTokenParams, len(mmGenerateAccessToken.callArgs))
+	copy(argCopy, mmGenerateAccessToken.callArgs)
 
-	mmGenerate.mutex.RUnlock()
+	mmGenerateAccessToken.mutex.RUnlock()
 
 	return argCopy
 }
 
-// MinimockGenerateDone returns true if the count of the Generate invocations corresponds
+// MinimockGenerateAccessTokenDone returns true if the count of the GenerateAccessToken invocations corresponds
 // the number of defined expectations
-func (m *TokenOperationsMock) MinimockGenerateDone() bool {
-	if m.GenerateMock.optional {
+func (m *TokenOperationsMock) MinimockGenerateAccessTokenDone() bool {
+	if m.GenerateAccessTokenMock.optional {
 		// Optional methods provide '0 or more' call count restriction.
 		return true
 	}
 
-	for _, e := range m.GenerateMock.expectations {
+	for _, e := range m.GenerateAccessTokenMock.expectations {
 		if mm_atomic.LoadUint64(&e.Counter) < 1 {
 			return false
 		}
 	}
 
-	return m.GenerateMock.invocationsDone()
+	return m.GenerateAccessTokenMock.invocationsDone()
 }
 
-// MinimockGenerateInspect logs each unmet expectation
-func (m *TokenOperationsMock) MinimockGenerateInspect() {
-	for _, e := range m.GenerateMock.expectations {
+// MinimockGenerateAccessTokenInspect logs each unmet expectation
+func (m *TokenOperationsMock) MinimockGenerateAccessTokenInspect() {
+	for _, e := range m.GenerateAccessTokenMock.expectations {
 		if mm_atomic.LoadUint64(&e.Counter) < 1 {
-			m.t.Errorf("Expected call to TokenOperationsMock.Generate at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+			m.t.Errorf("Expected call to TokenOperationsMock.GenerateAccessToken at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
 		}
 	}
 
-	afterGenerateCounter := mm_atomic.LoadUint64(&m.afterGenerateCounter)
+	afterGenerateAccessTokenCounter := mm_atomic.LoadUint64(&m.afterGenerateAccessTokenCounter)
 	// if default expectation was set then invocations count should be greater than zero
-	if m.GenerateMock.defaultExpectation != nil && afterGenerateCounter < 1 {
-		if m.GenerateMock.defaultExpectation.params == nil {
-			m.t.Errorf("Expected call to TokenOperationsMock.Generate at\n%s", m.GenerateMock.defaultExpectation.returnOrigin)
+	if m.GenerateAccessTokenMock.defaultExpectation != nil && afterGenerateAccessTokenCounter < 1 {
+		if m.GenerateAccessTokenMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to TokenOperationsMock.GenerateAccessToken at\n%s", m.GenerateAccessTokenMock.defaultExpectation.returnOrigin)
 		} else {
-			m.t.Errorf("Expected call to TokenOperationsMock.Generate at\n%s with params: %#v", m.GenerateMock.defaultExpectation.expectationOrigins.origin, *m.GenerateMock.defaultExpectation.params)
+			m.t.Errorf("Expected call to TokenOperationsMock.GenerateAccessToken at\n%s with params: %#v", m.GenerateAccessTokenMock.defaultExpectation.expectationOrigins.origin, *m.GenerateAccessTokenMock.defaultExpectation.params)
 		}
 	}
 	// if func was set then invocations count should be greater than zero
-	if m.funcGenerate != nil && afterGenerateCounter < 1 {
-		m.t.Errorf("Expected call to TokenOperationsMock.Generate at\n%s", m.funcGenerateOrigin)
+	if m.funcGenerateAccessToken != nil && afterGenerateAccessTokenCounter < 1 {
+		m.t.Errorf("Expected call to TokenOperationsMock.GenerateAccessToken at\n%s", m.funcGenerateAccessTokenOrigin)
 	}
 
-	if !m.GenerateMock.invocationsDone() && afterGenerateCounter > 0 {
-		m.t.Errorf("Expected %d calls to TokenOperationsMock.Generate at\n%s but found %d calls",
-			mm_atomic.LoadUint64(&m.GenerateMock.expectedInvocations), m.GenerateMock.expectedInvocationsOrigin, afterGenerateCounter)
+	if !m.GenerateAccessTokenMock.invocationsDone() && afterGenerateAccessTokenCounter > 0 {
+		m.t.Errorf("Expected %d calls to TokenOperationsMock.GenerateAccessToken at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.GenerateAccessTokenMock.expectedInvocations), m.GenerateAccessTokenMock.expectedInvocationsOrigin, afterGenerateAccessTokenCounter)
 	}
 }
 
-type mTokenOperationsMockVerify struct {
+type mTokenOperationsMockGenerateRefreshToken struct {
 	optional           bool
 	mock               *TokenOperationsMock
-	defaultExpectation *TokenOperationsMockVerifyExpectation
-	expectations       []*TokenOperationsMockVerifyExpectation
+	defaultExpectation *TokenOperationsMockGenerateRefreshTokenExpectation
+	expectations       []*TokenOperationsMockGenerateRefreshTokenExpectation
 
-	callArgs []*TokenOperationsMockVerifyParams
+	callArgs []*TokenOperationsMockGenerateRefreshTokenParams
 	mutex    sync.RWMutex
 
 	expectedInvocations       uint64
 	expectedInvocationsOrigin string
 }
 
-// TokenOperationsMockVerifyExpectation specifies expectation struct of the TokenOperations.Verify
-type TokenOperationsMockVerifyExpectation struct {
+// TokenOperationsMockGenerateRefreshTokenExpectation specifies expectation struct of the TokenOperations.GenerateRefreshToken
+type TokenOperationsMockGenerateRefreshTokenExpectation struct {
 	mock               *TokenOperationsMock
-	params             *TokenOperationsMockVerifyParams
-	paramPtrs          *TokenOperationsMockVerifyParamPtrs
-	expectationOrigins TokenOperationsMockVerifyExpectationOrigins
-	results            *TokenOperationsMockVerifyResults
+	params             *TokenOperationsMockGenerateRefreshTokenParams
+	paramPtrs          *TokenOperationsMockGenerateRefreshTokenParamPtrs
+	expectationOrigins TokenOperationsMockGenerateRefreshTokenExpectationOrigins
+	results            *TokenOperationsMockGenerateRefreshTokenResults
 	returnOrigin       string
 	Counter            uint64
 }
 
-// TokenOperationsMockVerifyParams contains parameters of the TokenOperations.Verify
-type TokenOperationsMockVerifyParams struct {
+// TokenOperationsMockGenerateRefreshTokenParams contains parameters of the TokenOperations.GenerateRefreshToken
+type TokenOperationsMockGenerateRefreshTokenParams struct {
+	userID    int64
+	secretKey []byte
+	duration  time.Duration
+}
+
+// TokenOperationsMockGenerateRefreshTokenParamPtrs contains pointers to parameters of the TokenOperations.GenerateRefreshToken
+type TokenOperationsMockGenerateRefreshTokenParamPtrs struct {
+	userID    *int64
+	secretKey *[]byte
+	duration  *time.Duration
+}
+
+// TokenOperationsMockGenerateRefreshTokenResults contains results of the TokenOperations.GenerateRefreshToken
+type TokenOperationsMockGenerateRefreshTokenResults struct {
+	s1  string
+	err error
+}
+
+// TokenOperationsMockGenerateRefreshTokenOrigins contains origins of expectations of the TokenOperations.GenerateRefreshToken
+type TokenOperationsMockGenerateRefreshTokenExpectationOrigins struct {
+	origin          string
+	originUserID    string
+	originSecretKey string
+	originDuration  string
+}
+
+// Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
+// the test will fail minimock's automatic final call check if the mocked method was not called at least once.
+// Optional() makes method check to work in '0 or more' mode.
+// It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
+// catch the problems when the expected method call is totally skipped during test run.
+func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) Optional() *mTokenOperationsMockGenerateRefreshToken {
+	mmGenerateRefreshToken.optional = true
+	return mmGenerateRefreshToken
+}
+
+// Expect sets up expected params for TokenOperations.GenerateRefreshToken
+func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) Expect(userID int64, secretKey []byte, duration time.Duration) *mTokenOperationsMockGenerateRefreshToken {
+	if mmGenerateRefreshToken.mock.funcGenerateRefreshToken != nil {
+		mmGenerateRefreshToken.mock.t.Fatalf("TokenOperationsMock.GenerateRefreshToken mock is already set by Set")
+	}
+
+	if mmGenerateRefreshToken.defaultExpectation == nil {
+		mmGenerateRefreshToken.defaultExpectation = &TokenOperationsMockGenerateRefreshTokenExpectation{}
+	}
+
+	if mmGenerateRefreshToken.defaultExpectation.paramPtrs != nil {
+		mmGenerateRefreshToken.mock.t.Fatalf("TokenOperationsMock.GenerateRefreshToken mock is already set by ExpectParams functions")
+	}
+
+	mmGenerateRefreshToken.defaultExpectation.params = &TokenOperationsMockGenerateRefreshTokenParams{userID, secretKey, duration}
+	mmGenerateRefreshToken.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmGenerateRefreshToken.expectations {
+		if minimock.Equal(e.params, mmGenerateRefreshToken.defaultExpectation.params) {
+			mmGenerateRefreshToken.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmGenerateRefreshToken.defaultExpectation.params)
+		}
+	}
+
+	return mmGenerateRefreshToken
+}
+
+// ExpectUserIDParam1 sets up expected param userID for TokenOperations.GenerateRefreshToken
+func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) ExpectUserIDParam1(userID int64) *mTokenOperationsMockGenerateRefreshToken {
+	if mmGenerateRefreshToken.mock.funcGenerateRefreshToken != nil {
+		mmGenerateRefreshToken.mock.t.Fatalf("TokenOperationsMock.GenerateRefreshToken mock is already set by Set")
+	}
+
+	if mmGenerateRefreshToken.defaultExpectation == nil {
+		mmGenerateRefreshToken.defaultExpectation = &TokenOperationsMockGenerateRefreshTokenExpectation{}
+	}
+
+	if mmGenerateRefreshToken.defaultExpectation.params != nil {
+		mmGenerateRefreshToken.mock.t.Fatalf("TokenOperationsMock.GenerateRefreshToken mock is already set by Expect")
+	}
+
+	if mmGenerateRefreshToken.defaultExpectation.paramPtrs == nil {
+		mmGenerateRefreshToken.defaultExpectation.paramPtrs = &TokenOperationsMockGenerateRefreshTokenParamPtrs{}
+	}
+	mmGenerateRefreshToken.defaultExpectation.paramPtrs.userID = &userID
+	mmGenerateRefreshToken.defaultExpectation.expectationOrigins.originUserID = minimock.CallerInfo(1)
+
+	return mmGenerateRefreshToken
+}
+
+// ExpectSecretKeyParam2 sets up expected param secretKey for TokenOperations.GenerateRefreshToken
+func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) ExpectSecretKeyParam2(secretKey []byte) *mTokenOperationsMockGenerateRefreshToken {
+	if mmGenerateRefreshToken.mock.funcGenerateRefreshToken != nil {
+		mmGenerateRefreshToken.mock.t.Fatalf("TokenOperationsMock.GenerateRefreshToken mock is already set by Set")
+	}
+
+	if mmGenerateRefreshToken.defaultExpectation == nil {
+		mmGenerateRefreshToken.defaultExpectation = &TokenOperationsMockGenerateRefreshTokenExpectation{}
+	}
+
+	if mmGenerateRefreshToken.defaultExpectation.params != nil {
+		mmGenerateRefreshToken.mock.t.Fatalf("TokenOperationsMock.GenerateRefreshToken mock is already set by Expect")
+	}
+
+	if mmGenerateRefreshToken.defaultExpectation.paramPtrs == nil {
+		mmGenerateRefreshToken.defaultExpectation.paramPtrs = &TokenOperationsMockGenerateRefreshTokenParamPtrs{}
+	}
+	mmGenerateRefreshToken.defaultExpectation.paramPtrs.secretKey = &secretKey
+	mmGenerateRefreshToken.defaultExpectation.expectationOrigins.originSecretKey = minimock.CallerInfo(1)
+
+	return mmGenerateRefreshToken
+}
+
+// ExpectDurationParam3 sets up expected param duration for TokenOperations.GenerateRefreshToken
+func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) ExpectDurationParam3(duration time.Duration) *mTokenOperationsMockGenerateRefreshToken {
+	if mmGenerateRefreshToken.mock.funcGenerateRefreshToken != nil {
+		mmGenerateRefreshToken.mock.t.Fatalf("TokenOperationsMock.GenerateRefreshToken mock is already set by Set")
+	}
+
+	if mmGenerateRefreshToken.defaultExpectation == nil {
+		mmGenerateRefreshToken.defaultExpectation = &TokenOperationsMockGenerateRefreshTokenExpectation{}
+	}
+
+	if mmGenerateRefreshToken.defaultExpectation.params != nil {
+		mmGenerateRefreshToken.mock.t.Fatalf("TokenOperationsMock.GenerateRefreshToken mock is already set by Expect")
+	}
+
+	if mmGenerateRefreshToken.defaultExpectation.paramPtrs == nil {
+		mmGenerateRefreshToken.defaultExpectation.paramPtrs = &TokenOperationsMockGenerateRefreshTokenParamPtrs{}
+	}
+	mmGenerateRefreshToken.defaultExpectation.paramPtrs.duration = &duration
+	mmGenerateRefreshToken.defaultExpectation.expectationOrigins.originDuration = minimock.CallerInfo(1)
+
+	return mmGenerateRefreshToken
+}
+
+// Inspect accepts an inspector function that has same arguments as the TokenOperations.GenerateRefreshToken
+func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) Inspect(f func(userID int64, secretKey []byte, duration time.Duration)) *mTokenOperationsMockGenerateRefreshToken {
+	if mmGenerateRefreshToken.mock.inspectFuncGenerateRefreshToken != nil {
+		mmGenerateRefreshToken.mock.t.Fatalf("Inspect function is already set for TokenOperationsMock.GenerateRefreshToken")
+	}
+
+	mmGenerateRefreshToken.mock.inspectFuncGenerateRefreshToken = f
+
+	return mmGenerateRefreshToken
+}
+
+// Return sets up results that will be returned by TokenOperations.GenerateRefreshToken
+func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) Return(s1 string, err error) *TokenOperationsMock {
+	if mmGenerateRefreshToken.mock.funcGenerateRefreshToken != nil {
+		mmGenerateRefreshToken.mock.t.Fatalf("TokenOperationsMock.GenerateRefreshToken mock is already set by Set")
+	}
+
+	if mmGenerateRefreshToken.defaultExpectation == nil {
+		mmGenerateRefreshToken.defaultExpectation = &TokenOperationsMockGenerateRefreshTokenExpectation{mock: mmGenerateRefreshToken.mock}
+	}
+	mmGenerateRefreshToken.defaultExpectation.results = &TokenOperationsMockGenerateRefreshTokenResults{s1, err}
+	mmGenerateRefreshToken.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmGenerateRefreshToken.mock
+}
+
+// Set uses given function f to mock the TokenOperations.GenerateRefreshToken method
+func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) Set(f func(userID int64, secretKey []byte, duration time.Duration) (s1 string, err error)) *TokenOperationsMock {
+	if mmGenerateRefreshToken.defaultExpectation != nil {
+		mmGenerateRefreshToken.mock.t.Fatalf("Default expectation is already set for the TokenOperations.GenerateRefreshToken method")
+	}
+
+	if len(mmGenerateRefreshToken.expectations) > 0 {
+		mmGenerateRefreshToken.mock.t.Fatalf("Some expectations are already set for the TokenOperations.GenerateRefreshToken method")
+	}
+
+	mmGenerateRefreshToken.mock.funcGenerateRefreshToken = f
+	mmGenerateRefreshToken.mock.funcGenerateRefreshTokenOrigin = minimock.CallerInfo(1)
+	return mmGenerateRefreshToken.mock
+}
+
+// When sets expectation for the TokenOperations.GenerateRefreshToken which will trigger the result defined by the following
+// Then helper
+func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) When(userID int64, secretKey []byte, duration time.Duration) *TokenOperationsMockGenerateRefreshTokenExpectation {
+	if mmGenerateRefreshToken.mock.funcGenerateRefreshToken != nil {
+		mmGenerateRefreshToken.mock.t.Fatalf("TokenOperationsMock.GenerateRefreshToken mock is already set by Set")
+	}
+
+	expectation := &TokenOperationsMockGenerateRefreshTokenExpectation{
+		mock:               mmGenerateRefreshToken.mock,
+		params:             &TokenOperationsMockGenerateRefreshTokenParams{userID, secretKey, duration},
+		expectationOrigins: TokenOperationsMockGenerateRefreshTokenExpectationOrigins{origin: minimock.CallerInfo(1)},
+	}
+	mmGenerateRefreshToken.expectations = append(mmGenerateRefreshToken.expectations, expectation)
+	return expectation
+}
+
+// Then sets up TokenOperations.GenerateRefreshToken return parameters for the expectation previously defined by the When method
+func (e *TokenOperationsMockGenerateRefreshTokenExpectation) Then(s1 string, err error) *TokenOperationsMock {
+	e.results = &TokenOperationsMockGenerateRefreshTokenResults{s1, err}
+	return e.mock
+}
+
+// Times sets number of times TokenOperations.GenerateRefreshToken should be invoked
+func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) Times(n uint64) *mTokenOperationsMockGenerateRefreshToken {
+	if n == 0 {
+		mmGenerateRefreshToken.mock.t.Fatalf("Times of TokenOperationsMock.GenerateRefreshToken mock can not be zero")
+	}
+	mm_atomic.StoreUint64(&mmGenerateRefreshToken.expectedInvocations, n)
+	mmGenerateRefreshToken.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmGenerateRefreshToken
+}
+
+func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) invocationsDone() bool {
+	if len(mmGenerateRefreshToken.expectations) == 0 && mmGenerateRefreshToken.defaultExpectation == nil && mmGenerateRefreshToken.mock.funcGenerateRefreshToken == nil {
+		return true
+	}
+
+	totalInvocations := mm_atomic.LoadUint64(&mmGenerateRefreshToken.mock.afterGenerateRefreshTokenCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmGenerateRefreshToken.expectedInvocations)
+
+	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
+}
+
+// GenerateRefreshToken implements mm_tokens.TokenOperations
+func (mmGenerateRefreshToken *TokenOperationsMock) GenerateRefreshToken(userID int64, secretKey []byte, duration time.Duration) (s1 string, err error) {
+	mm_atomic.AddUint64(&mmGenerateRefreshToken.beforeGenerateRefreshTokenCounter, 1)
+	defer mm_atomic.AddUint64(&mmGenerateRefreshToken.afterGenerateRefreshTokenCounter, 1)
+
+	mmGenerateRefreshToken.t.Helper()
+
+	if mmGenerateRefreshToken.inspectFuncGenerateRefreshToken != nil {
+		mmGenerateRefreshToken.inspectFuncGenerateRefreshToken(userID, secretKey, duration)
+	}
+
+	mm_params := TokenOperationsMockGenerateRefreshTokenParams{userID, secretKey, duration}
+
+	// Record call args
+	mmGenerateRefreshToken.GenerateRefreshTokenMock.mutex.Lock()
+	mmGenerateRefreshToken.GenerateRefreshTokenMock.callArgs = append(mmGenerateRefreshToken.GenerateRefreshTokenMock.callArgs, &mm_params)
+	mmGenerateRefreshToken.GenerateRefreshTokenMock.mutex.Unlock()
+
+	for _, e := range mmGenerateRefreshToken.GenerateRefreshTokenMock.expectations {
+		if minimock.Equal(*e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.s1, e.results.err
+		}
+	}
+
+	if mmGenerateRefreshToken.GenerateRefreshTokenMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmGenerateRefreshToken.GenerateRefreshTokenMock.defaultExpectation.Counter, 1)
+		mm_want := mmGenerateRefreshToken.GenerateRefreshTokenMock.defaultExpectation.params
+		mm_want_ptrs := mmGenerateRefreshToken.GenerateRefreshTokenMock.defaultExpectation.paramPtrs
+
+		mm_got := TokenOperationsMockGenerateRefreshTokenParams{userID, secretKey, duration}
+
+		if mm_want_ptrs != nil {
+
+			if mm_want_ptrs.userID != nil && !minimock.Equal(*mm_want_ptrs.userID, mm_got.userID) {
+				mmGenerateRefreshToken.t.Errorf("TokenOperationsMock.GenerateRefreshToken got unexpected parameter userID, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGenerateRefreshToken.GenerateRefreshTokenMock.defaultExpectation.expectationOrigins.originUserID, *mm_want_ptrs.userID, mm_got.userID, minimock.Diff(*mm_want_ptrs.userID, mm_got.userID))
+			}
+
+			if mm_want_ptrs.secretKey != nil && !minimock.Equal(*mm_want_ptrs.secretKey, mm_got.secretKey) {
+				mmGenerateRefreshToken.t.Errorf("TokenOperationsMock.GenerateRefreshToken got unexpected parameter secretKey, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGenerateRefreshToken.GenerateRefreshTokenMock.defaultExpectation.expectationOrigins.originSecretKey, *mm_want_ptrs.secretKey, mm_got.secretKey, minimock.Diff(*mm_want_ptrs.secretKey, mm_got.secretKey))
+			}
+
+			if mm_want_ptrs.duration != nil && !minimock.Equal(*mm_want_ptrs.duration, mm_got.duration) {
+				mmGenerateRefreshToken.t.Errorf("TokenOperationsMock.GenerateRefreshToken got unexpected parameter duration, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGenerateRefreshToken.GenerateRefreshTokenMock.defaultExpectation.expectationOrigins.originDuration, *mm_want_ptrs.duration, mm_got.duration, minimock.Diff(*mm_want_ptrs.duration, mm_got.duration))
+			}
+
+		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmGenerateRefreshToken.t.Errorf("TokenOperationsMock.GenerateRefreshToken got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmGenerateRefreshToken.GenerateRefreshTokenMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmGenerateRefreshToken.GenerateRefreshTokenMock.defaultExpectation.results
+		if mm_results == nil {
+			mmGenerateRefreshToken.t.Fatal("No results are set for the TokenOperationsMock.GenerateRefreshToken")
+		}
+		return (*mm_results).s1, (*mm_results).err
+	}
+	if mmGenerateRefreshToken.funcGenerateRefreshToken != nil {
+		return mmGenerateRefreshToken.funcGenerateRefreshToken(userID, secretKey, duration)
+	}
+	mmGenerateRefreshToken.t.Fatalf("Unexpected call to TokenOperationsMock.GenerateRefreshToken. %v %v %v", userID, secretKey, duration)
+	return
+}
+
+// GenerateRefreshTokenAfterCounter returns a count of finished TokenOperationsMock.GenerateRefreshToken invocations
+func (mmGenerateRefreshToken *TokenOperationsMock) GenerateRefreshTokenAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmGenerateRefreshToken.afterGenerateRefreshTokenCounter)
+}
+
+// GenerateRefreshTokenBeforeCounter returns a count of TokenOperationsMock.GenerateRefreshToken invocations
+func (mmGenerateRefreshToken *TokenOperationsMock) GenerateRefreshTokenBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmGenerateRefreshToken.beforeGenerateRefreshTokenCounter)
+}
+
+// Calls returns a list of arguments used in each call to TokenOperationsMock.GenerateRefreshToken.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) Calls() []*TokenOperationsMockGenerateRefreshTokenParams {
+	mmGenerateRefreshToken.mutex.RLock()
+
+	argCopy := make([]*TokenOperationsMockGenerateRefreshTokenParams, len(mmGenerateRefreshToken.callArgs))
+	copy(argCopy, mmGenerateRefreshToken.callArgs)
+
+	mmGenerateRefreshToken.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockGenerateRefreshTokenDone returns true if the count of the GenerateRefreshToken invocations corresponds
+// the number of defined expectations
+func (m *TokenOperationsMock) MinimockGenerateRefreshTokenDone() bool {
+	if m.GenerateRefreshTokenMock.optional {
+		// Optional methods provide '0 or more' call count restriction.
+		return true
+	}
+
+	for _, e := range m.GenerateRefreshTokenMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	return m.GenerateRefreshTokenMock.invocationsDone()
+}
+
+// MinimockGenerateRefreshTokenInspect logs each unmet expectation
+func (m *TokenOperationsMock) MinimockGenerateRefreshTokenInspect() {
+	for _, e := range m.GenerateRefreshTokenMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to TokenOperationsMock.GenerateRefreshToken at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+		}
+	}
+
+	afterGenerateRefreshTokenCounter := mm_atomic.LoadUint64(&m.afterGenerateRefreshTokenCounter)
+	// if default expectation was set then invocations count should be greater than zero
+	if m.GenerateRefreshTokenMock.defaultExpectation != nil && afterGenerateRefreshTokenCounter < 1 {
+		if m.GenerateRefreshTokenMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to TokenOperationsMock.GenerateRefreshToken at\n%s", m.GenerateRefreshTokenMock.defaultExpectation.returnOrigin)
+		} else {
+			m.t.Errorf("Expected call to TokenOperationsMock.GenerateRefreshToken at\n%s with params: %#v", m.GenerateRefreshTokenMock.defaultExpectation.expectationOrigins.origin, *m.GenerateRefreshTokenMock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcGenerateRefreshToken != nil && afterGenerateRefreshTokenCounter < 1 {
+		m.t.Errorf("Expected call to TokenOperationsMock.GenerateRefreshToken at\n%s", m.funcGenerateRefreshTokenOrigin)
+	}
+
+	if !m.GenerateRefreshTokenMock.invocationsDone() && afterGenerateRefreshTokenCounter > 0 {
+		m.t.Errorf("Expected %d calls to TokenOperationsMock.GenerateRefreshToken at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.GenerateRefreshTokenMock.expectedInvocations), m.GenerateRefreshTokenMock.expectedInvocationsOrigin, afterGenerateRefreshTokenCounter)
+	}
+}
+
+type mTokenOperationsMockVerifyAccessToken struct {
+	optional           bool
+	mock               *TokenOperationsMock
+	defaultExpectation *TokenOperationsMockVerifyAccessTokenExpectation
+	expectations       []*TokenOperationsMockVerifyAccessTokenExpectation
+
+	callArgs []*TokenOperationsMockVerifyAccessTokenParams
+	mutex    sync.RWMutex
+
+	expectedInvocations       uint64
+	expectedInvocationsOrigin string
+}
+
+// TokenOperationsMockVerifyAccessTokenExpectation specifies expectation struct of the TokenOperations.VerifyAccessToken
+type TokenOperationsMockVerifyAccessTokenExpectation struct {
+	mock               *TokenOperationsMock
+	params             *TokenOperationsMockVerifyAccessTokenParams
+	paramPtrs          *TokenOperationsMockVerifyAccessTokenParamPtrs
+	expectationOrigins TokenOperationsMockVerifyAccessTokenExpectationOrigins
+	results            *TokenOperationsMockVerifyAccessTokenResults
+	returnOrigin       string
+	Counter            uint64
+}
+
+// TokenOperationsMockVerifyAccessTokenParams contains parameters of the TokenOperations.VerifyAccessToken
+type TokenOperationsMockVerifyAccessTokenParams struct {
 	tokenStr  string
 	secretKey []byte
 }
 
-// TokenOperationsMockVerifyParamPtrs contains pointers to parameters of the TokenOperations.Verify
-type TokenOperationsMockVerifyParamPtrs struct {
+// TokenOperationsMockVerifyAccessTokenParamPtrs contains pointers to parameters of the TokenOperations.VerifyAccessToken
+type TokenOperationsMockVerifyAccessTokenParamPtrs struct {
 	tokenStr  *string
 	secretKey *[]byte
 }
 
-// TokenOperationsMockVerifyResults contains results of the TokenOperations.Verify
-type TokenOperationsMockVerifyResults struct {
+// TokenOperationsMockVerifyAccessTokenResults contains results of the TokenOperations.VerifyAccessToken
+type TokenOperationsMockVerifyAccessTokenResults struct {
 	up1 *model.UserClaims
 	err error
 }
 
-// TokenOperationsMockVerifyOrigins contains origins of expectations of the TokenOperations.Verify
-type TokenOperationsMockVerifyExpectationOrigins struct {
+// TokenOperationsMockVerifyAccessTokenOrigins contains origins of expectations of the TokenOperations.VerifyAccessToken
+type TokenOperationsMockVerifyAccessTokenExpectationOrigins struct {
 	origin          string
 	originTokenStr  string
 	originSecretKey string
@@ -479,292 +873,635 @@ type TokenOperationsMockVerifyExpectationOrigins struct {
 // Optional() makes method check to work in '0 or more' mode.
 // It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
 // catch the problems when the expected method call is totally skipped during test run.
-func (mmVerify *mTokenOperationsMockVerify) Optional() *mTokenOperationsMockVerify {
-	mmVerify.optional = true
-	return mmVerify
+func (mmVerifyAccessToken *mTokenOperationsMockVerifyAccessToken) Optional() *mTokenOperationsMockVerifyAccessToken {
+	mmVerifyAccessToken.optional = true
+	return mmVerifyAccessToken
 }
 
-// Expect sets up expected params for TokenOperations.Verify
-func (mmVerify *mTokenOperationsMockVerify) Expect(tokenStr string, secretKey []byte) *mTokenOperationsMockVerify {
-	if mmVerify.mock.funcVerify != nil {
-		mmVerify.mock.t.Fatalf("TokenOperationsMock.Verify mock is already set by Set")
+// Expect sets up expected params for TokenOperations.VerifyAccessToken
+func (mmVerifyAccessToken *mTokenOperationsMockVerifyAccessToken) Expect(tokenStr string, secretKey []byte) *mTokenOperationsMockVerifyAccessToken {
+	if mmVerifyAccessToken.mock.funcVerifyAccessToken != nil {
+		mmVerifyAccessToken.mock.t.Fatalf("TokenOperationsMock.VerifyAccessToken mock is already set by Set")
 	}
 
-	if mmVerify.defaultExpectation == nil {
-		mmVerify.defaultExpectation = &TokenOperationsMockVerifyExpectation{}
+	if mmVerifyAccessToken.defaultExpectation == nil {
+		mmVerifyAccessToken.defaultExpectation = &TokenOperationsMockVerifyAccessTokenExpectation{}
 	}
 
-	if mmVerify.defaultExpectation.paramPtrs != nil {
-		mmVerify.mock.t.Fatalf("TokenOperationsMock.Verify mock is already set by ExpectParams functions")
+	if mmVerifyAccessToken.defaultExpectation.paramPtrs != nil {
+		mmVerifyAccessToken.mock.t.Fatalf("TokenOperationsMock.VerifyAccessToken mock is already set by ExpectParams functions")
 	}
 
-	mmVerify.defaultExpectation.params = &TokenOperationsMockVerifyParams{tokenStr, secretKey}
-	mmVerify.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
-	for _, e := range mmVerify.expectations {
-		if minimock.Equal(e.params, mmVerify.defaultExpectation.params) {
-			mmVerify.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmVerify.defaultExpectation.params)
+	mmVerifyAccessToken.defaultExpectation.params = &TokenOperationsMockVerifyAccessTokenParams{tokenStr, secretKey}
+	mmVerifyAccessToken.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmVerifyAccessToken.expectations {
+		if minimock.Equal(e.params, mmVerifyAccessToken.defaultExpectation.params) {
+			mmVerifyAccessToken.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmVerifyAccessToken.defaultExpectation.params)
 		}
 	}
 
-	return mmVerify
+	return mmVerifyAccessToken
 }
 
-// ExpectTokenStrParam1 sets up expected param tokenStr for TokenOperations.Verify
-func (mmVerify *mTokenOperationsMockVerify) ExpectTokenStrParam1(tokenStr string) *mTokenOperationsMockVerify {
-	if mmVerify.mock.funcVerify != nil {
-		mmVerify.mock.t.Fatalf("TokenOperationsMock.Verify mock is already set by Set")
+// ExpectTokenStrParam1 sets up expected param tokenStr for TokenOperations.VerifyAccessToken
+func (mmVerifyAccessToken *mTokenOperationsMockVerifyAccessToken) ExpectTokenStrParam1(tokenStr string) *mTokenOperationsMockVerifyAccessToken {
+	if mmVerifyAccessToken.mock.funcVerifyAccessToken != nil {
+		mmVerifyAccessToken.mock.t.Fatalf("TokenOperationsMock.VerifyAccessToken mock is already set by Set")
 	}
 
-	if mmVerify.defaultExpectation == nil {
-		mmVerify.defaultExpectation = &TokenOperationsMockVerifyExpectation{}
+	if mmVerifyAccessToken.defaultExpectation == nil {
+		mmVerifyAccessToken.defaultExpectation = &TokenOperationsMockVerifyAccessTokenExpectation{}
 	}
 
-	if mmVerify.defaultExpectation.params != nil {
-		mmVerify.mock.t.Fatalf("TokenOperationsMock.Verify mock is already set by Expect")
+	if mmVerifyAccessToken.defaultExpectation.params != nil {
+		mmVerifyAccessToken.mock.t.Fatalf("TokenOperationsMock.VerifyAccessToken mock is already set by Expect")
 	}
 
-	if mmVerify.defaultExpectation.paramPtrs == nil {
-		mmVerify.defaultExpectation.paramPtrs = &TokenOperationsMockVerifyParamPtrs{}
+	if mmVerifyAccessToken.defaultExpectation.paramPtrs == nil {
+		mmVerifyAccessToken.defaultExpectation.paramPtrs = &TokenOperationsMockVerifyAccessTokenParamPtrs{}
 	}
-	mmVerify.defaultExpectation.paramPtrs.tokenStr = &tokenStr
-	mmVerify.defaultExpectation.expectationOrigins.originTokenStr = minimock.CallerInfo(1)
+	mmVerifyAccessToken.defaultExpectation.paramPtrs.tokenStr = &tokenStr
+	mmVerifyAccessToken.defaultExpectation.expectationOrigins.originTokenStr = minimock.CallerInfo(1)
 
-	return mmVerify
+	return mmVerifyAccessToken
 }
 
-// ExpectSecretKeyParam2 sets up expected param secretKey for TokenOperations.Verify
-func (mmVerify *mTokenOperationsMockVerify) ExpectSecretKeyParam2(secretKey []byte) *mTokenOperationsMockVerify {
-	if mmVerify.mock.funcVerify != nil {
-		mmVerify.mock.t.Fatalf("TokenOperationsMock.Verify mock is already set by Set")
+// ExpectSecretKeyParam2 sets up expected param secretKey for TokenOperations.VerifyAccessToken
+func (mmVerifyAccessToken *mTokenOperationsMockVerifyAccessToken) ExpectSecretKeyParam2(secretKey []byte) *mTokenOperationsMockVerifyAccessToken {
+	if mmVerifyAccessToken.mock.funcVerifyAccessToken != nil {
+		mmVerifyAccessToken.mock.t.Fatalf("TokenOperationsMock.VerifyAccessToken mock is already set by Set")
 	}
 
-	if mmVerify.defaultExpectation == nil {
-		mmVerify.defaultExpectation = &TokenOperationsMockVerifyExpectation{}
+	if mmVerifyAccessToken.defaultExpectation == nil {
+		mmVerifyAccessToken.defaultExpectation = &TokenOperationsMockVerifyAccessTokenExpectation{}
 	}
 
-	if mmVerify.defaultExpectation.params != nil {
-		mmVerify.mock.t.Fatalf("TokenOperationsMock.Verify mock is already set by Expect")
+	if mmVerifyAccessToken.defaultExpectation.params != nil {
+		mmVerifyAccessToken.mock.t.Fatalf("TokenOperationsMock.VerifyAccessToken mock is already set by Expect")
 	}
 
-	if mmVerify.defaultExpectation.paramPtrs == nil {
-		mmVerify.defaultExpectation.paramPtrs = &TokenOperationsMockVerifyParamPtrs{}
+	if mmVerifyAccessToken.defaultExpectation.paramPtrs == nil {
+		mmVerifyAccessToken.defaultExpectation.paramPtrs = &TokenOperationsMockVerifyAccessTokenParamPtrs{}
 	}
-	mmVerify.defaultExpectation.paramPtrs.secretKey = &secretKey
-	mmVerify.defaultExpectation.expectationOrigins.originSecretKey = minimock.CallerInfo(1)
+	mmVerifyAccessToken.defaultExpectation.paramPtrs.secretKey = &secretKey
+	mmVerifyAccessToken.defaultExpectation.expectationOrigins.originSecretKey = minimock.CallerInfo(1)
 
-	return mmVerify
+	return mmVerifyAccessToken
 }
 
-// Inspect accepts an inspector function that has same arguments as the TokenOperations.Verify
-func (mmVerify *mTokenOperationsMockVerify) Inspect(f func(tokenStr string, secretKey []byte)) *mTokenOperationsMockVerify {
-	if mmVerify.mock.inspectFuncVerify != nil {
-		mmVerify.mock.t.Fatalf("Inspect function is already set for TokenOperationsMock.Verify")
+// Inspect accepts an inspector function that has same arguments as the TokenOperations.VerifyAccessToken
+func (mmVerifyAccessToken *mTokenOperationsMockVerifyAccessToken) Inspect(f func(tokenStr string, secretKey []byte)) *mTokenOperationsMockVerifyAccessToken {
+	if mmVerifyAccessToken.mock.inspectFuncVerifyAccessToken != nil {
+		mmVerifyAccessToken.mock.t.Fatalf("Inspect function is already set for TokenOperationsMock.VerifyAccessToken")
 	}
 
-	mmVerify.mock.inspectFuncVerify = f
+	mmVerifyAccessToken.mock.inspectFuncVerifyAccessToken = f
 
-	return mmVerify
+	return mmVerifyAccessToken
 }
 
-// Return sets up results that will be returned by TokenOperations.Verify
-func (mmVerify *mTokenOperationsMockVerify) Return(up1 *model.UserClaims, err error) *TokenOperationsMock {
-	if mmVerify.mock.funcVerify != nil {
-		mmVerify.mock.t.Fatalf("TokenOperationsMock.Verify mock is already set by Set")
+// Return sets up results that will be returned by TokenOperations.VerifyAccessToken
+func (mmVerifyAccessToken *mTokenOperationsMockVerifyAccessToken) Return(up1 *model.UserClaims, err error) *TokenOperationsMock {
+	if mmVerifyAccessToken.mock.funcVerifyAccessToken != nil {
+		mmVerifyAccessToken.mock.t.Fatalf("TokenOperationsMock.VerifyAccessToken mock is already set by Set")
 	}
 
-	if mmVerify.defaultExpectation == nil {
-		mmVerify.defaultExpectation = &TokenOperationsMockVerifyExpectation{mock: mmVerify.mock}
+	if mmVerifyAccessToken.defaultExpectation == nil {
+		mmVerifyAccessToken.defaultExpectation = &TokenOperationsMockVerifyAccessTokenExpectation{mock: mmVerifyAccessToken.mock}
 	}
-	mmVerify.defaultExpectation.results = &TokenOperationsMockVerifyResults{up1, err}
-	mmVerify.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
-	return mmVerify.mock
+	mmVerifyAccessToken.defaultExpectation.results = &TokenOperationsMockVerifyAccessTokenResults{up1, err}
+	mmVerifyAccessToken.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmVerifyAccessToken.mock
 }
 
-// Set uses given function f to mock the TokenOperations.Verify method
-func (mmVerify *mTokenOperationsMockVerify) Set(f func(tokenStr string, secretKey []byte) (up1 *model.UserClaims, err error)) *TokenOperationsMock {
-	if mmVerify.defaultExpectation != nil {
-		mmVerify.mock.t.Fatalf("Default expectation is already set for the TokenOperations.Verify method")
+// Set uses given function f to mock the TokenOperations.VerifyAccessToken method
+func (mmVerifyAccessToken *mTokenOperationsMockVerifyAccessToken) Set(f func(tokenStr string, secretKey []byte) (up1 *model.UserClaims, err error)) *TokenOperationsMock {
+	if mmVerifyAccessToken.defaultExpectation != nil {
+		mmVerifyAccessToken.mock.t.Fatalf("Default expectation is already set for the TokenOperations.VerifyAccessToken method")
 	}
 
-	if len(mmVerify.expectations) > 0 {
-		mmVerify.mock.t.Fatalf("Some expectations are already set for the TokenOperations.Verify method")
+	if len(mmVerifyAccessToken.expectations) > 0 {
+		mmVerifyAccessToken.mock.t.Fatalf("Some expectations are already set for the TokenOperations.VerifyAccessToken method")
 	}
 
-	mmVerify.mock.funcVerify = f
-	mmVerify.mock.funcVerifyOrigin = minimock.CallerInfo(1)
-	return mmVerify.mock
+	mmVerifyAccessToken.mock.funcVerifyAccessToken = f
+	mmVerifyAccessToken.mock.funcVerifyAccessTokenOrigin = minimock.CallerInfo(1)
+	return mmVerifyAccessToken.mock
 }
 
-// When sets expectation for the TokenOperations.Verify which will trigger the result defined by the following
+// When sets expectation for the TokenOperations.VerifyAccessToken which will trigger the result defined by the following
 // Then helper
-func (mmVerify *mTokenOperationsMockVerify) When(tokenStr string, secretKey []byte) *TokenOperationsMockVerifyExpectation {
-	if mmVerify.mock.funcVerify != nil {
-		mmVerify.mock.t.Fatalf("TokenOperationsMock.Verify mock is already set by Set")
+func (mmVerifyAccessToken *mTokenOperationsMockVerifyAccessToken) When(tokenStr string, secretKey []byte) *TokenOperationsMockVerifyAccessTokenExpectation {
+	if mmVerifyAccessToken.mock.funcVerifyAccessToken != nil {
+		mmVerifyAccessToken.mock.t.Fatalf("TokenOperationsMock.VerifyAccessToken mock is already set by Set")
 	}
 
-	expectation := &TokenOperationsMockVerifyExpectation{
-		mock:               mmVerify.mock,
-		params:             &TokenOperationsMockVerifyParams{tokenStr, secretKey},
-		expectationOrigins: TokenOperationsMockVerifyExpectationOrigins{origin: minimock.CallerInfo(1)},
+	expectation := &TokenOperationsMockVerifyAccessTokenExpectation{
+		mock:               mmVerifyAccessToken.mock,
+		params:             &TokenOperationsMockVerifyAccessTokenParams{tokenStr, secretKey},
+		expectationOrigins: TokenOperationsMockVerifyAccessTokenExpectationOrigins{origin: minimock.CallerInfo(1)},
 	}
-	mmVerify.expectations = append(mmVerify.expectations, expectation)
+	mmVerifyAccessToken.expectations = append(mmVerifyAccessToken.expectations, expectation)
 	return expectation
 }
 
-// Then sets up TokenOperations.Verify return parameters for the expectation previously defined by the When method
-func (e *TokenOperationsMockVerifyExpectation) Then(up1 *model.UserClaims, err error) *TokenOperationsMock {
-	e.results = &TokenOperationsMockVerifyResults{up1, err}
+// Then sets up TokenOperations.VerifyAccessToken return parameters for the expectation previously defined by the When method
+func (e *TokenOperationsMockVerifyAccessTokenExpectation) Then(up1 *model.UserClaims, err error) *TokenOperationsMock {
+	e.results = &TokenOperationsMockVerifyAccessTokenResults{up1, err}
 	return e.mock
 }
 
-// Times sets number of times TokenOperations.Verify should be invoked
-func (mmVerify *mTokenOperationsMockVerify) Times(n uint64) *mTokenOperationsMockVerify {
+// Times sets number of times TokenOperations.VerifyAccessToken should be invoked
+func (mmVerifyAccessToken *mTokenOperationsMockVerifyAccessToken) Times(n uint64) *mTokenOperationsMockVerifyAccessToken {
 	if n == 0 {
-		mmVerify.mock.t.Fatalf("Times of TokenOperationsMock.Verify mock can not be zero")
+		mmVerifyAccessToken.mock.t.Fatalf("Times of TokenOperationsMock.VerifyAccessToken mock can not be zero")
 	}
-	mm_atomic.StoreUint64(&mmVerify.expectedInvocations, n)
-	mmVerify.expectedInvocationsOrigin = minimock.CallerInfo(1)
-	return mmVerify
+	mm_atomic.StoreUint64(&mmVerifyAccessToken.expectedInvocations, n)
+	mmVerifyAccessToken.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmVerifyAccessToken
 }
 
-func (mmVerify *mTokenOperationsMockVerify) invocationsDone() bool {
-	if len(mmVerify.expectations) == 0 && mmVerify.defaultExpectation == nil && mmVerify.mock.funcVerify == nil {
+func (mmVerifyAccessToken *mTokenOperationsMockVerifyAccessToken) invocationsDone() bool {
+	if len(mmVerifyAccessToken.expectations) == 0 && mmVerifyAccessToken.defaultExpectation == nil && mmVerifyAccessToken.mock.funcVerifyAccessToken == nil {
 		return true
 	}
 
-	totalInvocations := mm_atomic.LoadUint64(&mmVerify.mock.afterVerifyCounter)
-	expectedInvocations := mm_atomic.LoadUint64(&mmVerify.expectedInvocations)
+	totalInvocations := mm_atomic.LoadUint64(&mmVerifyAccessToken.mock.afterVerifyAccessTokenCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmVerifyAccessToken.expectedInvocations)
 
 	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
 }
 
-// Verify implements mm_tokens.TokenOperations
-func (mmVerify *TokenOperationsMock) Verify(tokenStr string, secretKey []byte) (up1 *model.UserClaims, err error) {
-	mm_atomic.AddUint64(&mmVerify.beforeVerifyCounter, 1)
-	defer mm_atomic.AddUint64(&mmVerify.afterVerifyCounter, 1)
+// VerifyAccessToken implements mm_tokens.TokenOperations
+func (mmVerifyAccessToken *TokenOperationsMock) VerifyAccessToken(tokenStr string, secretKey []byte) (up1 *model.UserClaims, err error) {
+	mm_atomic.AddUint64(&mmVerifyAccessToken.beforeVerifyAccessTokenCounter, 1)
+	defer mm_atomic.AddUint64(&mmVerifyAccessToken.afterVerifyAccessTokenCounter, 1)
 
-	mmVerify.t.Helper()
+	mmVerifyAccessToken.t.Helper()
 
-	if mmVerify.inspectFuncVerify != nil {
-		mmVerify.inspectFuncVerify(tokenStr, secretKey)
+	if mmVerifyAccessToken.inspectFuncVerifyAccessToken != nil {
+		mmVerifyAccessToken.inspectFuncVerifyAccessToken(tokenStr, secretKey)
 	}
 
-	mm_params := TokenOperationsMockVerifyParams{tokenStr, secretKey}
+	mm_params := TokenOperationsMockVerifyAccessTokenParams{tokenStr, secretKey}
 
 	// Record call args
-	mmVerify.VerifyMock.mutex.Lock()
-	mmVerify.VerifyMock.callArgs = append(mmVerify.VerifyMock.callArgs, &mm_params)
-	mmVerify.VerifyMock.mutex.Unlock()
+	mmVerifyAccessToken.VerifyAccessTokenMock.mutex.Lock()
+	mmVerifyAccessToken.VerifyAccessTokenMock.callArgs = append(mmVerifyAccessToken.VerifyAccessTokenMock.callArgs, &mm_params)
+	mmVerifyAccessToken.VerifyAccessTokenMock.mutex.Unlock()
 
-	for _, e := range mmVerify.VerifyMock.expectations {
+	for _, e := range mmVerifyAccessToken.VerifyAccessTokenMock.expectations {
 		if minimock.Equal(*e.params, mm_params) {
 			mm_atomic.AddUint64(&e.Counter, 1)
 			return e.results.up1, e.results.err
 		}
 	}
 
-	if mmVerify.VerifyMock.defaultExpectation != nil {
-		mm_atomic.AddUint64(&mmVerify.VerifyMock.defaultExpectation.Counter, 1)
-		mm_want := mmVerify.VerifyMock.defaultExpectation.params
-		mm_want_ptrs := mmVerify.VerifyMock.defaultExpectation.paramPtrs
+	if mmVerifyAccessToken.VerifyAccessTokenMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmVerifyAccessToken.VerifyAccessTokenMock.defaultExpectation.Counter, 1)
+		mm_want := mmVerifyAccessToken.VerifyAccessTokenMock.defaultExpectation.params
+		mm_want_ptrs := mmVerifyAccessToken.VerifyAccessTokenMock.defaultExpectation.paramPtrs
 
-		mm_got := TokenOperationsMockVerifyParams{tokenStr, secretKey}
+		mm_got := TokenOperationsMockVerifyAccessTokenParams{tokenStr, secretKey}
 
 		if mm_want_ptrs != nil {
 
 			if mm_want_ptrs.tokenStr != nil && !minimock.Equal(*mm_want_ptrs.tokenStr, mm_got.tokenStr) {
-				mmVerify.t.Errorf("TokenOperationsMock.Verify got unexpected parameter tokenStr, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-					mmVerify.VerifyMock.defaultExpectation.expectationOrigins.originTokenStr, *mm_want_ptrs.tokenStr, mm_got.tokenStr, minimock.Diff(*mm_want_ptrs.tokenStr, mm_got.tokenStr))
+				mmVerifyAccessToken.t.Errorf("TokenOperationsMock.VerifyAccessToken got unexpected parameter tokenStr, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmVerifyAccessToken.VerifyAccessTokenMock.defaultExpectation.expectationOrigins.originTokenStr, *mm_want_ptrs.tokenStr, mm_got.tokenStr, minimock.Diff(*mm_want_ptrs.tokenStr, mm_got.tokenStr))
 			}
 
 			if mm_want_ptrs.secretKey != nil && !minimock.Equal(*mm_want_ptrs.secretKey, mm_got.secretKey) {
-				mmVerify.t.Errorf("TokenOperationsMock.Verify got unexpected parameter secretKey, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-					mmVerify.VerifyMock.defaultExpectation.expectationOrigins.originSecretKey, *mm_want_ptrs.secretKey, mm_got.secretKey, minimock.Diff(*mm_want_ptrs.secretKey, mm_got.secretKey))
+				mmVerifyAccessToken.t.Errorf("TokenOperationsMock.VerifyAccessToken got unexpected parameter secretKey, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmVerifyAccessToken.VerifyAccessTokenMock.defaultExpectation.expectationOrigins.originSecretKey, *mm_want_ptrs.secretKey, mm_got.secretKey, minimock.Diff(*mm_want_ptrs.secretKey, mm_got.secretKey))
 			}
 
 		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
-			mmVerify.t.Errorf("TokenOperationsMock.Verify got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-				mmVerify.VerifyMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+			mmVerifyAccessToken.t.Errorf("TokenOperationsMock.VerifyAccessToken got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmVerifyAccessToken.VerifyAccessTokenMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
 		}
 
-		mm_results := mmVerify.VerifyMock.defaultExpectation.results
+		mm_results := mmVerifyAccessToken.VerifyAccessTokenMock.defaultExpectation.results
 		if mm_results == nil {
-			mmVerify.t.Fatal("No results are set for the TokenOperationsMock.Verify")
+			mmVerifyAccessToken.t.Fatal("No results are set for the TokenOperationsMock.VerifyAccessToken")
 		}
 		return (*mm_results).up1, (*mm_results).err
 	}
-	if mmVerify.funcVerify != nil {
-		return mmVerify.funcVerify(tokenStr, secretKey)
+	if mmVerifyAccessToken.funcVerifyAccessToken != nil {
+		return mmVerifyAccessToken.funcVerifyAccessToken(tokenStr, secretKey)
 	}
-	mmVerify.t.Fatalf("Unexpected call to TokenOperationsMock.Verify. %v %v", tokenStr, secretKey)
+	mmVerifyAccessToken.t.Fatalf("Unexpected call to TokenOperationsMock.VerifyAccessToken. %v %v", tokenStr, secretKey)
 	return
 }
 
-// VerifyAfterCounter returns a count of finished TokenOperationsMock.Verify invocations
-func (mmVerify *TokenOperationsMock) VerifyAfterCounter() uint64 {
-	return mm_atomic.LoadUint64(&mmVerify.afterVerifyCounter)
+// VerifyAccessTokenAfterCounter returns a count of finished TokenOperationsMock.VerifyAccessToken invocations
+func (mmVerifyAccessToken *TokenOperationsMock) VerifyAccessTokenAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmVerifyAccessToken.afterVerifyAccessTokenCounter)
 }
 
-// VerifyBeforeCounter returns a count of TokenOperationsMock.Verify invocations
-func (mmVerify *TokenOperationsMock) VerifyBeforeCounter() uint64 {
-	return mm_atomic.LoadUint64(&mmVerify.beforeVerifyCounter)
+// VerifyAccessTokenBeforeCounter returns a count of TokenOperationsMock.VerifyAccessToken invocations
+func (mmVerifyAccessToken *TokenOperationsMock) VerifyAccessTokenBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmVerifyAccessToken.beforeVerifyAccessTokenCounter)
 }
 
-// Calls returns a list of arguments used in each call to TokenOperationsMock.Verify.
+// Calls returns a list of arguments used in each call to TokenOperationsMock.VerifyAccessToken.
 // The list is in the same order as the calls were made (i.e. recent calls have a higher index)
-func (mmVerify *mTokenOperationsMockVerify) Calls() []*TokenOperationsMockVerifyParams {
-	mmVerify.mutex.RLock()
+func (mmVerifyAccessToken *mTokenOperationsMockVerifyAccessToken) Calls() []*TokenOperationsMockVerifyAccessTokenParams {
+	mmVerifyAccessToken.mutex.RLock()
 
-	argCopy := make([]*TokenOperationsMockVerifyParams, len(mmVerify.callArgs))
-	copy(argCopy, mmVerify.callArgs)
+	argCopy := make([]*TokenOperationsMockVerifyAccessTokenParams, len(mmVerifyAccessToken.callArgs))
+	copy(argCopy, mmVerifyAccessToken.callArgs)
 
-	mmVerify.mutex.RUnlock()
+	mmVerifyAccessToken.mutex.RUnlock()
 
 	return argCopy
 }
 
-// MinimockVerifyDone returns true if the count of the Verify invocations corresponds
+// MinimockVerifyAccessTokenDone returns true if the count of the VerifyAccessToken invocations corresponds
 // the number of defined expectations
-func (m *TokenOperationsMock) MinimockVerifyDone() bool {
-	if m.VerifyMock.optional {
+func (m *TokenOperationsMock) MinimockVerifyAccessTokenDone() bool {
+	if m.VerifyAccessTokenMock.optional {
 		// Optional methods provide '0 or more' call count restriction.
 		return true
 	}
 
-	for _, e := range m.VerifyMock.expectations {
+	for _, e := range m.VerifyAccessTokenMock.expectations {
 		if mm_atomic.LoadUint64(&e.Counter) < 1 {
 			return false
 		}
 	}
 
-	return m.VerifyMock.invocationsDone()
+	return m.VerifyAccessTokenMock.invocationsDone()
 }
 
-// MinimockVerifyInspect logs each unmet expectation
-func (m *TokenOperationsMock) MinimockVerifyInspect() {
-	for _, e := range m.VerifyMock.expectations {
+// MinimockVerifyAccessTokenInspect logs each unmet expectation
+func (m *TokenOperationsMock) MinimockVerifyAccessTokenInspect() {
+	for _, e := range m.VerifyAccessTokenMock.expectations {
 		if mm_atomic.LoadUint64(&e.Counter) < 1 {
-			m.t.Errorf("Expected call to TokenOperationsMock.Verify at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+			m.t.Errorf("Expected call to TokenOperationsMock.VerifyAccessToken at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
 		}
 	}
 
-	afterVerifyCounter := mm_atomic.LoadUint64(&m.afterVerifyCounter)
+	afterVerifyAccessTokenCounter := mm_atomic.LoadUint64(&m.afterVerifyAccessTokenCounter)
 	// if default expectation was set then invocations count should be greater than zero
-	if m.VerifyMock.defaultExpectation != nil && afterVerifyCounter < 1 {
-		if m.VerifyMock.defaultExpectation.params == nil {
-			m.t.Errorf("Expected call to TokenOperationsMock.Verify at\n%s", m.VerifyMock.defaultExpectation.returnOrigin)
+	if m.VerifyAccessTokenMock.defaultExpectation != nil && afterVerifyAccessTokenCounter < 1 {
+		if m.VerifyAccessTokenMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to TokenOperationsMock.VerifyAccessToken at\n%s", m.VerifyAccessTokenMock.defaultExpectation.returnOrigin)
 		} else {
-			m.t.Errorf("Expected call to TokenOperationsMock.Verify at\n%s with params: %#v", m.VerifyMock.defaultExpectation.expectationOrigins.origin, *m.VerifyMock.defaultExpectation.params)
+			m.t.Errorf("Expected call to TokenOperationsMock.VerifyAccessToken at\n%s with params: %#v", m.VerifyAccessTokenMock.defaultExpectation.expectationOrigins.origin, *m.VerifyAccessTokenMock.defaultExpectation.params)
 		}
 	}
 	// if func was set then invocations count should be greater than zero
-	if m.funcVerify != nil && afterVerifyCounter < 1 {
-		m.t.Errorf("Expected call to TokenOperationsMock.Verify at\n%s", m.funcVerifyOrigin)
+	if m.funcVerifyAccessToken != nil && afterVerifyAccessTokenCounter < 1 {
+		m.t.Errorf("Expected call to TokenOperationsMock.VerifyAccessToken at\n%s", m.funcVerifyAccessTokenOrigin)
 	}
 
-	if !m.VerifyMock.invocationsDone() && afterVerifyCounter > 0 {
-		m.t.Errorf("Expected %d calls to TokenOperationsMock.Verify at\n%s but found %d calls",
-			mm_atomic.LoadUint64(&m.VerifyMock.expectedInvocations), m.VerifyMock.expectedInvocationsOrigin, afterVerifyCounter)
+	if !m.VerifyAccessTokenMock.invocationsDone() && afterVerifyAccessTokenCounter > 0 {
+		m.t.Errorf("Expected %d calls to TokenOperationsMock.VerifyAccessToken at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.VerifyAccessTokenMock.expectedInvocations), m.VerifyAccessTokenMock.expectedInvocationsOrigin, afterVerifyAccessTokenCounter)
+	}
+}
+
+type mTokenOperationsMockVerifyRefreshToken struct {
+	optional           bool
+	mock               *TokenOperationsMock
+	defaultExpectation *TokenOperationsMockVerifyRefreshTokenExpectation
+	expectations       []*TokenOperationsMockVerifyRefreshTokenExpectation
+
+	callArgs []*TokenOperationsMockVerifyRefreshTokenParams
+	mutex    sync.RWMutex
+
+	expectedInvocations       uint64
+	expectedInvocationsOrigin string
+}
+
+// TokenOperationsMockVerifyRefreshTokenExpectation specifies expectation struct of the TokenOperations.VerifyRefreshToken
+type TokenOperationsMockVerifyRefreshTokenExpectation struct {
+	mock               *TokenOperationsMock
+	params             *TokenOperationsMockVerifyRefreshTokenParams
+	paramPtrs          *TokenOperationsMockVerifyRefreshTokenParamPtrs
+	expectationOrigins TokenOperationsMockVerifyRefreshTokenExpectationOrigins
+	results            *TokenOperationsMockVerifyRefreshTokenResults
+	returnOrigin       string
+	Counter            uint64
+}
+
+// TokenOperationsMockVerifyRefreshTokenParams contains parameters of the TokenOperations.VerifyRefreshToken
+type TokenOperationsMockVerifyRefreshTokenParams struct {
+	tokenStr  string
+	secretKey []byte
+}
+
+// TokenOperationsMockVerifyRefreshTokenParamPtrs contains pointers to parameters of the TokenOperations.VerifyRefreshToken
+type TokenOperationsMockVerifyRefreshTokenParamPtrs struct {
+	tokenStr  *string
+	secretKey *[]byte
+}
+
+// TokenOperationsMockVerifyRefreshTokenResults contains results of the TokenOperations.VerifyRefreshToken
+type TokenOperationsMockVerifyRefreshTokenResults struct {
+	rp1 *model.RefreshClaims
+	err error
+}
+
+// TokenOperationsMockVerifyRefreshTokenOrigins contains origins of expectations of the TokenOperations.VerifyRefreshToken
+type TokenOperationsMockVerifyRefreshTokenExpectationOrigins struct {
+	origin          string
+	originTokenStr  string
+	originSecretKey string
+}
+
+// Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
+// the test will fail minimock's automatic final call check if the mocked method was not called at least once.
+// Optional() makes method check to work in '0 or more' mode.
+// It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
+// catch the problems when the expected method call is totally skipped during test run.
+func (mmVerifyRefreshToken *mTokenOperationsMockVerifyRefreshToken) Optional() *mTokenOperationsMockVerifyRefreshToken {
+	mmVerifyRefreshToken.optional = true
+	return mmVerifyRefreshToken
+}
+
+// Expect sets up expected params for TokenOperations.VerifyRefreshToken
+func (mmVerifyRefreshToken *mTokenOperationsMockVerifyRefreshToken) Expect(tokenStr string, secretKey []byte) *mTokenOperationsMockVerifyRefreshToken {
+	if mmVerifyRefreshToken.mock.funcVerifyRefreshToken != nil {
+		mmVerifyRefreshToken.mock.t.Fatalf("TokenOperationsMock.VerifyRefreshToken mock is already set by Set")
+	}
+
+	if mmVerifyRefreshToken.defaultExpectation == nil {
+		mmVerifyRefreshToken.defaultExpectation = &TokenOperationsMockVerifyRefreshTokenExpectation{}
+	}
+
+	if mmVerifyRefreshToken.defaultExpectation.paramPtrs != nil {
+		mmVerifyRefreshToken.mock.t.Fatalf("TokenOperationsMock.VerifyRefreshToken mock is already set by ExpectParams functions")
+	}
+
+	mmVerifyRefreshToken.defaultExpectation.params = &TokenOperationsMockVerifyRefreshTokenParams{tokenStr, secretKey}
+	mmVerifyRefreshToken.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmVerifyRefreshToken.expectations {
+		if minimock.Equal(e.params, mmVerifyRefreshToken.defaultExpectation.params) {
+			mmVerifyRefreshToken.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmVerifyRefreshToken.defaultExpectation.params)
+		}
+	}
+
+	return mmVerifyRefreshToken
+}
+
+// ExpectTokenStrParam1 sets up expected param tokenStr for TokenOperations.VerifyRefreshToken
+func (mmVerifyRefreshToken *mTokenOperationsMockVerifyRefreshToken) ExpectTokenStrParam1(tokenStr string) *mTokenOperationsMockVerifyRefreshToken {
+	if mmVerifyRefreshToken.mock.funcVerifyRefreshToken != nil {
+		mmVerifyRefreshToken.mock.t.Fatalf("TokenOperationsMock.VerifyRefreshToken mock is already set by Set")
+	}
+
+	if mmVerifyRefreshToken.defaultExpectation == nil {
+		mmVerifyRefreshToken.defaultExpectation = &TokenOperationsMockVerifyRefreshTokenExpectation{}
+	}
+
+	if mmVerifyRefreshToken.defaultExpectation.params != nil {
+		mmVerifyRefreshToken.mock.t.Fatalf("TokenOperationsMock.VerifyRefreshToken mock is already set by Expect")
+	}
+
+	if mmVerifyRefreshToken.defaultExpectation.paramPtrs == nil {
+		mmVerifyRefreshToken.defaultExpectation.paramPtrs = &TokenOperationsMockVerifyRefreshTokenParamPtrs{}
+	}
+	mmVerifyRefreshToken.defaultExpectation.paramPtrs.tokenStr = &tokenStr
+	mmVerifyRefreshToken.defaultExpectation.expectationOrigins.originTokenStr = minimock.CallerInfo(1)
+
+	return mmVerifyRefreshToken
+}
+
+// ExpectSecretKeyParam2 sets up expected param secretKey for TokenOperations.VerifyRefreshToken
+func (mmVerifyRefreshToken *mTokenOperationsMockVerifyRefreshToken) ExpectSecretKeyParam2(secretKey []byte) *mTokenOperationsMockVerifyRefreshToken {
+	if mmVerifyRefreshToken.mock.funcVerifyRefreshToken != nil {
+		mmVerifyRefreshToken.mock.t.Fatalf("TokenOperationsMock.VerifyRefreshToken mock is already set by Set")
+	}
+
+	if mmVerifyRefreshToken.defaultExpectation == nil {
+		mmVerifyRefreshToken.defaultExpectation = &TokenOperationsMockVerifyRefreshTokenExpectation{}
+	}
+
+	if mmVerifyRefreshToken.defaultExpectation.params != nil {
+		mmVerifyRefreshToken.mock.t.Fatalf("TokenOperationsMock.VerifyRefreshToken mock is already set by Expect")
+	}
+
+	if mmVerifyRefreshToken.defaultExpectation.paramPtrs == nil {
+		mmVerifyRefreshToken.defaultExpectation.paramPtrs = &TokenOperationsMockVerifyRefreshTokenParamPtrs{}
+	}
+	mmVerifyRefreshToken.defaultExpectation.paramPtrs.secretKey = &secretKey
+	mmVerifyRefreshToken.defaultExpectation.expectationOrigins.originSecretKey = minimock.CallerInfo(1)
+
+	return mmVerifyRefreshToken
+}
+
+// Inspect accepts an inspector function that has same arguments as the TokenOperations.VerifyRefreshToken
+func (mmVerifyRefreshToken *mTokenOperationsMockVerifyRefreshToken) Inspect(f func(tokenStr string, secretKey []byte)) *mTokenOperationsMockVerifyRefreshToken {
+	if mmVerifyRefreshToken.mock.inspectFuncVerifyRefreshToken != nil {
+		mmVerifyRefreshToken.mock.t.Fatalf("Inspect function is already set for TokenOperationsMock.VerifyRefreshToken")
+	}
+
+	mmVerifyRefreshToken.mock.inspectFuncVerifyRefreshToken = f
+
+	return mmVerifyRefreshToken
+}
+
+// Return sets up results that will be returned by TokenOperations.VerifyRefreshToken
+func (mmVerifyRefreshToken *mTokenOperationsMockVerifyRefreshToken) Return(rp1 *model.RefreshClaims, err error) *TokenOperationsMock {
+	if mmVerifyRefreshToken.mock.funcVerifyRefreshToken != nil {
+		mmVerifyRefreshToken.mock.t.Fatalf("TokenOperationsMock.VerifyRefreshToken mock is already set by Set")
+	}
+
+	if mmVerifyRefreshToken.defaultExpectation == nil {
+		mmVerifyRefreshToken.defaultExpectation = &TokenOperationsMockVerifyRefreshTokenExpectation{mock: mmVerifyRefreshToken.mock}
+	}
+	mmVerifyRefreshToken.defaultExpectation.results = &TokenOperationsMockVerifyRefreshTokenResults{rp1, err}
+	mmVerifyRefreshToken.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmVerifyRefreshToken.mock
+}
+
+// Set uses given function f to mock the TokenOperations.VerifyRefreshToken method
+func (mmVerifyRefreshToken *mTokenOperationsMockVerifyRefreshToken) Set(f func(tokenStr string, secretKey []byte) (rp1 *model.RefreshClaims, err error)) *TokenOperationsMock {
+	if mmVerifyRefreshToken.defaultExpectation != nil {
+		mmVerifyRefreshToken.mock.t.Fatalf("Default expectation is already set for the TokenOperations.VerifyRefreshToken method")
+	}
+
+	if len(mmVerifyRefreshToken.expectations) > 0 {
+		mmVerifyRefreshToken.mock.t.Fatalf("Some expectations are already set for the TokenOperations.VerifyRefreshToken method")
+	}
+
+	mmVerifyRefreshToken.mock.funcVerifyRefreshToken = f
+	mmVerifyRefreshToken.mock.funcVerifyRefreshTokenOrigin = minimock.CallerInfo(1)
+	return mmVerifyRefreshToken.mock
+}
+
+// When sets expectation for the TokenOperations.VerifyRefreshToken which will trigger the result defined by the following
+// Then helper
+func (mmVerifyRefreshToken *mTokenOperationsMockVerifyRefreshToken) When(tokenStr string, secretKey []byte) *TokenOperationsMockVerifyRefreshTokenExpectation {
+	if mmVerifyRefreshToken.mock.funcVerifyRefreshToken != nil {
+		mmVerifyRefreshToken.mock.t.Fatalf("TokenOperationsMock.VerifyRefreshToken mock is already set by Set")
+	}
+
+	expectation := &TokenOperationsMockVerifyRefreshTokenExpectation{
+		mock:               mmVerifyRefreshToken.mock,
+		params:             &TokenOperationsMockVerifyRefreshTokenParams{tokenStr, secretKey},
+		expectationOrigins: TokenOperationsMockVerifyRefreshTokenExpectationOrigins{origin: minimock.CallerInfo(1)},
+	}
+	mmVerifyRefreshToken.expectations = append(mmVerifyRefreshToken.expectations, expectation)
+	return expectation
+}
+
+// Then sets up TokenOperations.VerifyRefreshToken return parameters for the expectation previously defined by the When method
+func (e *TokenOperationsMockVerifyRefreshTokenExpectation) Then(rp1 *model.RefreshClaims, err error) *TokenOperationsMock {
+	e.results = &TokenOperationsMockVerifyRefreshTokenResults{rp1, err}
+	return e.mock
+}
+
+// Times sets number of times TokenOperations.VerifyRefreshToken should be invoked
+func (mmVerifyRefreshToken *mTokenOperationsMockVerifyRefreshToken) Times(n uint64) *mTokenOperationsMockVerifyRefreshToken {
+	if n == 0 {
+		mmVerifyRefreshToken.mock.t.Fatalf("Times of TokenOperationsMock.VerifyRefreshToken mock can not be zero")
+	}
+	mm_atomic.StoreUint64(&mmVerifyRefreshToken.expectedInvocations, n)
+	mmVerifyRefreshToken.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmVerifyRefreshToken
+}
+
+func (mmVerifyRefreshToken *mTokenOperationsMockVerifyRefreshToken) invocationsDone() bool {
+	if len(mmVerifyRefreshToken.expectations) == 0 && mmVerifyRefreshToken.defaultExpectation == nil && mmVerifyRefreshToken.mock.funcVerifyRefreshToken == nil {
+		return true
+	}
+
+	totalInvocations := mm_atomic.LoadUint64(&mmVerifyRefreshToken.mock.afterVerifyRefreshTokenCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmVerifyRefreshToken.expectedInvocations)
+
+	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
+}
+
+// VerifyRefreshToken implements mm_tokens.TokenOperations
+func (mmVerifyRefreshToken *TokenOperationsMock) VerifyRefreshToken(tokenStr string, secretKey []byte) (rp1 *model.RefreshClaims, err error) {
+	mm_atomic.AddUint64(&mmVerifyRefreshToken.beforeVerifyRefreshTokenCounter, 1)
+	defer mm_atomic.AddUint64(&mmVerifyRefreshToken.afterVerifyRefreshTokenCounter, 1)
+
+	mmVerifyRefreshToken.t.Helper()
+
+	if mmVerifyRefreshToken.inspectFuncVerifyRefreshToken != nil {
+		mmVerifyRefreshToken.inspectFuncVerifyRefreshToken(tokenStr, secretKey)
+	}
+
+	mm_params := TokenOperationsMockVerifyRefreshTokenParams{tokenStr, secretKey}
+
+	// Record call args
+	mmVerifyRefreshToken.VerifyRefreshTokenMock.mutex.Lock()
+	mmVerifyRefreshToken.VerifyRefreshTokenMock.callArgs = append(mmVerifyRefreshToken.VerifyRefreshTokenMock.callArgs, &mm_params)
+	mmVerifyRefreshToken.VerifyRefreshTokenMock.mutex.Unlock()
+
+	for _, e := range mmVerifyRefreshToken.VerifyRefreshTokenMock.expectations {
+		if minimock.Equal(*e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.rp1, e.results.err
+		}
+	}
+
+	if mmVerifyRefreshToken.VerifyRefreshTokenMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmVerifyRefreshToken.VerifyRefreshTokenMock.defaultExpectation.Counter, 1)
+		mm_want := mmVerifyRefreshToken.VerifyRefreshTokenMock.defaultExpectation.params
+		mm_want_ptrs := mmVerifyRefreshToken.VerifyRefreshTokenMock.defaultExpectation.paramPtrs
+
+		mm_got := TokenOperationsMockVerifyRefreshTokenParams{tokenStr, secretKey}
+
+		if mm_want_ptrs != nil {
+
+			if mm_want_ptrs.tokenStr != nil && !minimock.Equal(*mm_want_ptrs.tokenStr, mm_got.tokenStr) {
+				mmVerifyRefreshToken.t.Errorf("TokenOperationsMock.VerifyRefreshToken got unexpected parameter tokenStr, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmVerifyRefreshToken.VerifyRefreshTokenMock.defaultExpectation.expectationOrigins.originTokenStr, *mm_want_ptrs.tokenStr, mm_got.tokenStr, minimock.Diff(*mm_want_ptrs.tokenStr, mm_got.tokenStr))
+			}
+
+			if mm_want_ptrs.secretKey != nil && !minimock.Equal(*mm_want_ptrs.secretKey, mm_got.secretKey) {
+				mmVerifyRefreshToken.t.Errorf("TokenOperationsMock.VerifyRefreshToken got unexpected parameter secretKey, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmVerifyRefreshToken.VerifyRefreshTokenMock.defaultExpectation.expectationOrigins.originSecretKey, *mm_want_ptrs.secretKey, mm_got.secretKey, minimock.Diff(*mm_want_ptrs.secretKey, mm_got.secretKey))
+			}
+
+		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmVerifyRefreshToken.t.Errorf("TokenOperationsMock.VerifyRefreshToken got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmVerifyRefreshToken.VerifyRefreshTokenMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmVerifyRefreshToken.VerifyRefreshTokenMock.defaultExpectation.results
+		if mm_results == nil {
+			mmVerifyRefreshToken.t.Fatal("No results are set for the TokenOperationsMock.VerifyRefreshToken")
+		}
+		return (*mm_results).rp1, (*mm_results).err
+	}
+	if mmVerifyRefreshToken.funcVerifyRefreshToken != nil {
+		return mmVerifyRefreshToken.funcVerifyRefreshToken(tokenStr, secretKey)
+	}
+	mmVerifyRefreshToken.t.Fatalf("Unexpected call to TokenOperationsMock.VerifyRefreshToken. %v %v", tokenStr, secretKey)
+	return
+}
+
+// VerifyRefreshTokenAfterCounter returns a count of finished TokenOperationsMock.VerifyRefreshToken invocations
+func (mmVerifyRefreshToken *TokenOperationsMock) VerifyRefreshTokenAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmVerifyRefreshToken.afterVerifyRefreshTokenCounter)
+}
+
+// VerifyRefreshTokenBeforeCounter returns a count of TokenOperationsMock.VerifyRefreshToken invocations
+func (mmVerifyRefreshToken *TokenOperationsMock) VerifyRefreshTokenBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmVerifyRefreshToken.beforeVerifyRefreshTokenCounter)
+}
+
+// Calls returns a list of arguments used in each call to TokenOperationsMock.VerifyRefreshToken.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmVerifyRefreshToken *mTokenOperationsMockVerifyRefreshToken) Calls() []*TokenOperationsMockVerifyRefreshTokenParams {
+	mmVerifyRefreshToken.mutex.RLock()
+
+	argCopy := make([]*TokenOperationsMockVerifyRefreshTokenParams, len(mmVerifyRefreshToken.callArgs))
+	copy(argCopy, mmVerifyRefreshToken.callArgs)
+
+	mmVerifyRefreshToken.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockVerifyRefreshTokenDone returns true if the count of the VerifyRefreshToken invocations corresponds
+// the number of defined expectations
+func (m *TokenOperationsMock) MinimockVerifyRefreshTokenDone() bool {
+	if m.VerifyRefreshTokenMock.optional {
+		// Optional methods provide '0 or more' call count restriction.
+		return true
+	}
+
+	for _, e := range m.VerifyRefreshTokenMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	return m.VerifyRefreshTokenMock.invocationsDone()
+}
+
+// MinimockVerifyRefreshTokenInspect logs each unmet expectation
+func (m *TokenOperationsMock) MinimockVerifyRefreshTokenInspect() {
+	for _, e := range m.VerifyRefreshTokenMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to TokenOperationsMock.VerifyRefreshToken at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+		}
+	}
+
+	afterVerifyRefreshTokenCounter := mm_atomic.LoadUint64(&m.afterVerifyRefreshTokenCounter)
+	// if default expectation was set then invocations count should be greater than zero
+	if m.VerifyRefreshTokenMock.defaultExpectation != nil && afterVerifyRefreshTokenCounter < 1 {
+		if m.VerifyRefreshTokenMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to TokenOperationsMock.VerifyRefreshToken at\n%s", m.VerifyRefreshTokenMock.defaultExpectation.returnOrigin)
+		} else {
+			m.t.Errorf("Expected call to TokenOperationsMock.VerifyRefreshToken at\n%s with params: %#v", m.VerifyRefreshTokenMock.defaultExpectation.expectationOrigins.origin, *m.VerifyRefreshTokenMock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcVerifyRefreshToken != nil && afterVerifyRefreshTokenCounter < 1 {
+		m.t.Errorf("Expected call to TokenOperationsMock.VerifyRefreshToken at\n%s", m.funcVerifyRefreshTokenOrigin)
+	}
+
+	if !m.VerifyRefreshTokenMock.invocationsDone() && afterVerifyRefreshTokenCounter > 0 {
+		m.t.Errorf("Expected %d calls to TokenOperationsMock.VerifyRefreshToken at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.VerifyRefreshTokenMock.expectedInvocations), m.VerifyRefreshTokenMock.expectedInvocationsOrigin, afterVerifyRefreshTokenCounter)
 	}
 }
 
@@ -772,9 +1509,13 @@ func (m *TokenOperationsMock) MinimockVerifyInspect() {
 func (m *TokenOperationsMock) MinimockFinish() {
 	m.finishOnce.Do(func() {
 		if !m.minimockDone() {
-			m.MinimockGenerateInspect()
+			m.MinimockGenerateAccessTokenInspect()
 
-			m.MinimockVerifyInspect()
+			m.MinimockGenerateRefreshTokenInspect()
+
+			m.MinimockVerifyAccessTokenInspect()
+
+			m.MinimockVerifyRefreshTokenInspect()
 		}
 	})
 }
@@ -798,6 +1539,8 @@ func (m *TokenOperationsMock) MinimockWait(timeout mm_time.Duration) {
 func (m *TokenOperationsMock) minimockDone() bool {
 	done := true
 	return done &&
-		m.MinimockGenerateDone() &&
-		m.MinimockVerifyDone()
+		m.MinimockGenerateAccessTokenDone() &&
+		m.MinimockGenerateRefreshTokenDone() &&
+		m.MinimockVerifyAccessTokenDone() &&
+		m.MinimockVerifyRefreshTokenDone()
 }

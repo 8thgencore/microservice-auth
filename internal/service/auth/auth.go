@@ -16,12 +16,14 @@ func (s *serv) Login(ctx context.Context, creds *model.UserCreds) (*model.TokenP
 		return &model.TokenPair{}, errors.New("user not found")
 	}
 
+	// Check password correctness
 	err = bcrypt.CompareHashAndPassword([]byte(authInfo.Password), []byte(creds.Password))
 	if err != nil {
 		return &model.TokenPair{}, errors.New("wrong password")
 	}
 
-	accessToken, err := s.tokenOperations.Generate(model.User{
+	// Generate access token with detailed user info (name, role)
+	accessToken, err := s.tokenOperations.GenerateAccessToken(model.User{
 		Name: authInfo.Username,
 		Role: authInfo.Role,
 	},
@@ -29,18 +31,17 @@ func (s *serv) Login(ctx context.Context, creds *model.UserCreds) (*model.TokenP
 		s.jwtConfig.AccessTokenTTL,
 	)
 	if err != nil {
-		return &model.TokenPair{}, errors.New("failed to generate token")
+		return &model.TokenPair{}, errors.New("failed to generate access token")
 	}
 
-	refreshToken, err := s.tokenOperations.Generate(model.User{
-		Name: authInfo.Username,
-		Role: authInfo.Role,
-	},
+	// Generate refresh token with minimal information (e.g., user ID or username)
+	refreshToken, err := s.tokenOperations.GenerateRefreshToken(
+		authInfo.ID,
 		[]byte(s.jwtConfig.SecretKey),
 		s.jwtConfig.RefreshTokenTTL,
 	)
 	if err != nil {
-		return &model.TokenPair{}, errors.New("failed to generate token")
+		return &model.TokenPair{}, errors.New("failed to generate refresh token")
 	}
 
 	return &model.TokenPair{
@@ -49,41 +50,48 @@ func (s *serv) Login(ctx context.Context, creds *model.UserCreds) (*model.TokenP
 	}, nil
 }
 
-func (s *serv) GetAccessToken(_ context.Context, refreshToken string) (string, error) {
-	claims, err := s.tokenOperations.Verify(refreshToken, []byte(s.jwtConfig.SecretKey))
+func (s *serv) GetAccessToken(ctx context.Context, refreshToken string) (string, error) {
+	// Verify the refresh token to get the user identity (no sensitive data)
+	claims, err := s.tokenOperations.VerifyRefreshToken(refreshToken, []byte(s.jwtConfig.SecretKey))
 	if err != nil {
 		return "", errors.New("invalid refresh token")
 	}
 
-	accessToken, err := s.tokenOperations.Generate(model.User{
-		Name: claims.Username,
-		Role: claims.Role,
+	user, err := s.userRepository.Get(ctx, claims.UserID)
+	if err != nil {
+		return "", errors.New("user not found")
+	}
+
+	// Generate new access token with user details (name and role)
+	accessToken, err := s.tokenOperations.GenerateAccessToken(model.User{
+		Name: user.Name,
+		Role: user.Role,
 	},
 		[]byte(s.jwtConfig.SecretKey),
 		s.jwtConfig.AccessTokenTTL,
 	)
 	if err != nil {
-		return "", errors.New("failed to generate token")
+		return "", errors.New("failed to generate access token")
 	}
 
 	return accessToken, nil
 }
 
 func (s *serv) GetRefreshToken(_ context.Context, oldRefreshToken string) (string, error) {
-	claims, err := s.tokenOperations.Verify(oldRefreshToken, []byte(s.jwtConfig.SecretKey))
+	// Verify the old refresh token to get the user identity
+	claims, err := s.tokenOperations.VerifyRefreshToken(oldRefreshToken, []byte(s.jwtConfig.SecretKey))
 	if err != nil {
 		return "", errors.New("invalid refresh token")
 	}
 
-	refreshToken, err := s.tokenOperations.Generate(model.User{
-		Name: claims.Username,
-		Role: claims.Role,
-	},
+	// Generate a new refresh token with minimal info (e.g., user ID or username)
+	refreshToken, err := s.tokenOperations.GenerateRefreshToken(
+		claims.UserID,
 		[]byte(s.jwtConfig.SecretKey),
 		s.jwtConfig.RefreshTokenTTL,
 	)
 	if err != nil {
-		return "", errors.New("failed to generate token")
+		return "", errors.New("failed to generate refresh token")
 	}
 
 	return refreshToken, nil

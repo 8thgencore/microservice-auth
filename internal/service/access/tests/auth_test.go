@@ -86,12 +86,12 @@ func TestCheck(t *testing.T) {
 			Role:     roleUser,
 		}
 
-		noMdErr          = fmt.Errorf("metadata is not provided")
-		noAuthHeaderErr  = fmt.Errorf("authorization header is not provided")
-		noAuthPrefixErr  = fmt.Errorf("invalid authorization header format")
-		noEndpointErr    = fmt.Errorf("failed to find endpoint")
-		tokenInvalidErr  = fmt.Errorf("access token is invalid")
-		accessDeniedErr  = fmt.Errorf("access denied")
+		noMdErr         = fmt.Errorf("metadata is not provided")
+		noAuthHeaderErr = fmt.Errorf("authorization header is not provided")
+		noAuthPrefixErr = fmt.Errorf("invalid authorization header format")
+		noEndpointErr   = fmt.Errorf("failed to find endpoint")
+		tokenInvalidErr = fmt.Errorf("access token is invalid")
+		accessDeniedErr = fmt.Errorf("access denied")
 
 		req = endpointCreate
 	)
@@ -181,7 +181,7 @@ func TestCheck(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyMock.Expect(accessToken, secretKeyBytes).Return(nil, tokenInvalidErr)
+				mock.VerifyAccessTokenMock.Expect(accessToken, secretKeyBytes).Return(nil, tokenInvalidErr)
 				return mock
 			},
 		},
@@ -198,7 +198,7 @@ func TestCheck(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyMock.Expect(accessToken, secretKeyBytes).Return(claimsUser, nil)
+				mock.VerifyAccessTokenMock.Expect(accessToken, secretKeyBytes).Return(claimsUser, nil)
 				return mock
 			},
 		},
@@ -215,7 +215,7 @@ func TestCheck(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyMock.Expect(accessToken, secretKeyBytes).Return(claimsAdmin, nil)
+				mock.VerifyAccessTokenMock.Expect(accessToken, secretKeyBytes).Return(claimsAdmin, nil)
 				return mock
 			},
 		},

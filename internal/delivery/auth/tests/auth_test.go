@@ -52,7 +52,7 @@ func TestLogin(t *testing.T) {
 
 		res = &auth_v1.LoginResponse{
 			RefreshToken: refreshToken,
-			AccessToken: accessToken,
+			AccessToken:  accessToken,
 		}
 	)
 

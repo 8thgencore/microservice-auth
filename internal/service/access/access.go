@@ -50,7 +50,7 @@ func (s *serv) Check(ctx context.Context, endpoint string) error {
 		return errors.New("failed to find endpoint")
 	}
 
-	claims, err := s.tokenOperations.Verify(accessToken, []byte(s.jwtConfig.SecretKey))
+	claims, err := s.tokenOperations.VerifyAccessToken(accessToken, []byte(s.jwtConfig.SecretKey))
 	if err != nil {
 		return errors.New("access token is invalid")
 	}

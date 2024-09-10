@@ -8,6 +8,12 @@ import (
 
 // TokenOperations is the interface for token functions.
 type TokenOperations interface {
-	Generate(user model.User, secretKey []byte, duration time.Duration) (string, error)
-	Verify(tokenStr string, secretKey []byte) (*model.UserClaims, error)
+	// GenerateAccessToken creates JWT access token for the user.
+	GenerateAccessToken(user model.User, secretKey []byte, duration time.Duration) (string, error)
+	// GenerateRefreshToken creates JWT refresh token with minimal claims (e.g., only username).
+	GenerateRefreshToken(userID int64, secretKey []byte, duration time.Duration) (string, error)
+	// VerifyAccessToken checks the validity of an access token.
+	VerifyAccessToken(tokenStr string, secretKey []byte) (*model.UserClaims, error)
+	// VerifyRefreshToken checks the validity of a refresh token.
+	VerifyRefreshToken(tokenStr string, secretKey []byte) (*model.RefreshClaims, error)
 }
