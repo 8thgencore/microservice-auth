@@ -17,6 +17,7 @@ import (
 	"github.com/rs/cors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -61,11 +62,17 @@ func (a *App) initServiceProvider(_ context.Context) error {
 }
 
 func (a *App) initGRPCServer(ctx context.Context) error {
-	creds, err := credentials.NewServerTLSFromFile(a.cfg.TLS.CertPath, a.cfg.TLS.KeyPath)
-	if err != nil {
-		return err
+	var creds credentials.TransportCredentials
+	var err error
+
+	if a.cfg.TLS.Enable {
+		creds, err = credentials.NewServerTLSFromFile(a.cfg.TLS.CertPath, a.cfg.TLS.KeyPath)
+		if err != nil {
+			return err
+		}
+	} else {
+		creds = insecure.NewCredentials()
 	}
-	// creds = insecure.NewCredentials()
 
 	a.grpcServer = grpc.NewServer(
 		grpc.Creds(creds),
@@ -83,11 +90,17 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 }
 
 func (a *App) initHTTPServer(ctx context.Context) error {
-	creds, err := credentials.NewClientTLSFromFile(a.cfg.TLS.CertPath, "")
-	if err != nil {
-		return err
+	var creds credentials.TransportCredentials
+	var err error
+
+	if a.cfg.TLS.Enable {
+		creds, err = credentials.NewClientTLSFromFile(a.cfg.TLS.CertPath, "")
+		if err != nil {
+			return err
+		}
+	} else {
+		creds = insecure.NewCredentials()
 	}
-	// creds = insecure.NewCredentials()
 
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(creds),

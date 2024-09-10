@@ -107,13 +107,13 @@ generate-mocks:
 	go generate ./internal/service
 
 # Generation of a CA (Certification Authority)
-generate-ca: 
-	mkdir tls
+generate-cert-ca: 
+	mkdir -p tls
 	openssl genpkey -algorithm ed25519 -out $(TLS_PATH)/ca.key
 	openssl req -new -x509 -key $(TLS_PATH)/ca.key -out $(TLS_PATH)/ca.pem -days 365 -sha256 -subj "/CN=My CA"
 
 # Generating a CA-signed certificate
-generate-cert: $(TLS_PATH)/ca.key $(TLS_PATH)/ca.pem
+generate-cert-auth: $(TLS_PATH)/ca.key $(TLS_PATH)/ca.pem
 	openssl genpkey -algorithm ed25519 -out $(TLS_PATH)/auth.key
 	openssl req -new -key $(TLS_PATH)/auth.key -config openssl.cnf -out $(TLS_PATH)/auth.csr
 	openssl x509 -req -in $(TLS_PATH)/auth.csr -CA $(TLS_PATH)/ca.pem -CAkey $(TLS_PATH)/ca.key \
