@@ -4,13 +4,20 @@ import (
 	"context"
 
 	"github.com/8thgencore/microservice-auth/internal/config"
+	"github.com/8thgencore/microservice-auth/internal/delivery/access"
+	"github.com/8thgencore/microservice-auth/internal/delivery/auth"
 	"github.com/8thgencore/microservice-auth/internal/delivery/user"
 	"github.com/8thgencore/microservice-auth/internal/repository"
 	"github.com/8thgencore/microservice-auth/internal/service"
+	"github.com/8thgencore/microservice-auth/internal/tokens"
+	"github.com/8thgencore/microservice-auth/internal/tokens/jwt"
 	"github.com/8thgencore/microservice-common/pkg/db"
 
+	accessRepository "github.com/8thgencore/microservice-auth/internal/repository/access"
 	logRepository "github.com/8thgencore/microservice-auth/internal/repository/log"
 	userRepository "github.com/8thgencore/microservice-auth/internal/repository/user"
+	accessService "github.com/8thgencore/microservice-auth/internal/service/access"
+	authService "github.com/8thgencore/microservice-auth/internal/service/auth"
 	userService "github.com/8thgencore/microservice-auth/internal/service/user"
 )
 
@@ -21,12 +28,19 @@ type ServiceProvider struct {
 	dbClient  db.Client
 	txManager db.TxManager
 
-	userRepository repository.UserRepository
-	logRepository  repository.LogRepository
+	userRepository   repository.UserRepository
+	accessRepository repository.AccessRepository
+	logRepository    repository.LogRepository
 
-	userService service.UserService
+	userService   service.UserService
+	authService   service.AuthService
+	accessService service.AccessService
 
-	userImpl *user.Implementation
+	userImpl   *user.Implementation
+	authImpl   *auth.Implementation
+	accessImpl *access.Implementation
+
+	tokenOperations tokens.TokenOperations
 }
 
 // NewServiceProvider creates a new instance of ServiceProvider with the given configuration.
@@ -42,6 +56,14 @@ func (s *ServiceProvider) UserRepository(ctx context.Context) repository.UserRep
 		s.userRepository = userRepository.NewRepository(s.DatabaseClient(ctx))
 	}
 	return s.userRepository
+}
+
+// AccessRepository returns a access repository.
+func (s *ServiceProvider) AccessRepository(ctx context.Context) repository.AccessRepository {
+	if s.accessRepository == nil {
+		s.accessRepository = accessRepository.NewRepository(s.DatabaseClient(ctx))
+	}
+	return s.accessRepository
 }
 
 // LogRepository returns a log repository.
@@ -60,10 +82,50 @@ func (s *ServiceProvider) UserService(ctx context.Context) service.UserService {
 	return s.userService
 }
 
+// AuthService returns a auth service.
+func (s *ServiceProvider) AuthService(ctx context.Context) service.AuthService {
+	if s.authService == nil {
+		s.authService = authService.NewService(s.UserRepository(ctx), s.tokenOperations, s.Config.JWT)
+	}
+	return s.authService
+}
+
+// AccessService returns a access service.
+func (s *ServiceProvider) AccessService(ctx context.Context) service.AccessService {
+	if s.accessService == nil {
+		s.accessService = accessService.NewService(s.AccessRepository(ctx), s.tokenOperations, s.Config.JWT)
+	}
+	return s.accessService
+}
+
 // UserImpl returns a user implementation.
 func (s *ServiceProvider) UserImpl(ctx context.Context) *user.Implementation {
 	if s.userImpl == nil {
 		s.userImpl = user.NewImplementation(s.UserService(ctx))
 	}
 	return s.userImpl
+}
+
+// AuthImpl returns a auth implementation.
+func (s *ServiceProvider) AuthImpl(ctx context.Context) *auth.Implementation {
+	if s.authImpl == nil {
+		s.authImpl = auth.NewImplementation(s.AuthService(ctx))
+	}
+	return s.authImpl
+}
+
+// AccessImpl returns a access implementation.
+func (s *ServiceProvider) AccessImpl(ctx context.Context) *access.Implementation {
+	if s.accessImpl == nil {
+		s.accessImpl = access.NewImplementation(s.AccessService(ctx))
+	}
+	return s.accessImpl
+}
+
+// TokenOperations returns a token operation service.
+func (s *ServiceProvider) TokenOperations(_ context.Context) tokens.TokenOperations {
+	if s.tokenOperations == nil {
+		s.tokenOperations = jwt.NewTokenOperations()
+	}
+	return s.tokenOperations
 }

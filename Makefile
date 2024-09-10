@@ -64,6 +64,8 @@ format:
 # ############### #
 generate-api: check-env
 	make generate-user-api
+	make generate-auth-api
+	make generate-access-api
 
 generate-user-api:
 	mkdir -p pkg/user/v1 pkg/swagger
@@ -81,6 +83,24 @@ generate-user-api:
 	api/user/v1/user.proto
 	sed -i -e 's/{HTTP_HOST}/$(HTTP_HOST)/g' pkg/swagger/api.swagger.json
 	sed -i -e 's/{HTTP_PORT}/$(HTTP_PORT)/g' pkg/swagger/api.swagger.json
+
+generate-auth-api:
+	mkdir -p pkg/auth/v1
+	protoc --proto_path api/auth/v1 \
+	--go_out=pkg/auth/v1 --go_opt=paths=source_relative \
+	--plugin=protoc-gen-go=$(LOCAL_BIN)/protoc-gen-go \
+	--go-grpc_out=pkg/auth/v1 --go-grpc_opt=paths=source_relative \
+	--plugin=protoc-gen-go-grpc=$(LOCAL_BIN)/protoc-gen-go-grpc \
+	api/auth/v1/auth.proto
+
+generate-access-api:
+	mkdir -p pkg/access/v1
+	protoc --proto_path api/access/v1 \
+	--go_out=pkg/access/v1 --go_opt=paths=source_relative \
+	--plugin=protoc-gen-go=$(LOCAL_BIN)/protoc-gen-go \
+	--go-grpc_out=pkg/access/v1 --go-grpc_opt=paths=source_relative \
+	--plugin=protoc-gen-go-grpc=$(LOCAL_BIN)/protoc-gen-go-grpc \
+	api/access/v1/access.proto
 
 vendor-proto:
 		@if [ ! -d vendor.protogen/validate ]; then \
@@ -105,6 +125,7 @@ vendor-proto:
 generate-mocks:
 	go generate ./internal/repository
 	go generate ./internal/service
+	go generate ./internal/tokens
 
 # Generation of a CA (Certification Authority)
 generate-cert-ca: 

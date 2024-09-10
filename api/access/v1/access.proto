@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package access_v1;
+
+import "google/protobuf/empty.proto";
+
+option go_package =  "github.com/8thgencore/microservice-auth/pkg/access/v1;access_v1";
+
+service AccessV1 {
+	// Check executes user authorization for endpoint.
+	rpc Check (CheckRequest) returns (google.protobuf.Empty);
+}
+
+message CheckRequest {
+	// Endpoint where user wants access to.
+	string endpoint = 1;
+}

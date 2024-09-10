@@ -12,7 +12,7 @@
       "name": "UserV1"
     }
   ],
-  "host": "0.0.0.0:8080",
+  "host": "0.0.0.0:8480",
   "schemes": [
     "http",
     "https"

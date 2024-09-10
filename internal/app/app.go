@@ -55,8 +55,7 @@ func (a *App) Run() error {
 	go func() {
 		defer wg.Done()
 
-		err := a.runHTTPServer()
-		if err != nil {
+		if err := a.runHTTPServer(); err != nil {
 			logger.Fatal("failed to run HTTP server: ", zap.Error(err))
 		}
 	}()
@@ -64,8 +63,7 @@ func (a *App) Run() error {
 	go func() {
 		defer wg.Done()
 
-		err := a.runSwaggerServer()
-		if err != nil {
+		if err := a.runSwaggerServer(); err != nil {
 			logger.Fatal("failed to run Swagger server: ", zap.Error(err))
 		}
 	}()
@@ -85,8 +83,7 @@ func (a *App) runGrpcServer() error {
 		return err
 	}
 
-	err = a.grpcServer.Serve(lis)
-	if err != nil {
+	if err = a.grpcServer.Serve(lis); err != nil {
 		return err
 	}
 
@@ -96,8 +93,7 @@ func (a *App) runGrpcServer() error {
 func (a *App) runHTTPServer() error {
 	logger.Info("HTTP server running on ", zap.String("address", a.serviceProvider.Config.HTTP.Address()))
 
-	err := a.httpServer.ListenAndServe()
-	if err != nil {
+	if err := a.httpServer.ListenAndServe(); err != nil {
 		return err
 	}
 
@@ -107,8 +103,7 @@ func (a *App) runHTTPServer() error {
 func (a *App) runSwaggerServer() error {
 	logger.Info("Swagger server running on ", zap.String("address", a.serviceProvider.Config.Swagger.Address()+"/docs"))
 
-	err := a.swaggerServer.ListenAndServe()
-	if err != nil {
+	if err := a.swaggerServer.ListenAndServe(); err != nil {
 		return err
 	}
 

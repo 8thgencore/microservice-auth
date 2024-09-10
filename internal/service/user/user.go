@@ -15,7 +15,7 @@ var ErrUserNameExists = errors.New("user with provided name already exists")
 // ErrUserEmailExists - custom error for email duplicate.
 var ErrUserEmailExists = errors.New("user with provided email already exists")
 
-// ErrUserEmailExists - custom error if user not found.
+// ErrUserNotFound - custom error if user not found.
 var ErrUserNotFound = errors.New("user not found")
 
 func (s *serv) Create(ctx context.Context, user *model.UserCreate) (int64, error) {

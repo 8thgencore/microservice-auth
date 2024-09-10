@@ -30,7 +30,8 @@ type Config struct {
 	Env      Env `env:"ENV" env-default:"local"`
 	GRPC     GRPC
 	HTTP     HTTPConfig
-	TLS      TLS
+	JWT      JWTConfig
+	TLS      TLSConfig
 	Swagger  SwaggerConfig
 	Database DatabaseConfig
 }
@@ -85,8 +86,15 @@ func (c *DatabaseConfig) DSN() string {
 		c.Host, c.Port, c.Name, c.User, c.Password)
 }
 
-// TLS represents the configuration for the TLS.
-type TLS struct {
+// JWTConfig represents the configuration for the JWT.
+type JWTConfig struct {
+	SecretKey       string        `env:"JWT_SECRET_KEY" env-required:"true"`
+	AccessTokenTTL  time.Duration `env:"JWT_ACCESS_TTL" env-default:"15m"`
+	RefreshTokenTTL time.Duration `env:"JWT_REFRESH_TTL" env-default:"7d"`
+}
+
+// TLSConfig represents the configuration for the TLSConfig.
+type TLSConfig struct {
 	Enable   bool   `env:"ENABLE_TLS" env-default:"false"`
 	CertPath string `env:"TLS_CERT_PATH"`
 	KeyPath  string `env:"TLS_KEY_PATH"`

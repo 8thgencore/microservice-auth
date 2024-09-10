@@ -10,6 +10,8 @@ import (
 	"github.com/8thgencore/microservice-auth/internal/app/provider"
 	"github.com/8thgencore/microservice-auth/internal/config"
 	"github.com/8thgencore/microservice-auth/internal/interceptor"
+	accessv1 "github.com/8thgencore/microservice-auth/pkg/access/v1"
+	authv1 "github.com/8thgencore/microservice-auth/pkg/auth/v1"
 	"github.com/8thgencore/microservice-auth/pkg/swagger"
 	userv1 "github.com/8thgencore/microservice-auth/pkg/user/v1"
 	"github.com/8thgencore/microservice-common/pkg/logger"
@@ -85,6 +87,8 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 	reflection.Register(a.grpcServer)
 
 	userv1.RegisterUserV1Server(a.grpcServer, a.serviceProvider.UserImpl(ctx))
+	authv1.RegisterAuthV1Server(a.grpcServer, a.serviceProvider.AuthImpl(ctx))
+	accessv1.RegisterAccessV1Server(a.grpcServer, a.serviceProvider.AccessImpl(ctx))
 
 	return nil
 }
