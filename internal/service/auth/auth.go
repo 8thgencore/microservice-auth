@@ -9,16 +9,27 @@ import (
 	"github.com/8thgencore/microservice-auth/internal/model"
 )
 
-func (s *serv) Login(ctx context.Context, creds *model.UserCreds) (string, error) {
+func (s *serv) Login(ctx context.Context, creds *model.UserCreds) (*model.TokenPair, error) {
 	// Get role and hashed password by username from storage
 	authInfo, err := s.userRepository.GetAuthInfo(ctx, creds.Username)
 	if err != nil {
-		return "", errors.New("user not found")
+		return &model.TokenPair{}, errors.New("user not found")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(authInfo.Password), []byte(creds.Password))
 	if err != nil {
-		return "", errors.New("wrong password")
+		return &model.TokenPair{}, errors.New("wrong password")
+	}
+
+	accessToken, err := s.tokenOperations.Generate(model.User{
+		Name: authInfo.Username,
+		Role: authInfo.Role,
+	},
+		[]byte(s.jwtConfig.SecretKey),
+		s.jwtConfig.AccessTokenTTL,
+	)
+	if err != nil {
+		return &model.TokenPair{}, errors.New("failed to generate token")
 	}
 
 	refreshToken, err := s.tokenOperations.Generate(model.User{
@@ -29,10 +40,13 @@ func (s *serv) Login(ctx context.Context, creds *model.UserCreds) (string, error
 		s.jwtConfig.RefreshTokenTTL,
 	)
 	if err != nil {
-		return "", errors.New("failed to generate token")
+		return &model.TokenPair{}, errors.New("failed to generate token")
 	}
 
-	return refreshToken, nil
+	return &model.TokenPair{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
 }
 
 func (s *serv) GetAccessToken(_ context.Context, refreshToken string) (string, error) {

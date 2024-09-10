@@ -89,7 +89,6 @@ func TestCheck(t *testing.T) {
 		noMdErr          = fmt.Errorf("metadata is not provided")
 		noAuthHeaderErr  = fmt.Errorf("authorization header is not provided")
 		noAuthPrefixErr  = fmt.Errorf("invalid authorization header format")
-		keyRepositoryErr = fmt.Errorf("failed to generate token")
 		noEndpointErr    = fmt.Errorf("failed to find endpoint")
 		tokenInvalidErr  = fmt.Errorf("access token is invalid")
 		accessDeniedErr  = fmt.Errorf("access denied")
@@ -143,22 +142,6 @@ func TestCheck(t *testing.T) {
 				req: req,
 			},
 			err: noAuthPrefixErr,
-			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
-				mock := repositoryMocks.NewAccessRepositoryMock(mc)
-				return mock
-			},
-			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
-				mock := tokenMocks.NewTokenOperationsMock(mc)
-				return mock
-			},
-		},
-		{
-			name: "key repository error case",
-			args: args{
-				ctx: ctx,
-				req: req,
-			},
-			err: keyRepositoryErr,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
 				return mock

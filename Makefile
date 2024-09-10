@@ -86,20 +86,28 @@ generate-user-api:
 
 generate-auth-api:
 	mkdir -p pkg/auth/v1
-	protoc --proto_path api/auth/v1 \
+	protoc --proto_path api/auth/v1 --proto_path vendor.protogen \
 	--go_out=pkg/auth/v1 --go_opt=paths=source_relative \
 	--plugin=protoc-gen-go=$(LOCAL_BIN)/protoc-gen-go \
 	--go-grpc_out=pkg/auth/v1 --go-grpc_opt=paths=source_relative \
 	--plugin=protoc-gen-go-grpc=$(LOCAL_BIN)/protoc-gen-go-grpc \
+	--grpc-gateway_out=pkg/auth/v1 --grpc-gateway_opt=paths=source_relative \
+	--plugin=protoc-gen-grpc-gateway=$(LOCAL_BIN)/protoc-gen-grpc-gateway \
+	--validate_out lang=go:pkg/auth/v1 --validate_opt=paths=source_relative \
+	--plugin=protoc-gen-validate=$(LOCAL_BIN)/protoc-gen-validate \
 	api/auth/v1/auth.proto
 
 generate-access-api:
 	mkdir -p pkg/access/v1
-	protoc --proto_path api/access/v1 \
+	protoc --proto_path api/access/v1 --proto_path vendor.protogen \
 	--go_out=pkg/access/v1 --go_opt=paths=source_relative \
 	--plugin=protoc-gen-go=$(LOCAL_BIN)/protoc-gen-go \
 	--go-grpc_out=pkg/access/v1 --go-grpc_opt=paths=source_relative \
 	--plugin=protoc-gen-go-grpc=$(LOCAL_BIN)/protoc-gen-go-grpc \
+	--grpc-gateway_out=pkg/access/v1 --grpc-gateway_opt=paths=source_relative \
+	--plugin=protoc-gen-grpc-gateway=$(LOCAL_BIN)/protoc-gen-grpc-gateway \
+	--validate_out lang=go:pkg/access/v1 --validate_opt=paths=source_relative \
+	--plugin=protoc-gen-validate=$(LOCAL_BIN)/protoc-gen-validate \
 	api/access/v1/access.proto
 
 vendor-proto:

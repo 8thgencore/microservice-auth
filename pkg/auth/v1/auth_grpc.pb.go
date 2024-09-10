@@ -28,7 +28,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthV1Client interface {
-	// Login gives refresh token based on user credentials.
+	// Login gives refresh token and access token based on user credentials.
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	// GetRefreshToken updates refresh token.
 	GetRefreshToken(ctx context.Context, in *GetRefreshTokenRequest, opts ...grpc.CallOption) (*GetRefreshTokenResponse, error)
@@ -78,7 +78,7 @@ func (c *authV1Client) GetAccessToken(ctx context.Context, in *GetAccessTokenReq
 // All implementations must embed UnimplementedAuthV1Server
 // for forward compatibility.
 type AuthV1Server interface {
-	// Login gives refresh token based on user credentials.
+	// Login gives refresh token and access token based on user credentials.
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	// GetRefreshToken updates refresh token.
 	GetRefreshToken(context.Context, *GetRefreshTokenRequest) (*GetRefreshTokenResponse, error)

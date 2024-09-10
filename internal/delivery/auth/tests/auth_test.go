@@ -15,6 +15,13 @@ import (
 	auth_v1 "github.com/8thgencore/microservice-auth/pkg/auth/v1"
 )
 
+var (
+	username     = "username"
+	password     = "password"
+	refreshToken = "refresh_token"
+	accessToken  = "access_token"
+)
+
 func TestLogin(t *testing.T) {
 	t.Parallel()
 
@@ -28,10 +35,6 @@ func TestLogin(t *testing.T) {
 	var (
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
-
-		username     = "username"
-		password     = "password"
-		refreshToken = "refresh_token"
 
 		serviceErr = fmt.Errorf("service error")
 
@@ -49,6 +52,7 @@ func TestLogin(t *testing.T) {
 
 		res = &auth_v1.LoginResponse{
 			RefreshToken: refreshToken,
+			AccessToken: accessToken,
 		}
 	)
 
@@ -69,7 +73,9 @@ func TestLogin(t *testing.T) {
 			err:  nil,
 			authServiceMock: func(mc *minimock.Controller) service.AuthService {
 				mock := serviceMocks.NewAuthServiceMock(mc)
-				mock.LoginMock.Expect(minimock.AnyContext, creds).Return(refreshToken, nil)
+				mock.LoginMock.Expect(minimock.AnyContext, creds).Return(
+					&model.TokenPair{AccessToken: accessToken, RefreshToken: refreshToken}, nil,
+				)
 				return mock
 			},
 		},
@@ -83,7 +89,7 @@ func TestLogin(t *testing.T) {
 			err:  serviceErr,
 			authServiceMock: func(mc *minimock.Controller) service.AuthService {
 				mock := serviceMocks.NewAuthServiceMock(mc)
-				mock.LoginMock.Expect(minimock.AnyContext, creds).Return("", serviceErr)
+				mock.LoginMock.Expect(minimock.AnyContext, creds).Return(&model.TokenPair{}, serviceErr)
 				return mock
 			},
 		},
@@ -117,9 +123,6 @@ func TestGetAccessToken(t *testing.T) {
 	var (
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
-
-		refreshToken = "refresh_token"
-		accessToken  = "access_token"
 
 		serviceErr = fmt.Errorf("service error")
 

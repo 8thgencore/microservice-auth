@@ -9,13 +9,14 @@ import (
 
 // Login user and return refresh token.
 func (i *Implementation) Login(ctx context.Context, req *authv1.LoginRequest) (*authv1.LoginResponse, error) {
-	refreshToken, err := i.authService.Login(ctx, converter.ToUserLoginFromAPI(req.GetCreds()))
+	tokenPair, err := i.authService.Login(ctx, converter.ToUserLoginFromAPI(req.GetCreds()))
 	if err != nil {
 		return nil, err
 	}
 
 	return &authv1.LoginResponse{
-		RefreshToken: refreshToken,
+		AccessToken:  tokenPair.AccessToken,
+		RefreshToken: tokenPair.RefreshToken,
 	}, nil
 }
 

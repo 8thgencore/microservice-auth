@@ -2,49 +2,88 @@ syntax = "proto3";
 
 package auth_v1;
 
-option go_package =  "github.com/8thgencore/microservice-auth/pkg/auth/v1;auth_v1";
+import "validate/validate.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option go_package = "github.com/8thgencore/microservice-auth/pkg/auth/v1;auth_v1";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+	info: {
+		title: "Auth API"
+		version: "1.0.0"
+		contact: {
+			name: "Walter White"
+		};
+	};
+
+	host: "{HTTP_HOST}:{HTTP_PORT}"
+	schemes: HTTP,
+	schemes: HTTPS,
+	consumes: "application/json",
+	produces: "application/json",
+};
 
 service AuthV1 {
-	// Login gives refresh token based on user credentials.
-	rpc Login (LoginRequest) returns (LoginResponse);
-	// GetRefreshToken updates refresh token.
-	rpc GetRefreshToken (GetRefreshTokenRequest) returns (GetRefreshTokenResponse);
-	// GetAccessToken gives access token based on refresh token for operating with service.
-	rpc GetAccessToken (GetAccessTokenRequest) returns (GetAccessTokenResponse);
+    // Login gives refresh token and access token based on user credentials.
+    rpc Login (LoginRequest) returns (LoginResponse) {
+        option (google.api.http) = {
+            post: "/v1/auth/login"
+            body: "*"
+        };
+    }
+
+    // GetRefreshToken updates refresh token.
+    rpc GetRefreshToken (GetRefreshTokenRequest) returns (GetRefreshTokenResponse) {
+        option (google.api.http) = {
+            post: "/v1/auth/refresh"
+            body: "*"
+        };
+    }
+
+    // GetAccessToken gives access token based on refresh token for operating with service.
+    rpc GetAccessToken (GetAccessTokenRequest) returns (GetAccessTokenResponse) {
+        option (google.api.http) = {
+            post: "/v1/auth/access-token"
+            body: "*"
+        };
+    }
 }
 
 message LoginRequest {
-	Creds creds = 1;
+    Creds creds = 1 [(validate.rules).message.required = true];
 }
 
 message Creds {
-	// Name of the user.
-	string username = 1;
-	// Password of the user.
-	string password = 2;
+    // Name of the user.
+    string username = 1 [(validate.rules).string = {min_len: 4, max_len: 50, pattern: "^[a-zA-Z0-9_]+$"}];
+    // Password of the user.
+    string password = 2 [(validate.rules).string = {min_len: 8, max_len: 100}];
 }
 
 message LoginResponse {
-	// User's refresh token used to obtain access token.
-	string refresh_token = 1;
+    // User's refresh token used to obtain access token.
+    string refresh_token = 1 [(validate.rules).string = {min_len: 10}];
+    // User's access token for immediate use.
+    string access_token = 2 [(validate.rules).string = {min_len: 10}];
 }
 
 message GetRefreshTokenRequest {
-	// User's refresh token to obtain new refresh token.
-	string old_refresh_token = 1;
+    // User's refresh token to obtain new refresh token.
+    string old_refresh_token = 1 [(validate.rules).string = {min_len: 10}];
 }
 
 message GetRefreshTokenResponse {
-	// User's new refresh token.
-	string refresh_token = 1;
+    // User's new refresh token.
+    string refresh_token = 1 [(validate.rules).string = {min_len: 10}];
 }
 
 message GetAccessTokenRequest {
-	// User's refresh token used to obtain access token.
-	string refresh_token = 1;
+    // User's refresh token used to obtain access token.
+    string refresh_token = 1 [(validate.rules).string = {min_len: 10}];
 }
 
 message GetAccessTokenResponse {
-	// User's access token for operating with service.
-	string access_token = 1;
+    // User's access token for operating with service.
+    string access_token = 1 [(validate.rules).string = {min_len: 10}];
 }

@@ -16,7 +16,7 @@ type UserService interface {
 
 // AuthService is the interface for service communication.
 type AuthService interface {
-	Login(ctx context.Context, creds *model.UserCreds) (string, error)
+	Login(ctx context.Context, creds *model.UserCreds) (*model.TokenPair, error)
 	GetAccessToken(ctx context.Context, refreshToken string) (string, error)
 	GetRefreshToken(ctx context.Context, oldRefreshToken string) (string, error)
 }

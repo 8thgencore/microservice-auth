@@ -24,7 +24,7 @@
     "application/json"
   ],
   "paths": {
-    "/user/v1": {
+    "/v1/user": {
       "get": {
         "summary": "Get is used to obtain user info.",
         "operationId": "UserV1_Get",

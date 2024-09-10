@@ -85,7 +85,7 @@ func (s *ServiceProvider) UserService(ctx context.Context) service.UserService {
 // AuthService returns a auth service.
 func (s *ServiceProvider) AuthService(ctx context.Context) service.AuthService {
 	if s.authService == nil {
-		s.authService = authService.NewService(s.UserRepository(ctx), s.tokenOperations, s.Config.JWT)
+		s.authService = authService.NewService(s.UserRepository(ctx), s.TokenOperations(ctx), s.Config.JWT)
 	}
 	return s.authService
 }
@@ -93,7 +93,7 @@ func (s *ServiceProvider) AuthService(ctx context.Context) service.AuthService {
 // AccessService returns a access service.
 func (s *ServiceProvider) AccessService(ctx context.Context) service.AccessService {
 	if s.accessService == nil {
-		s.accessService = accessService.NewService(s.AccessRepository(ctx), s.tokenOperations, s.Config.JWT)
+		s.accessService = accessService.NewService(s.AccessRepository(ctx), s.TokenOperations(ctx), s.Config.JWT)
 	}
 	return s.accessService
 }

@@ -12,3 +12,9 @@ type AuthInfo struct {
 	Password string
 	Role     string
 }
+
+// TokenPair type is the structure for storing access and refresh tokens.
+type TokenPair struct {
+	AccessToken  string
+	RefreshToken string
+}
