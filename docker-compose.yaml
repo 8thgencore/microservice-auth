@@ -22,7 +22,7 @@ services:
     env_file:
       - .env.${ENV}
     ports:
-      - "${POSTGRES_PORT_LOCAL}:5432"
+      - "${POSTGRES_PORT_LOCAL}:${POSTGRES_PORT}"
     networks:
       - service-network
     volumes:
@@ -32,6 +32,21 @@ services:
       interval: 1s
       timeout: 5s
       retries: 5
+
+  redis-auth:
+    image: redis:latest
+    container_name: redis-auth
+    env_file:
+    - .env.${ENV}
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
+    networks:
+      - service-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
 
   migrator-auth:
     image: migrator-auth:${MIGRATOR_IMAGE_TAG}

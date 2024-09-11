@@ -34,6 +34,7 @@ type Config struct {
 	TLS      TLSConfig
 	Swagger  SwaggerConfig
 	Database DatabaseConfig
+	Redis    RedisConfig
 }
 
 // GRPC represents the configuration for the GRPC server.
@@ -84,6 +85,20 @@ type DatabaseConfig struct {
 func (c *DatabaseConfig) DSN() string {
 	return fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=disable",
 		c.Host, c.Port, c.Name, c.User, c.Password)
+}
+
+// RedisConfig represents the configuration for the Postgres database.
+type RedisConfig struct {
+	Host              string        `env:"REDIS_HOST"               env-required:"true"`
+	Port              int           `env:"REDIS_PORT"               env-required:"true"`
+	ConnectionTimeout time.Duration `env:"REDIS_CONNECTION_TIMEOUT" env-required:"true"`
+	IdleTimeout       time.Duration `env:"REDIS_IDLE_TIMEOUT"       env-required:"true"`
+	MaxIdle           int           `env:"REDIS_MAX_IDLE"           env-required:"true"`
+}
+
+// Address returns the data source name (Address) for the database.
+func (c *RedisConfig) Address() string {
+	return net.JoinHostPort(c.Host, strconv.Itoa(c.Port))
 }
 
 // JWTConfig represents the configuration for the JWT.

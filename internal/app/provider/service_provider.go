@@ -11,6 +11,7 @@ import (
 	"github.com/8thgencore/microservice-auth/internal/service"
 	"github.com/8thgencore/microservice-auth/internal/tokens"
 	"github.com/8thgencore/microservice-auth/internal/tokens/jwt"
+	"github.com/8thgencore/microservice-common/pkg/cache"
 	"github.com/8thgencore/microservice-common/pkg/db"
 
 	accessRepository "github.com/8thgencore/microservice-auth/internal/repository/access"
@@ -27,6 +28,8 @@ type ServiceProvider struct {
 
 	dbClient  db.Client
 	txManager db.TxManager
+
+	cache cache.Client
 
 	userRepository   repository.UserRepository
 	accessRepository repository.AccessRepository
