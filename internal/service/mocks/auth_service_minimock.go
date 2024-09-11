@@ -31,12 +31,19 @@ type AuthServiceMock struct {
 	beforeGetRefreshTokenCounter uint64
 	GetRefreshTokenMock          mAuthServiceMockGetRefreshToken
 
-	funcLogin          func(ctx context.Context, creds *model.UserCreds) (s1 string, err error)
+	funcLogin          func(ctx context.Context, creds *model.UserCreds) (tp1 *model.TokenPair, err error)
 	funcLoginOrigin    string
 	inspectFuncLogin   func(ctx context.Context, creds *model.UserCreds)
 	afterLoginCounter  uint64
 	beforeLoginCounter uint64
 	LoginMock          mAuthServiceMockLogin
+
+	funcLogout          func(ctx context.Context, refreshToken string) (err error)
+	funcLogoutOrigin    string
+	inspectFuncLogout   func(ctx context.Context, refreshToken string)
+	afterLogoutCounter  uint64
+	beforeLogoutCounter uint64
+	LogoutMock          mAuthServiceMockLogout
 }
 
 // NewAuthServiceMock returns a mock for mm_service.AuthService
@@ -55,6 +62,9 @@ func NewAuthServiceMock(t minimock.Tester) *AuthServiceMock {
 
 	m.LoginMock = mAuthServiceMockLogin{mock: m}
 	m.LoginMock.callArgs = []*AuthServiceMockLoginParams{}
+
+	m.LogoutMock = mAuthServiceMockLogout{mock: m}
+	m.LogoutMock.callArgs = []*AuthServiceMockLogoutParams{}
 
 	t.Cleanup(m.MinimockFinish)
 
@@ -785,7 +795,7 @@ type AuthServiceMockLoginParamPtrs struct {
 
 // AuthServiceMockLoginResults contains results of the AuthService.Login
 type AuthServiceMockLoginResults struct {
-	s1  string
+	tp1 *model.TokenPair
 	err error
 }
 
@@ -889,7 +899,7 @@ func (mmLogin *mAuthServiceMockLogin) Inspect(f func(ctx context.Context, creds 
 }
 
 // Return sets up results that will be returned by AuthService.Login
-func (mmLogin *mAuthServiceMockLogin) Return(s1 string, err error) *AuthServiceMock {
+func (mmLogin *mAuthServiceMockLogin) Return(tp1 *model.TokenPair, err error) *AuthServiceMock {
 	if mmLogin.mock.funcLogin != nil {
 		mmLogin.mock.t.Fatalf("AuthServiceMock.Login mock is already set by Set")
 	}
@@ -897,13 +907,13 @@ func (mmLogin *mAuthServiceMockLogin) Return(s1 string, err error) *AuthServiceM
 	if mmLogin.defaultExpectation == nil {
 		mmLogin.defaultExpectation = &AuthServiceMockLoginExpectation{mock: mmLogin.mock}
 	}
-	mmLogin.defaultExpectation.results = &AuthServiceMockLoginResults{s1, err}
+	mmLogin.defaultExpectation.results = &AuthServiceMockLoginResults{tp1, err}
 	mmLogin.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
 	return mmLogin.mock
 }
 
 // Set uses given function f to mock the AuthService.Login method
-func (mmLogin *mAuthServiceMockLogin) Set(f func(ctx context.Context, creds *model.UserCreds) (s1 string, err error)) *AuthServiceMock {
+func (mmLogin *mAuthServiceMockLogin) Set(f func(ctx context.Context, creds *model.UserCreds) (tp1 *model.TokenPair, err error)) *AuthServiceMock {
 	if mmLogin.defaultExpectation != nil {
 		mmLogin.mock.t.Fatalf("Default expectation is already set for the AuthService.Login method")
 	}
@@ -934,8 +944,8 @@ func (mmLogin *mAuthServiceMockLogin) When(ctx context.Context, creds *model.Use
 }
 
 // Then sets up AuthService.Login return parameters for the expectation previously defined by the When method
-func (e *AuthServiceMockLoginExpectation) Then(s1 string, err error) *AuthServiceMock {
-	e.results = &AuthServiceMockLoginResults{s1, err}
+func (e *AuthServiceMockLoginExpectation) Then(tp1 *model.TokenPair, err error) *AuthServiceMock {
+	e.results = &AuthServiceMockLoginResults{tp1, err}
 	return e.mock
 }
 
@@ -961,7 +971,7 @@ func (mmLogin *mAuthServiceMockLogin) invocationsDone() bool {
 }
 
 // Login implements mm_service.AuthService
-func (mmLogin *AuthServiceMock) Login(ctx context.Context, creds *model.UserCreds) (s1 string, err error) {
+func (mmLogin *AuthServiceMock) Login(ctx context.Context, creds *model.UserCreds) (tp1 *model.TokenPair, err error) {
 	mm_atomic.AddUint64(&mmLogin.beforeLoginCounter, 1)
 	defer mm_atomic.AddUint64(&mmLogin.afterLoginCounter, 1)
 
@@ -981,7 +991,7 @@ func (mmLogin *AuthServiceMock) Login(ctx context.Context, creds *model.UserCred
 	for _, e := range mmLogin.LoginMock.expectations {
 		if minimock.Equal(*e.params, mm_params) {
 			mm_atomic.AddUint64(&e.Counter, 1)
-			return e.results.s1, e.results.err
+			return e.results.tp1, e.results.err
 		}
 	}
 
@@ -1013,7 +1023,7 @@ func (mmLogin *AuthServiceMock) Login(ctx context.Context, creds *model.UserCred
 		if mm_results == nil {
 			mmLogin.t.Fatal("No results are set for the AuthServiceMock.Login")
 		}
-		return (*mm_results).s1, (*mm_results).err
+		return (*mm_results).tp1, (*mm_results).err
 	}
 	if mmLogin.funcLogin != nil {
 		return mmLogin.funcLogin(ctx, creds)
@@ -1090,6 +1100,348 @@ func (m *AuthServiceMock) MinimockLoginInspect() {
 	}
 }
 
+type mAuthServiceMockLogout struct {
+	optional           bool
+	mock               *AuthServiceMock
+	defaultExpectation *AuthServiceMockLogoutExpectation
+	expectations       []*AuthServiceMockLogoutExpectation
+
+	callArgs []*AuthServiceMockLogoutParams
+	mutex    sync.RWMutex
+
+	expectedInvocations       uint64
+	expectedInvocationsOrigin string
+}
+
+// AuthServiceMockLogoutExpectation specifies expectation struct of the AuthService.Logout
+type AuthServiceMockLogoutExpectation struct {
+	mock               *AuthServiceMock
+	params             *AuthServiceMockLogoutParams
+	paramPtrs          *AuthServiceMockLogoutParamPtrs
+	expectationOrigins AuthServiceMockLogoutExpectationOrigins
+	results            *AuthServiceMockLogoutResults
+	returnOrigin       string
+	Counter            uint64
+}
+
+// AuthServiceMockLogoutParams contains parameters of the AuthService.Logout
+type AuthServiceMockLogoutParams struct {
+	ctx          context.Context
+	refreshToken string
+}
+
+// AuthServiceMockLogoutParamPtrs contains pointers to parameters of the AuthService.Logout
+type AuthServiceMockLogoutParamPtrs struct {
+	ctx          *context.Context
+	refreshToken *string
+}
+
+// AuthServiceMockLogoutResults contains results of the AuthService.Logout
+type AuthServiceMockLogoutResults struct {
+	err error
+}
+
+// AuthServiceMockLogoutOrigins contains origins of expectations of the AuthService.Logout
+type AuthServiceMockLogoutExpectationOrigins struct {
+	origin             string
+	originCtx          string
+	originRefreshToken string
+}
+
+// Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
+// the test will fail minimock's automatic final call check if the mocked method was not called at least once.
+// Optional() makes method check to work in '0 or more' mode.
+// It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
+// catch the problems when the expected method call is totally skipped during test run.
+func (mmLogout *mAuthServiceMockLogout) Optional() *mAuthServiceMockLogout {
+	mmLogout.optional = true
+	return mmLogout
+}
+
+// Expect sets up expected params for AuthService.Logout
+func (mmLogout *mAuthServiceMockLogout) Expect(ctx context.Context, refreshToken string) *mAuthServiceMockLogout {
+	if mmLogout.mock.funcLogout != nil {
+		mmLogout.mock.t.Fatalf("AuthServiceMock.Logout mock is already set by Set")
+	}
+
+	if mmLogout.defaultExpectation == nil {
+		mmLogout.defaultExpectation = &AuthServiceMockLogoutExpectation{}
+	}
+
+	if mmLogout.defaultExpectation.paramPtrs != nil {
+		mmLogout.mock.t.Fatalf("AuthServiceMock.Logout mock is already set by ExpectParams functions")
+	}
+
+	mmLogout.defaultExpectation.params = &AuthServiceMockLogoutParams{ctx, refreshToken}
+	mmLogout.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmLogout.expectations {
+		if minimock.Equal(e.params, mmLogout.defaultExpectation.params) {
+			mmLogout.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmLogout.defaultExpectation.params)
+		}
+	}
+
+	return mmLogout
+}
+
+// ExpectCtxParam1 sets up expected param ctx for AuthService.Logout
+func (mmLogout *mAuthServiceMockLogout) ExpectCtxParam1(ctx context.Context) *mAuthServiceMockLogout {
+	if mmLogout.mock.funcLogout != nil {
+		mmLogout.mock.t.Fatalf("AuthServiceMock.Logout mock is already set by Set")
+	}
+
+	if mmLogout.defaultExpectation == nil {
+		mmLogout.defaultExpectation = &AuthServiceMockLogoutExpectation{}
+	}
+
+	if mmLogout.defaultExpectation.params != nil {
+		mmLogout.mock.t.Fatalf("AuthServiceMock.Logout mock is already set by Expect")
+	}
+
+	if mmLogout.defaultExpectation.paramPtrs == nil {
+		mmLogout.defaultExpectation.paramPtrs = &AuthServiceMockLogoutParamPtrs{}
+	}
+	mmLogout.defaultExpectation.paramPtrs.ctx = &ctx
+	mmLogout.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
+
+	return mmLogout
+}
+
+// ExpectRefreshTokenParam2 sets up expected param refreshToken for AuthService.Logout
+func (mmLogout *mAuthServiceMockLogout) ExpectRefreshTokenParam2(refreshToken string) *mAuthServiceMockLogout {
+	if mmLogout.mock.funcLogout != nil {
+		mmLogout.mock.t.Fatalf("AuthServiceMock.Logout mock is already set by Set")
+	}
+
+	if mmLogout.defaultExpectation == nil {
+		mmLogout.defaultExpectation = &AuthServiceMockLogoutExpectation{}
+	}
+
+	if mmLogout.defaultExpectation.params != nil {
+		mmLogout.mock.t.Fatalf("AuthServiceMock.Logout mock is already set by Expect")
+	}
+
+	if mmLogout.defaultExpectation.paramPtrs == nil {
+		mmLogout.defaultExpectation.paramPtrs = &AuthServiceMockLogoutParamPtrs{}
+	}
+	mmLogout.defaultExpectation.paramPtrs.refreshToken = &refreshToken
+	mmLogout.defaultExpectation.expectationOrigins.originRefreshToken = minimock.CallerInfo(1)
+
+	return mmLogout
+}
+
+// Inspect accepts an inspector function that has same arguments as the AuthService.Logout
+func (mmLogout *mAuthServiceMockLogout) Inspect(f func(ctx context.Context, refreshToken string)) *mAuthServiceMockLogout {
+	if mmLogout.mock.inspectFuncLogout != nil {
+		mmLogout.mock.t.Fatalf("Inspect function is already set for AuthServiceMock.Logout")
+	}
+
+	mmLogout.mock.inspectFuncLogout = f
+
+	return mmLogout
+}
+
+// Return sets up results that will be returned by AuthService.Logout
+func (mmLogout *mAuthServiceMockLogout) Return(err error) *AuthServiceMock {
+	if mmLogout.mock.funcLogout != nil {
+		mmLogout.mock.t.Fatalf("AuthServiceMock.Logout mock is already set by Set")
+	}
+
+	if mmLogout.defaultExpectation == nil {
+		mmLogout.defaultExpectation = &AuthServiceMockLogoutExpectation{mock: mmLogout.mock}
+	}
+	mmLogout.defaultExpectation.results = &AuthServiceMockLogoutResults{err}
+	mmLogout.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmLogout.mock
+}
+
+// Set uses given function f to mock the AuthService.Logout method
+func (mmLogout *mAuthServiceMockLogout) Set(f func(ctx context.Context, refreshToken string) (err error)) *AuthServiceMock {
+	if mmLogout.defaultExpectation != nil {
+		mmLogout.mock.t.Fatalf("Default expectation is already set for the AuthService.Logout method")
+	}
+
+	if len(mmLogout.expectations) > 0 {
+		mmLogout.mock.t.Fatalf("Some expectations are already set for the AuthService.Logout method")
+	}
+
+	mmLogout.mock.funcLogout = f
+	mmLogout.mock.funcLogoutOrigin = minimock.CallerInfo(1)
+	return mmLogout.mock
+}
+
+// When sets expectation for the AuthService.Logout which will trigger the result defined by the following
+// Then helper
+func (mmLogout *mAuthServiceMockLogout) When(ctx context.Context, refreshToken string) *AuthServiceMockLogoutExpectation {
+	if mmLogout.mock.funcLogout != nil {
+		mmLogout.mock.t.Fatalf("AuthServiceMock.Logout mock is already set by Set")
+	}
+
+	expectation := &AuthServiceMockLogoutExpectation{
+		mock:               mmLogout.mock,
+		params:             &AuthServiceMockLogoutParams{ctx, refreshToken},
+		expectationOrigins: AuthServiceMockLogoutExpectationOrigins{origin: minimock.CallerInfo(1)},
+	}
+	mmLogout.expectations = append(mmLogout.expectations, expectation)
+	return expectation
+}
+
+// Then sets up AuthService.Logout return parameters for the expectation previously defined by the When method
+func (e *AuthServiceMockLogoutExpectation) Then(err error) *AuthServiceMock {
+	e.results = &AuthServiceMockLogoutResults{err}
+	return e.mock
+}
+
+// Times sets number of times AuthService.Logout should be invoked
+func (mmLogout *mAuthServiceMockLogout) Times(n uint64) *mAuthServiceMockLogout {
+	if n == 0 {
+		mmLogout.mock.t.Fatalf("Times of AuthServiceMock.Logout mock can not be zero")
+	}
+	mm_atomic.StoreUint64(&mmLogout.expectedInvocations, n)
+	mmLogout.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmLogout
+}
+
+func (mmLogout *mAuthServiceMockLogout) invocationsDone() bool {
+	if len(mmLogout.expectations) == 0 && mmLogout.defaultExpectation == nil && mmLogout.mock.funcLogout == nil {
+		return true
+	}
+
+	totalInvocations := mm_atomic.LoadUint64(&mmLogout.mock.afterLogoutCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmLogout.expectedInvocations)
+
+	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
+}
+
+// Logout implements mm_service.AuthService
+func (mmLogout *AuthServiceMock) Logout(ctx context.Context, refreshToken string) (err error) {
+	mm_atomic.AddUint64(&mmLogout.beforeLogoutCounter, 1)
+	defer mm_atomic.AddUint64(&mmLogout.afterLogoutCounter, 1)
+
+	mmLogout.t.Helper()
+
+	if mmLogout.inspectFuncLogout != nil {
+		mmLogout.inspectFuncLogout(ctx, refreshToken)
+	}
+
+	mm_params := AuthServiceMockLogoutParams{ctx, refreshToken}
+
+	// Record call args
+	mmLogout.LogoutMock.mutex.Lock()
+	mmLogout.LogoutMock.callArgs = append(mmLogout.LogoutMock.callArgs, &mm_params)
+	mmLogout.LogoutMock.mutex.Unlock()
+
+	for _, e := range mmLogout.LogoutMock.expectations {
+		if minimock.Equal(*e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.err
+		}
+	}
+
+	if mmLogout.LogoutMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmLogout.LogoutMock.defaultExpectation.Counter, 1)
+		mm_want := mmLogout.LogoutMock.defaultExpectation.params
+		mm_want_ptrs := mmLogout.LogoutMock.defaultExpectation.paramPtrs
+
+		mm_got := AuthServiceMockLogoutParams{ctx, refreshToken}
+
+		if mm_want_ptrs != nil {
+
+			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
+				mmLogout.t.Errorf("AuthServiceMock.Logout got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmLogout.LogoutMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+			}
+
+			if mm_want_ptrs.refreshToken != nil && !minimock.Equal(*mm_want_ptrs.refreshToken, mm_got.refreshToken) {
+				mmLogout.t.Errorf("AuthServiceMock.Logout got unexpected parameter refreshToken, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmLogout.LogoutMock.defaultExpectation.expectationOrigins.originRefreshToken, *mm_want_ptrs.refreshToken, mm_got.refreshToken, minimock.Diff(*mm_want_ptrs.refreshToken, mm_got.refreshToken))
+			}
+
+		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmLogout.t.Errorf("AuthServiceMock.Logout got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmLogout.LogoutMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmLogout.LogoutMock.defaultExpectation.results
+		if mm_results == nil {
+			mmLogout.t.Fatal("No results are set for the AuthServiceMock.Logout")
+		}
+		return (*mm_results).err
+	}
+	if mmLogout.funcLogout != nil {
+		return mmLogout.funcLogout(ctx, refreshToken)
+	}
+	mmLogout.t.Fatalf("Unexpected call to AuthServiceMock.Logout. %v %v", ctx, refreshToken)
+	return
+}
+
+// LogoutAfterCounter returns a count of finished AuthServiceMock.Logout invocations
+func (mmLogout *AuthServiceMock) LogoutAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmLogout.afterLogoutCounter)
+}
+
+// LogoutBeforeCounter returns a count of AuthServiceMock.Logout invocations
+func (mmLogout *AuthServiceMock) LogoutBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmLogout.beforeLogoutCounter)
+}
+
+// Calls returns a list of arguments used in each call to AuthServiceMock.Logout.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmLogout *mAuthServiceMockLogout) Calls() []*AuthServiceMockLogoutParams {
+	mmLogout.mutex.RLock()
+
+	argCopy := make([]*AuthServiceMockLogoutParams, len(mmLogout.callArgs))
+	copy(argCopy, mmLogout.callArgs)
+
+	mmLogout.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockLogoutDone returns true if the count of the Logout invocations corresponds
+// the number of defined expectations
+func (m *AuthServiceMock) MinimockLogoutDone() bool {
+	if m.LogoutMock.optional {
+		// Optional methods provide '0 or more' call count restriction.
+		return true
+	}
+
+	for _, e := range m.LogoutMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	return m.LogoutMock.invocationsDone()
+}
+
+// MinimockLogoutInspect logs each unmet expectation
+func (m *AuthServiceMock) MinimockLogoutInspect() {
+	for _, e := range m.LogoutMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to AuthServiceMock.Logout at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+		}
+	}
+
+	afterLogoutCounter := mm_atomic.LoadUint64(&m.afterLogoutCounter)
+	// if default expectation was set then invocations count should be greater than zero
+	if m.LogoutMock.defaultExpectation != nil && afterLogoutCounter < 1 {
+		if m.LogoutMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to AuthServiceMock.Logout at\n%s", m.LogoutMock.defaultExpectation.returnOrigin)
+		} else {
+			m.t.Errorf("Expected call to AuthServiceMock.Logout at\n%s with params: %#v", m.LogoutMock.defaultExpectation.expectationOrigins.origin, *m.LogoutMock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcLogout != nil && afterLogoutCounter < 1 {
+		m.t.Errorf("Expected call to AuthServiceMock.Logout at\n%s", m.funcLogoutOrigin)
+	}
+
+	if !m.LogoutMock.invocationsDone() && afterLogoutCounter > 0 {
+		m.t.Errorf("Expected %d calls to AuthServiceMock.Logout at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.LogoutMock.expectedInvocations), m.LogoutMock.expectedInvocationsOrigin, afterLogoutCounter)
+	}
+}
+
 // MinimockFinish checks that all mocked methods have been called the expected number of times
 func (m *AuthServiceMock) MinimockFinish() {
 	m.finishOnce.Do(func() {
@@ -1099,6 +1451,8 @@ func (m *AuthServiceMock) MinimockFinish() {
 			m.MinimockGetRefreshTokenInspect()
 
 			m.MinimockLoginInspect()
+
+			m.MinimockLogoutInspect()
 		}
 	})
 }
@@ -1124,5 +1478,6 @@ func (m *AuthServiceMock) minimockDone() bool {
 	return done &&
 		m.MinimockGetAccessTokenDone() &&
 		m.MinimockGetRefreshTokenDone() &&
-		m.MinimockLoginDone()
+		m.MinimockLoginDone() &&
+		m.MinimockLogoutDone()
 }

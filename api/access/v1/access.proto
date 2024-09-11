@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package access_v1;
+
+import "google/protobuf/empty.proto";
+import "validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package =  "github.com/8thgencore/microservice-auth/pkg/access/v1;access_v1";
+
+service AccessV1 {
+	// Check executes user authorization for endpoint.
+	rpc Check (CheckRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/v1/access/check"
+            body: "*"
+        };
+    }
+}
+
+message CheckRequest {
+	// Endpoint where user wants access to.
+	string endpoint = 1 [(validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/-]+$"}];
+}

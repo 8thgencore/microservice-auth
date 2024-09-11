@@ -18,6 +18,9 @@ TESTS_PATH=./internal/service/...,./internal/api/...
 TESTS_ATTEMPTS=5
 TESTS_COVERAGE_FILE=coverage.out
 
+# TLS settings
+TLS_PATH=tls
+
 # Warning message to ensure correct environment export
 .PHONY: check-env
 check-env:
@@ -61,6 +64,8 @@ format:
 # ############### #
 generate-api: check-env
 	make generate-user-api
+	make generate-auth-api
+	make generate-access-api
 
 generate-user-api:
 	mkdir -p pkg/user/v1 pkg/swagger
@@ -78,6 +83,32 @@ generate-user-api:
 	api/user/v1/user.proto
 	sed -i -e 's/{HTTP_HOST}/$(HTTP_HOST)/g' pkg/swagger/api.swagger.json
 	sed -i -e 's/{HTTP_PORT}/$(HTTP_PORT)/g' pkg/swagger/api.swagger.json
+
+generate-auth-api:
+	mkdir -p pkg/auth/v1
+	protoc --proto_path api/auth/v1 --proto_path vendor.protogen \
+	--go_out=pkg/auth/v1 --go_opt=paths=source_relative \
+	--plugin=protoc-gen-go=$(LOCAL_BIN)/protoc-gen-go \
+	--go-grpc_out=pkg/auth/v1 --go-grpc_opt=paths=source_relative \
+	--plugin=protoc-gen-go-grpc=$(LOCAL_BIN)/protoc-gen-go-grpc \
+	--grpc-gateway_out=pkg/auth/v1 --grpc-gateway_opt=paths=source_relative \
+	--plugin=protoc-gen-grpc-gateway=$(LOCAL_BIN)/protoc-gen-grpc-gateway \
+	--validate_out lang=go:pkg/auth/v1 --validate_opt=paths=source_relative \
+	--plugin=protoc-gen-validate=$(LOCAL_BIN)/protoc-gen-validate \
+	api/auth/v1/auth.proto
+
+generate-access-api:
+	mkdir -p pkg/access/v1
+	protoc --proto_path api/access/v1 --proto_path vendor.protogen \
+	--go_out=pkg/access/v1 --go_opt=paths=source_relative \
+	--plugin=protoc-gen-go=$(LOCAL_BIN)/protoc-gen-go \
+	--go-grpc_out=pkg/access/v1 --go-grpc_opt=paths=source_relative \
+	--plugin=protoc-gen-go-grpc=$(LOCAL_BIN)/protoc-gen-go-grpc \
+	--grpc-gateway_out=pkg/access/v1 --grpc-gateway_opt=paths=source_relative \
+	--plugin=protoc-gen-grpc-gateway=$(LOCAL_BIN)/protoc-gen-grpc-gateway \
+	--validate_out lang=go:pkg/access/v1 --validate_opt=paths=source_relative \
+	--plugin=protoc-gen-validate=$(LOCAL_BIN)/protoc-gen-validate \
+	api/access/v1/access.proto
 
 vendor-proto:
 		@if [ ! -d vendor.protogen/validate ]; then \
@@ -102,6 +133,22 @@ vendor-proto:
 generate-mocks:
 	go generate ./internal/repository
 	go generate ./internal/service
+	go generate ./internal/tokens
+
+# Generation of a CA (Certification Authority)
+generate-cert-ca: 
+	mkdir -p tls
+	openssl genpkey -algorithm ed25519 -out $(TLS_PATH)/ca.key
+	openssl req -new -x509 -key $(TLS_PATH)/ca.key -out $(TLS_PATH)/ca.pem -days 365 -sha256 -subj "/CN=My CA"
+
+# Generating a CA-signed certificate
+generate-cert-auth: $(TLS_PATH)/ca.key $(TLS_PATH)/ca.pem
+	openssl genpkey -algorithm ed25519 -out $(TLS_PATH)/auth.key
+	openssl req -new -key $(TLS_PATH)/auth.key -config openssl.cnf -out $(TLS_PATH)/auth.csr
+	openssl x509 -req -in $(TLS_PATH)/auth.csr -CA $(TLS_PATH)/ca.pem -CAkey $(TLS_PATH)/ca.key \
+	-extfile openssl.cnf -extensions req_ext \
+	-out $(TLS_PATH)/auth.pem -days 365 -sha256
+	rm -rf $(TLS_PATH)/auth.csr
 
 # ##### #
 # TESTS #

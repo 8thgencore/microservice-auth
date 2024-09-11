@@ -8,7 +8,14 @@ type UserCreds struct {
 
 // AuthInfo type is the structure for user authentication data from storage.
 type AuthInfo struct {
+	ID       int64
 	Username string
 	Password string
 	Role     string
+}
+
+// TokenPair type is the structure for storing access and refresh tokens.
+type TokenPair struct {
+	AccessToken  string
+	RefreshToken string
 }

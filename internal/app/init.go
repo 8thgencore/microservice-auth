@@ -10,12 +10,15 @@ import (
 	"github.com/8thgencore/microservice-auth/internal/app/provider"
 	"github.com/8thgencore/microservice-auth/internal/config"
 	"github.com/8thgencore/microservice-auth/internal/interceptor"
+	accessv1 "github.com/8thgencore/microservice-auth/pkg/access/v1"
+	authv1 "github.com/8thgencore/microservice-auth/pkg/auth/v1"
 	"github.com/8thgencore/microservice-auth/pkg/swagger"
 	userv1 "github.com/8thgencore/microservice-auth/pkg/user/v1"
 	"github.com/8thgencore/microservice-common/pkg/logger"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/rs/cors"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 )
@@ -61,8 +64,20 @@ func (a *App) initServiceProvider(_ context.Context) error {
 }
 
 func (a *App) initGRPCServer(ctx context.Context) error {
+	var creds credentials.TransportCredentials
+	var err error
+
+	if a.cfg.TLS.Enable {
+		creds, err = credentials.NewServerTLSFromFile(a.cfg.TLS.CertPath, a.cfg.TLS.KeyPath)
+		if err != nil {
+			return err
+		}
+	} else {
+		creds = insecure.NewCredentials()
+	}
+
 	a.grpcServer = grpc.NewServer(
-		grpc.Creds(insecure.NewCredentials()),
+		grpc.Creds(creds),
 		grpc.ChainUnaryInterceptor(
 			interceptor.LogInterceptor,
 			interceptor.ValidateInterceptor,
@@ -72,20 +87,32 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 	reflection.Register(a.grpcServer)
 
 	userv1.RegisterUserV1Server(a.grpcServer, a.serviceProvider.UserImpl(ctx))
+	authv1.RegisterAuthV1Server(a.grpcServer, a.serviceProvider.AuthImpl(ctx))
+	accessv1.RegisterAccessV1Server(a.grpcServer, a.serviceProvider.AccessImpl(ctx))
 
 	return nil
 }
 
 func (a *App) initHTTPServer(ctx context.Context) error {
-	cfg := a.serviceProvider.Config
+	var creds credentials.TransportCredentials
+	var err error
+
+	if a.cfg.TLS.Enable {
+		creds, err = credentials.NewClientTLSFromFile(a.cfg.TLS.CertPath, "")
+		if err != nil {
+			return err
+		}
+	} else {
+		creds = insecure.NewCredentials()
+	}
 
 	opts := []grpc.DialOption{
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithTransportCredentials(creds),
 	}
 
 	mux := runtime.NewServeMux()
 
-	if err := userv1.RegisterUserV1HandlerFromEndpoint(ctx, mux, cfg.GRPC.Address(), opts); err != nil {
+	if err := userv1.RegisterUserV1HandlerFromEndpoint(ctx, mux, a.cfg.GRPC.Address(), opts); err != nil {
 		return err
 	}
 
@@ -97,7 +124,7 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	})
 
 	a.httpServer = &http.Server{
-		Addr:              cfg.HTTP.Address(),
+		Addr:              a.cfg.HTTP.Address(),
 		Handler:           corsMiddleware.Handler(mux),
 		ReadHeaderTimeout: 15 * time.Second,
 	}

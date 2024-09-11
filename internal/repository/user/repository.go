@@ -28,6 +28,9 @@ const (
 	roleColumn      = "role"
 	createdAtColumn = "created_at"
 	updatedAtColumn = "updated_at"
+
+	userNameKey  = "users_name_key"
+	userEmailKey = "users_email_key"
 )
 
 type repo struct {
@@ -61,7 +64,12 @@ func (r *repo) Create(ctx context.Context, user *model.UserCreate) (int64, error
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
-			return 0, userService.ErrUserExists
+			switch pgErr.ConstraintName {
+			case userNameKey:
+				return 0, userService.ErrUserNameExists
+			case userEmailKey:
+				return 0, userService.ErrUserEmailExists
+			}
 		}
 		return 0, err
 	}
@@ -89,6 +97,9 @@ func (r *repo) Get(ctx context.Context, id int64) (*model.User, error) {
 	var user dao.User
 	err = r.db.DB().ScanOneContext(ctx, &user, q, args...)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, userService.ErrUserNotFound
+		}
 		return nil, err
 	}
 
@@ -104,11 +115,9 @@ func (r *repo) Update(ctx context.Context, user *model.UserUpdate) error {
 	if user.Name.Valid {
 		builderUpdate = builderUpdate.Set(nameColumn, user.Name.String)
 	}
-
 	if user.Email.Valid {
 		builderUpdate = builderUpdate.Set(emailColumn, user.Email.String)
 	}
-
 	if user.Role.Valid {
 		builderUpdate = builderUpdate.Set(roleColumn, user.Role.String)
 	}
@@ -125,6 +134,16 @@ func (r *repo) Update(ctx context.Context, user *model.UserUpdate) error {
 
 	_, err = r.db.DB().ExecContext(ctx, q, args...)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
+			switch pgErr.ConstraintName {
+			case userNameKey:
+				return userService.ErrUserNameExists
+			case userEmailKey:
+				return userService.ErrUserEmailExists
+			}
+		}
+
 		return err
 	}
 
@@ -155,7 +174,7 @@ func (r *repo) Delete(ctx context.Context, id int64) error {
 }
 
 func (r *repo) GetAuthInfo(ctx context.Context, username string) (*model.AuthInfo, error) {
-	builderSelect := sq.Select(nameColumn, roleColumn, passwordColumn).
+	builderSelect := sq.Select(idColumn, nameColumn, roleColumn, passwordColumn).
 		From(tableName).
 		PlaceholderFormat(sq.Dollar).
 		Where(sq.Eq{nameColumn: username}).

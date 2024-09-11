@@ -30,16 +30,19 @@ type Config struct {
 	Env      Env `env:"ENV" env-default:"local"`
 	GRPC     GRPC
 	HTTP     HTTPConfig
+	JWT      JWTConfig
+	TLS      TLSConfig
 	Swagger  SwaggerConfig
 	Database DatabaseConfig
+	Redis    RedisConfig
 }
 
 // GRPC represents the configuration for the GRPC server.
 type GRPC struct {
-	Host      string        `env:"GRPC_SERVER_HOST" env-default:"localhost"`
-	Port      int           `env:"GRPC_SERVER_PORT" env-default:"50051"`
-	Transport string        `env:"GRPC_SERVER_TRANSPORT" env-default:"tcp"`
-	Timeout   time.Duration `env:"GRPC_SERVER_TIMEOUT"`
+	Host      string        `env:"GRPC_HOST" env-default:"localhost"`
+	Port      int           `env:"GRPC_PORT" env-default:"50051"`
+	Transport string        `env:"GRPC_TRANSPORT" env-default:"tcp"`
+	Timeout   time.Duration `env:"GRPC_TIMEOUT"`
 }
 
 // Address returns the address of the GRPC server in the format "host:port".
@@ -82,6 +85,34 @@ type DatabaseConfig struct {
 func (c *DatabaseConfig) DSN() string {
 	return fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=disable",
 		c.Host, c.Port, c.Name, c.User, c.Password)
+}
+
+// RedisConfig represents the configuration for the Postgres database.
+type RedisConfig struct {
+	Host              string        `env:"REDIS_HOST"               env-required:"true"`
+	Port              int           `env:"REDIS_PORT"               env-required:"true"`
+	ConnectionTimeout time.Duration `env:"REDIS_CONNECTION_TIMEOUT" env-required:"true"`
+	IdleTimeout       time.Duration `env:"REDIS_IDLE_TIMEOUT"       env-required:"true"`
+	MaxIdle           int           `env:"REDIS_MAX_IDLE"           env-required:"true"`
+}
+
+// Address returns the data source name (Address) for the database.
+func (c *RedisConfig) Address() string {
+	return net.JoinHostPort(c.Host, strconv.Itoa(c.Port))
+}
+
+// JWTConfig represents the configuration for the JWT.
+type JWTConfig struct {
+	SecretKey       string        `env:"JWT_SECRET_KEY" env-required:"true"`
+	AccessTokenTTL  time.Duration `env:"JWT_ACCESS_TTL" env-default:"15m"`
+	RefreshTokenTTL time.Duration `env:"JWT_REFRESH_TTL" env-default:"7d"`
+}
+
+// TLSConfig represents the configuration for the TLSConfig.
+type TLSConfig struct {
+	Enable   bool   `env:"ENABLE_TLS" env-default:"false"`
+	CertPath string `env:"TLS_CERT_PATH"`
+	KeyPath  string `env:"TLS_KEY_PATH"`
 }
 
 // NewConfig creates a new instance of Config.
