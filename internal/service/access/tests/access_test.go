@@ -2,7 +2,6 @@ package tests
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -86,13 +85,6 @@ func TestCheck(t *testing.T) {
 			Role:     roleUser,
 		}
 
-		noMdErr         = fmt.Errorf("metadata is not provided")
-		noAuthHeaderErr = fmt.Errorf("authorization header is not provided")
-		noAuthPrefixErr = fmt.Errorf("invalid authorization header format")
-		noEndpointErr   = fmt.Errorf("failed to find endpoint")
-		tokenInvalidErr = fmt.Errorf("access token is invalid")
-		accessDeniedErr = fmt.Errorf("access denied")
-
 		req = endpointCreate
 	)
 
@@ -109,7 +101,7 @@ func TestCheck(t *testing.T) {
 				ctx: ctxNoMd,
 				req: req,
 			},
-			err: noMdErr,
+			err: accessService.ErrMetadataNotProvided,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
 				return mock
@@ -125,7 +117,7 @@ func TestCheck(t *testing.T) {
 				ctx: ctxNoAuthHeader,
 				req: req,
 			},
-			err: noAuthHeaderErr,
+			err: accessService.ErrAuthHeaderNotProvided,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
 				return mock
@@ -141,7 +133,7 @@ func TestCheck(t *testing.T) {
 				ctx: ctxNoAuthPrefix,
 				req: req,
 			},
-			err: noAuthPrefixErr,
+			err: accessService.ErrInvalidAuthHeaderFormat,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
 				return mock
@@ -157,10 +149,10 @@ func TestCheck(t *testing.T) {
 				ctx: ctx,
 				req: endpointNotExists,
 			},
-			err: noEndpointErr,
+			err: accessService.ErrEndpointNotFound,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
-				mock.GetRoleEndpointsMock.Expect(minimock.AnyContext).Return(endpointPermissions, nil)
+				mock.GetRoleEndpointsMock.Expect(ctx).Return(endpointPermissions, nil)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
@@ -174,14 +166,14 @@ func TestCheck(t *testing.T) {
 				ctx: ctx,
 				req: req,
 			},
-			err: tokenInvalidErr,
+			err: accessService.ErrInvalidAccessToken,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyAccessTokenMock.Expect(accessToken, secretKeyBytes).Return(nil, tokenInvalidErr)
+				mock.VerifyAccessTokenMock.Expect(accessToken, secretKeyBytes).Return(nil, accessService.ErrInvalidAccessToken)
 				return mock
 			},
 		},
@@ -191,7 +183,7 @@ func TestCheck(t *testing.T) {
 				ctx: ctx,
 				req: req,
 			},
-			err: accessDeniedErr,
+			err: accessService.ErrAccessDenied,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
 				return mock
