@@ -68,12 +68,12 @@ func (t *tokenOperations) VerifyAccessToken(tokenStr string, secretKey []byte) (
 		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("invalid token: %s", err.Error())
+		return nil, fmt.Errorf("invalid access token: %s", err.Error())
 	}
 
 	claims, ok := token.Claims.(*model.UserClaims)
 	if !ok || !token.Valid {
-		return nil, errors.New("invalid token claims")
+		return nil, errors.New("invalid access token claims")
 	}
 
 	return claims, nil

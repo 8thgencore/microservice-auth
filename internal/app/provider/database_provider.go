@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"time"
 
 	"github.com/8thgencore/microservice-common/pkg/cache"
 	redisClient "github.com/8thgencore/microservice-common/pkg/cache/redis"
@@ -11,7 +10,7 @@ import (
 	"github.com/8thgencore/microservice-common/pkg/db/pg"
 	"github.com/8thgencore/microservice-common/pkg/db/transaction"
 	"github.com/8thgencore/microservice-common/pkg/logger"
-	"github.com/gomodule/redigo/redis"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
 
@@ -51,16 +50,17 @@ func (s *ServiceProvider) TxManager(ctx context.Context) db.TxManager {
 // CacheClient returns a cache client.
 func (s *ServiceProvider) CacheClient(_ context.Context) cache.Client {
 	cfg := s.Config.Redis
-	pool := &redis.Pool{
-		MaxIdle:     cfg.MaxIdle,
-		IdleTimeout: time.Duration(cfg.IdleTimeout),
-		Dial: func() (redis.Conn, error) {
-			return redis.Dial("tcp", cfg.Address())
-		},
+	opt := &redis.Options{
+		Addr:        cfg.Address(),
+		Password:    "", // no password set
+		DB:          0,  // use default DB
+		DialTimeout: cfg.ConnectionTimeout,
+		ReadTimeout: cfg.IdleTimeout,
+		PoolSize:    cfg.MaxIdle,
 	}
 
 	if s.cache == nil {
-		s.cache = redisClient.NewClient(pool, cfg.ConnectionTimeout)
+		s.cache = redisClient.NewClient(opt)
 	}
 
 	return s.cache

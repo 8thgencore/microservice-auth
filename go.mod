@@ -3,24 +3,24 @@ module github.com/8thgencore/microservice-auth
 go 1.23.0
 
 require (
-	github.com/8thgencore/microservice-common v0.1.1
+	github.com/8thgencore/microservice-common v0.2.1
 	github.com/Masterminds/squirrel v1.5.4
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.1.0
 	github.com/gojuno/minimock/v3 v3.4.0
 	github.com/golang/protobuf v1.5.4
-	github.com/gomodule/redigo v1.9.2
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/jackc/pgerrcode v0.0.0-20240316143900-6e2875d9b438
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/joho/godotenv v1.5.1
+	github.com/redis/go-redis/v9 v9.6.1
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.27.0
-	google.golang.org/grpc v1.66.1
+	google.golang.org/grpc v1.66.2
 	google.golang.org/protobuf v1.34.2
 )
-
-require github.com/pkg/errors v0.9.1 // indirect
 
 require (
 	github.com/BurntSushi/toml v1.4.0 // indirect

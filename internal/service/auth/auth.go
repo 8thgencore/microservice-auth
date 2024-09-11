@@ -93,7 +93,7 @@ func (s *serv) GetAccessToken(ctx context.Context, refreshToken string) (string,
 func (s *serv) GetRefreshToken(ctx context.Context, oldRefreshToken string) (string, error) {
 	revoked, err := s.tokenRepository.IsTokenRevoked(ctx, oldRefreshToken)
 	if err != nil {
-		return "", ErrRefreshTokenGen
+		return "", ErrInvalidRefresh
 	}
 	if revoked {
 		return "", ErrInvalidRefresh
