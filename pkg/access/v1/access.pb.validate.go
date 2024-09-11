@@ -57,7 +57,27 @@ func (m *CheckRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Endpoint
+	if l := utf8.RuneCountInString(m.GetEndpoint()); l < 1 || l > 255 {
+		err := CheckRequestValidationError{
+			field:  "Endpoint",
+			reason: "value length must be between 1 and 255 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_CheckRequest_Endpoint_Pattern.MatchString(m.GetEndpoint()) {
+		err := CheckRequestValidationError{
+			field:  "Endpoint",
+			reason: "value does not match regex pattern \"^[a-zA-Z0-9_/-]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return CheckRequestMultiError(errors)
@@ -135,3 +155,5 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CheckRequestValidationError{}
+
+var _CheckRequest_Endpoint_Pattern = regexp.MustCompile("^[a-zA-Z0-9_/-]+$")

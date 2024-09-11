@@ -16,6 +16,7 @@ import (
 
 	accessRepository "github.com/8thgencore/microservice-auth/internal/repository/access"
 	logRepository "github.com/8thgencore/microservice-auth/internal/repository/log"
+	tokenRepository "github.com/8thgencore/microservice-auth/internal/repository/token"
 	userRepository "github.com/8thgencore/microservice-auth/internal/repository/user"
 	accessService "github.com/8thgencore/microservice-auth/internal/service/access"
 	authService "github.com/8thgencore/microservice-auth/internal/service/auth"
@@ -34,6 +35,7 @@ type ServiceProvider struct {
 	userRepository   repository.UserRepository
 	accessRepository repository.AccessRepository
 	logRepository    repository.LogRepository
+	tokenRepository  repository.TokenRepository
 
 	userService   service.UserService
 	authService   service.AuthService
@@ -77,6 +79,14 @@ func (s *ServiceProvider) LogRepository(ctx context.Context) repository.LogRepos
 	return s.logRepository
 }
 
+// TokenRepository returns a Token repository.
+func (s *ServiceProvider) TokenRepository(ctx context.Context) repository.TokenRepository {
+	if s.tokenRepository == nil {
+		s.tokenRepository = tokenRepository.NewRepository(s.CacheClient(ctx), s.Config.JWT.RefreshTokenTTL)
+	}
+	return s.tokenRepository
+}
+
 // UserService returns a user service.
 func (s *ServiceProvider) UserService(ctx context.Context) service.UserService {
 	if s.userService == nil {
@@ -88,7 +98,12 @@ func (s *ServiceProvider) UserService(ctx context.Context) service.UserService {
 // AuthService returns a auth service.
 func (s *ServiceProvider) AuthService(ctx context.Context) service.AuthService {
 	if s.authService == nil {
-		s.authService = authService.NewService(s.UserRepository(ctx), s.TokenOperations(ctx), s.Config.JWT)
+		s.authService = authService.NewService(
+			s.UserRepository(ctx),
+			s.TokenRepository(ctx),
+			s.TokenOperations(ctx),
+			s.Config.JWT,
+		)
 	}
 	return s.authService
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/8thgencore/microservice-auth/internal/converter"
 	authv1 "github.com/8thgencore/microservice-auth/pkg/auth/v1"
+	"github.com/golang/protobuf/ptypes/empty"
 )
 
 // Login user and return refresh token.
@@ -48,4 +49,17 @@ func (i *Implementation) GetRefreshToken(
 	return &authv1.GetRefreshTokenResponse{
 		RefreshToken: refreshToken,
 	}, nil
+}
+
+// Logout invalidates the refresh token.
+func (i *Implementation) Logout(
+	ctx context.Context,
+	req *authv1.LogoutRequest,
+) (*empty.Empty, error) {
+	err := i.authService.Logout(ctx, req.GetRefreshToken())
+	if err != nil {
+		return nil, err
+	}
+
+	return &empty.Empty{}, nil
 }

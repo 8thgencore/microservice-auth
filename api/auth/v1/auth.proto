@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package auth_v1;
 
+import "google/protobuf/empty.proto";
 import "validate/validate.proto";
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
@@ -48,6 +49,14 @@ service AuthV1 {
             body: "*"
         };
     }
+
+    // Logout invalidates the refresh token.
+    rpc Logout (LogoutRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/v1/auth/logout"
+            body: "*"
+        };
+    }
 }
 
 message LoginRequest {
@@ -86,4 +95,9 @@ message GetAccessTokenRequest {
 message GetAccessTokenResponse {
     // User's access token for operating with service.
     string access_token = 1 [(validate.rules).string = {min_len: 10}];
+}
+
+message LogoutRequest {
+    // The refresh token to invalidate.
+    string refresh_token = 1 [(validate.rules).string = {min_len: 10}];
 }

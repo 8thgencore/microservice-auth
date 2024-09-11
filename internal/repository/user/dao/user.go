@@ -17,6 +17,7 @@ type User struct {
 
 // AuthInfo type is the structure for user authentication data from storage.
 type AuthInfo struct {
+	ID       int64  `db:"id"`
 	Username string `db:"name"`
 	Password string `db:"password"`
 	Role     string `db:"role"`

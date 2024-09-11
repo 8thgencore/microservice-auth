@@ -20,6 +20,7 @@ func ToUserFromRepo(user *dao.User) *model.User {
 // ToAuthInfoFromRepo converts repository layer model to structure of service layer.
 func ToAuthInfoFromRepo(authInfo *dao.AuthInfo) *model.AuthInfo {
 	return &model.AuthInfo{
+		ID:       authInfo.ID,
 		Username: authInfo.Username,
 		Role:     authInfo.Role,
 		Password: authInfo.Password,

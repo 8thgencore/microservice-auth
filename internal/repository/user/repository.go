@@ -174,7 +174,7 @@ func (r *repo) Delete(ctx context.Context, id int64) error {
 }
 
 func (r *repo) GetAuthInfo(ctx context.Context, username string) (*model.AuthInfo, error) {
-	builderSelect := sq.Select(nameColumn, roleColumn, passwordColumn).
+	builderSelect := sq.Select(idColumn, nameColumn, roleColumn, passwordColumn).
 		From(tableName).
 		PlaceholderFormat(sq.Dollar).
 		Where(sq.Eq{nameColumn: username}).

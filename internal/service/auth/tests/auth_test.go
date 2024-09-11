@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	userID          int64 = 0
+	userID          int64 = 1
 	username              = "username"
 	passwordWrong         = "passwordWrong"
 	role                  = "USER"
@@ -29,6 +29,12 @@ var (
 	accessToken           = "access_token"
 
 	secretKey = "secret"
+
+	user = model.User{
+		ID:   userID,
+		Name: username,
+		Role: role,
+	}
 
 	jwtConfig = config.JWTConfig{
 		SecretKey:       secretKey,
@@ -41,6 +47,7 @@ func TestLogin(t *testing.T) {
 	t.Parallel()
 
 	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
+	type tokenRepositoryMockFunc func(mc *minimock.Controller) repository.TokenRepository
 	type tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
 
 	type args struct {
@@ -66,12 +73,6 @@ func TestLogin(t *testing.T) {
 			Role:     role,
 		}
 
-		user = model.User{
-			ID:   userID,
-			Name: username,
-			Role: role,
-		}
-
 		req = &model.UserCreds{
 			Username: username,
 			Password: password,
@@ -94,6 +95,7 @@ func TestLogin(t *testing.T) {
 		want                *model.TokenPair
 		err                 error
 		userRepositoryMock  userRepositoryMockFunc
+		tokenRepositoryMock tokenRepositoryMockFunc
 		tokenOperationsMock tokenOperationsMockFunc
 	}{
 		{
@@ -187,8 +189,14 @@ func TestLogin(t *testing.T) {
 			t.Parallel()
 
 			userRepositoryMock := tt.userRepositoryMock(mc)
+			tokenRepositoryMock := tt.tokenRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
-			srv := authService.NewService(userRepositoryMock, tokenOperationsMock, jwtConfig)
+			srv := authService.NewService(
+				userRepositoryMock,
+				tokenRepositoryMock,
+				tokenOperationsMock,
+				jwtConfig,
+			)
 
 			res, err := srv.Login(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)
@@ -201,6 +209,7 @@ func TestGetAccessToken(t *testing.T) {
 	t.Parallel()
 
 	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
+	type tokenRepositoryMockFunc func(mc *minimock.Controller) repository.TokenRepository
 	type tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
 
 	type args struct {
@@ -214,11 +223,6 @@ func TestGetAccessToken(t *testing.T) {
 
 		refreshClaims = &model.RefreshClaims{UserID: userID}
 
-		user = model.User{
-			Name: username,
-			Role: role,
-		}
-
 		req = refreshToken
 		res = accessToken
 	)
@@ -229,6 +233,7 @@ func TestGetAccessToken(t *testing.T) {
 		want                string
 		err                 error
 		userRepositoryMock  userRepositoryMockFunc
+		tokenRepositoryMock tokenRepositoryMockFunc
 		tokenOperationsMock tokenOperationsMockFunc
 	}{
 		{
@@ -265,7 +270,9 @@ func TestGetAccessToken(t *testing.T) {
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				mock.VerifyRefreshTokenMock.Expect(refreshToken, []byte(secretKey)).Return(refreshClaims, nil)
-				mock.GenerateAccessTokenMock.Expect(user, []byte(secretKey), jwtConfig.AccessTokenTTL).Return("", authService.ErrAccessTokenGen)
+				mock.GenerateAccessTokenMock.
+					Expect(user, []byte(secretKey), jwtConfig.AccessTokenTTL).
+					Return("", authService.ErrAccessTokenGen)
 				return mock
 			},
 		},
@@ -297,9 +304,14 @@ func TestGetAccessToken(t *testing.T) {
 			t.Parallel()
 
 			userRepositoryMock := tt.userRepositoryMock(mc)
+			tokenRepositoryMock := tt.tokenRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
-			srv := authService.NewService(userRepositoryMock, tokenOperationsMock, jwtConfig)
-
+			srv := authService.NewService(
+				userRepositoryMock,
+				tokenRepositoryMock,
+				tokenOperationsMock,
+				jwtConfig,
+			)
 			res, err := srv.GetAccessToken(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)
 			require.Equal(t, tt.want, res)
@@ -311,6 +323,7 @@ func TestGetRefreshToken(t *testing.T) {
 	t.Parallel()
 
 	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
+	type tokenRepositoryMockFunc func(mc *minimock.Controller) repository.TokenRepository
 	type tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
 
 	type args struct {
@@ -324,11 +337,6 @@ func TestGetRefreshToken(t *testing.T) {
 
 		refreshClaims = &model.RefreshClaims{UserID: userID}
 
-		user = model.User{
-			Name: username,
-			Role: role,
-		}
-
 		req = oldRefreshToken
 		res = refreshToken
 	)
@@ -339,6 +347,8 @@ func TestGetRefreshToken(t *testing.T) {
 		want                string
 		err                 error
 		userRepositoryMock  userRepositoryMockFunc
+		tokenRepositoryMock tokenRepositoryMockFunc
+
 		tokenOperationsMock tokenOperationsMockFunc
 	}{
 		{
@@ -351,6 +361,11 @@ func TestGetRefreshToken(t *testing.T) {
 			err:  authService.ErrInvalidRefresh,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
+				return mock
+			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				mock := repositoryMocks.NewTokenRepositoryMock(mc)
+				mock.IsTokenRevokedMock.Expect(ctx, oldRefreshToken).Return(false, nil)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
@@ -369,6 +384,11 @@ func TestGetRefreshToken(t *testing.T) {
 			err:  authService.ErrRefreshTokenGen,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
+				return mock
+			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				mock := repositoryMocks.NewTokenRepositoryMock(mc)
+				mock.IsTokenRevokedMock.Expect(ctx, oldRefreshToken).Return(false, nil)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
@@ -392,6 +412,12 @@ func TestGetRefreshToken(t *testing.T) {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
 				return mock
 			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				mock := repositoryMocks.NewTokenRepositoryMock(mc)
+				mock.IsTokenRevokedMock.Expect(ctx, oldRefreshToken).Return(false, nil)
+				mock.AddRevokedTokenMock.Expect(ctx, oldRefreshToken).Return(nil)
+				return mock
+			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				mock.VerifyRefreshTokenMock.Expect(oldRefreshToken, []byte(secretKey)).Return(refreshClaims, nil)
@@ -409,9 +435,14 @@ func TestGetRefreshToken(t *testing.T) {
 			t.Parallel()
 
 			userRepositoryMock := tt.userRepositoryMock(mc)
+			tokenRepositoryMock := tt.tokenRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
-			srv := authService.NewService(userRepositoryMock, tokenOperationsMock, jwtConfig)
-
+			srv := authService.NewService(
+				userRepositoryMock,
+				tokenRepositoryMock,
+				tokenOperationsMock,
+				jwtConfig,
+			)
 			res, err := srv.GetRefreshToken(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)
 			require.Equal(t, tt.want, res)

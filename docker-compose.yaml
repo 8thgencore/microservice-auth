@@ -34,7 +34,7 @@ services:
       retries: 5
 
   redis-auth:
-    image: redis:latest
+    image: redis:${REDIS_IMAGE_TAG}
     container_name: redis-auth
     env_file:
     - .env.${ENV}

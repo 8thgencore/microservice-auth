@@ -9,6 +9,7 @@ import (
 
 type serv struct {
 	userRepository  repository.UserRepository
+	tokenRepository repository.TokenRepository
 	tokenOperations tokens.TokenOperations
 	jwtConfig       config.JWTConfig
 }
@@ -16,11 +17,13 @@ type serv struct {
 // NewService creates new object of service layer.
 func NewService(
 	userRepository repository.UserRepository,
+	tokenRepository repository.TokenRepository,
 	tokenOperations tokens.TokenOperations,
 	jwtConfig config.JWTConfig,
 ) service.AuthService {
 	return &serv{
 		userRepository:  userRepository,
+		tokenRepository: tokenRepository,
 		tokenOperations: tokenOperations,
 		jwtConfig:       jwtConfig,
 	}

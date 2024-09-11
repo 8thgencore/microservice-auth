@@ -17,13 +17,20 @@ const (
 )
 
 var (
-	ErrMetadataNotProvided      = errors.New("metadata is not provided")
-	ErrAuthHeaderNotProvided    = errors.New("authorization header is not provided")
-	ErrInvalidAuthHeaderFormat  = errors.New("invalid authorization header format")
+	// ErrMetadataNotProvided occurs when metadata is not passed in the request.
+	ErrMetadataNotProvided = errors.New("metadata is not provided")
+	// ErrAuthHeaderNotProvided occurs when the authorization header is missing from the request.
+	ErrAuthHeaderNotProvided = errors.New("authorization header is not provided")
+	// ErrInvalidAuthHeaderFormat occurs when the authorization header has an incorrect format.
+	ErrInvalidAuthHeaderFormat = errors.New("invalid authorization header format")
+	// ErrFailedToReadAccessPolicy occurs when the access policy could not be read.
 	ErrFailedToReadAccessPolicy = errors.New("failed to read access policy")
-	ErrEndpointNotFound         = errors.New("failed to find endpoint")
-	ErrInvalidAccessToken       = errors.New("access token is invalid")
-	ErrAccessDenied             = errors.New("access denied")
+	// ErrEndpointNotFound occurs when the specified endpoint is not found.
+	ErrEndpointNotFound = errors.New("failed to find endpoint")
+	// ErrInvalidAccessToken occurs when the access token is invalid.
+	ErrInvalidAccessToken = errors.New("access token is invalid")
+	// ErrAccessDenied occurs when access to the requested resource is denied.
+	ErrAccessDenied = errors.New("access denied")
 )
 
 var accessibleRoles map[string][]string

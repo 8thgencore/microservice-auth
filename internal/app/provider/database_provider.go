@@ -49,7 +49,7 @@ func (s *ServiceProvider) TxManager(ctx context.Context) db.TxManager {
 }
 
 // CacheClient returns a cache client.
-func (s *ServiceProvider) CacheClient(ctx context.Context) cache.Client {
+func (s *ServiceProvider) CacheClient(_ context.Context) cache.Client {
 	cfg := s.Config.Redis
 	pool := &redis.Pool{
 		MaxIdle:     cfg.MaxIdle,

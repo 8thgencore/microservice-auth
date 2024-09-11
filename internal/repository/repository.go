@@ -24,3 +24,9 @@ type AccessRepository interface {
 type LogRepository interface {
 	Log(ctx context.Context, log *model.Log) error
 }
+
+// TokenRepository is the interface for revoked token repository communication.
+type TokenRepository interface {
+	AddRevokedToken(ctx context.Context, refreshToken string) error
+	IsTokenRevoked(ctx context.Context, refreshToken string) (bool, error)
+}
