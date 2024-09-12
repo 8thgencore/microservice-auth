@@ -266,7 +266,7 @@ func TestGet(t *testing.T) {
 			},
 		},
 		{
-			name: "user repository error case",
+			name: "user repository get error case",
 			args: args{
 				ctx: ctx,
 				req: id,
@@ -306,6 +306,31 @@ func TestGet(t *testing.T) {
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(ErrUserRead)
+				return mock
+			},
+			transactorMock: func(mc *minimock.Controller) db.Transactor {
+				mock := dbMocks.NewTransactorMock(mc)
+				txMock := dbMocks.NewTxMock(mc)
+				mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
+				txMock.RollbackMock.Expect(minimock.AnyContext).Return(nil)
+				return mock
+			},
+		},
+		{
+			name: "user not found error case",
+			args: args{
+				ctx: ctx,
+				req: id,
+			},
+			want: nil,
+			err:  ErrUserNotFound,
+			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
+				mock := repositoryMocks.NewUserRepositoryMock(mc)
+				mock.GetMock.Expect(minimock.AnyContext, id).Return(nil, ErrUserNotFound)
+				return mock
+			},
+			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
+				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				return mock
 			},
 			transactorMock: func(mc *minimock.Controller) db.Transactor {
@@ -408,7 +433,31 @@ func TestUpdate(t *testing.T) {
 			},
 		},
 		{
-			name: "user repository error case",
+			name: "user repository get error case",
+			args: args{
+				ctx: ctx,
+				req: req,
+			},
+			err: ErrUserUpdate,
+			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
+				mock := repositoryMocks.NewUserRepositoryMock(mc)
+				mock.GetMock.Expect(minimock.AnyContext, id).Return(nil, ErrUserUpdate)
+				return mock
+			},
+			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
+				mock := repositoryMocks.NewLogRepositoryMock(mc)
+				return mock
+			},
+			transactorMock: func(mc *minimock.Controller) db.Transactor {
+				mock := dbMocks.NewTransactorMock(mc)
+				txMock := dbMocks.NewTxMock(mc)
+				mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
+				txMock.RollbackMock.Expect(minimock.AnyContext).Return(nil)
+				return mock
+			},
+		},
+		{
+			name: "user repository update error case",
 			args: args{
 				ctx: ctx,
 				req: req,
@@ -535,7 +584,31 @@ func TestDelete(t *testing.T) {
 			},
 		},
 		{
-			name: "user repository error case",
+			name: "user repository get error case",
+			args: args{
+				ctx: ctx,
+				req: id,
+			},
+			err: ErrUserDelete,
+			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
+				mock := repositoryMocks.NewUserRepositoryMock(mc)
+				mock.GetMock.Expect(minimock.AnyContext, id).Return(nil, ErrUserDelete)
+				return mock
+			},
+			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
+				mock := repositoryMocks.NewLogRepositoryMock(mc)
+				return mock
+			},
+			transactorMock: func(mc *minimock.Controller) db.Transactor {
+				mock := dbMocks.NewTransactorMock(mc)
+				txMock := dbMocks.NewTxMock(mc)
+				mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
+				txMock.RollbackMock.Expect(minimock.AnyContext).Return(nil)
+				return mock
+			},
+		},
+		{
+			name: "user repository delete error case",
 			args: args{
 				ctx: ctx,
 				req: id,
@@ -575,6 +648,30 @@ func TestDelete(t *testing.T) {
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(ErrUserDelete)
+				return mock
+			},
+			transactorMock: func(mc *minimock.Controller) db.Transactor {
+				mock := dbMocks.NewTransactorMock(mc)
+				txMock := dbMocks.NewTxMock(mc)
+				mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
+				txMock.RollbackMock.Expect(minimock.AnyContext).Return(nil)
+				return mock
+			},
+		},
+		{
+			name: "user not found error case",
+			args: args{
+				ctx: ctx,
+				req: id,
+			},
+			err:  ErrUserNotFound,
+			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
+				mock := repositoryMocks.NewUserRepositoryMock(mc)
+				mock.GetMock.Expect(minimock.AnyContext, id).Return(nil, ErrUserNotFound)
+				return mock
+			},
+			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
+				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				return mock
 			},
 			transactorMock: func(mc *minimock.Controller) db.Transactor {
