@@ -6,5 +6,8 @@
         {
             "path": "../../../microservice-common"
         }
-    ]
+    ],
+    "settings": {
+        "liveServer.settings.multiRootWorkspaceName": "microservice-auth"
+    }
 }
