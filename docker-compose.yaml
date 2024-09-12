@@ -2,6 +2,7 @@ services:
   auth:
     image: auth:${APP_IMAGE_TAG}
     container_name: auth
+    restart: unless-stopped
     env_file:
       - .env.${ENV}
     ports:
@@ -19,6 +20,7 @@ services:
   db-auth:
     image: postgres:${POSTGRES_IMAGE_TAG}
     container_name: db-auth
+    restart: unless-stopped
     env_file:
       - .env.${ENV}
     ports:
@@ -36,8 +38,20 @@ services:
   redis-auth:
     image: redis:${REDIS_IMAGE_TAG}
     container_name: redis-auth
+    command:
+      - /bin/sh
+      - -c
+      # - Double dollars, so that the variable is not expanded by Docker Compose
+      # - Surround by quotes, so that the shell does not split the password
+      # - The ${variable:?message} syntax causes shell to exit with a non-zero
+      #   code and print a message, when the variable is not set or empty
+      - redis-server --requirepass "$${REDIS_PASSWORD:?REDIS_PASSWORD variable is not set}"
+    restart: unless-stopped
     env_file:
-    - .env.${ENV}
+      - .env.${ENV}
+    environment:
+      ALLOW_EMPTY_PASSWORD: no
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
     ports:
       - "${REDIS_PORT}:${REDIS_PORT}"
     networks:
