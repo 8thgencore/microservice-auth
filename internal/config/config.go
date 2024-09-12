@@ -91,6 +91,7 @@ func (c *DatabaseConfig) DSN() string {
 type RedisConfig struct {
 	Host              string        `env:"REDIS_HOST"               env-required:"true"`
 	Port              int           `env:"REDIS_PORT"               env-required:"true"`
+	Password          string        `env:"REDIS_PASSWORD"           env-required:"true"`
 	ConnectionTimeout time.Duration `env:"REDIS_CONNECTION_TIMEOUT" env-required:"true"`
 	IdleTimeout       time.Duration `env:"REDIS_IDLE_TIMEOUT"       env-required:"true"`
 	MaxIdle           int           `env:"REDIS_MAX_IDLE"           env-required:"true"`
