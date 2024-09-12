@@ -9,25 +9,34 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// ErrUserNameExists - custom error for user name duplicate.
-var ErrUserNameExists = errors.New("user with provided name already exists")
+// Errors
+var (
+	ErrUserNameExists     = errors.New("user with provided name already exists")
+	ErrUserEmailExists    = errors.New("user with provided email already exists")
+	ErrUserNotFound       = errors.New("user not found")
+	ErrPasswordsMismatch  = errors.New("passwords don't match")
+	ErrPasswordProcessing = errors.New("failed to process password")
+	ErrUserCreate         = errors.New("failed to create user")
+	ErrUserRead           = errors.New("failed to read user info")
+	ErrUserUpdate         = errors.New("failed to update user info")
+	ErrUserDelete         = errors.New("failed to delete user")
+)
 
-// ErrUserEmailExists - custom error for email duplicate.
-var ErrUserEmailExists = errors.New("user with provided email already exists")
-
-// ErrUserNotFound - custom error if user not found.
-var ErrUserNotFound = errors.New("user not found")
-
+// Create handles the creation of a new user.
 func (s *serv) Create(ctx context.Context, user *model.UserCreate) (int64, error) {
+	// Check if passwords match
 	if user.Password != user.PasswordConfirm {
-		return 0, errors.New("passwords don't match")
+		return 0, ErrPasswordsMismatch
 	}
 
+	// Hash the password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return 0, errors.New("failed to process password")
+		return 0, ErrPasswordProcessing
 	}
 	user.Password = string(hashedPassword)
+
+	// Create the user
 	var id int64
 	err = s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
 		var errTx error
@@ -45,12 +54,13 @@ func (s *serv) Create(ctx context.Context, user *model.UserCreate) (int64, error
 		if errors.Is(err, ErrUserEmailExists) {
 			return 0, ErrUserEmailExists
 		}
-		return 0, errors.New("failed to create user")
+		return 0, ErrUserCreate
 	}
 
 	return id, nil
 }
 
+// Get retrieves a user by their ID.
 func (s *serv) Get(ctx context.Context, id int64) (*model.User, error) {
 	var user *model.User
 	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
@@ -66,11 +76,13 @@ func (s *serv) Get(ctx context.Context, id int64) (*model.User, error) {
 		if errors.Is(err, ErrUserNotFound) {
 			return nil, ErrUserNotFound
 		}
-		return nil, errors.New("failed to read user info")
+		return nil, ErrUserRead
 	}
+
 	return user, nil
 }
 
+// Update handles the updating of a user's information.
 func (s *serv) Update(ctx context.Context, user *model.UserUpdate) error {
 	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
 		_, errTx := s.userRepository.Get(ctx, user.ID)
@@ -92,11 +104,13 @@ func (s *serv) Update(ctx context.Context, user *model.UserUpdate) error {
 		if errors.Is(err, ErrUserEmailExists) {
 			return ErrUserEmailExists
 		}
-		return errors.New("failed to update user info")
+		return ErrUserUpdate
 	}
+
 	return nil
 }
 
+// Delete handles the deletion of a user.
 func (s *serv) Delete(ctx context.Context, id int64) error {
 	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
 		_, errTx := s.userRepository.Get(ctx, id)
@@ -112,8 +126,9 @@ func (s *serv) Delete(ctx context.Context, id int64) error {
 		return s.logUserAction(ctx, "Deleted user", id)
 	})
 	if err != nil {
-		return errors.New("failed to delete user")
+		return ErrUserDelete
 	}
+
 	return nil
 }
 

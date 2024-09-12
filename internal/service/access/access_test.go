@@ -1,4 +1,4 @@
-package tests
+package access
 
 import (
 	"context"
@@ -13,7 +13,6 @@ import (
 	"github.com/8thgencore/microservice-auth/internal/model"
 	"github.com/8thgencore/microservice-auth/internal/repository"
 	repositoryMocks "github.com/8thgencore/microservice-auth/internal/repository/mocks"
-	accessService "github.com/8thgencore/microservice-auth/internal/service/access"
 	"github.com/8thgencore/microservice-auth/internal/tokens"
 	tokenMocks "github.com/8thgencore/microservice-auth/internal/tokens/mocks"
 )
@@ -88,6 +87,9 @@ func TestCheck(t *testing.T) {
 		req = endpointCreate
 	)
 
+	// clean accessible roles
+	accessibleRoles = nil
+
 	tests := []struct {
 		name                 string
 		args                 args
@@ -101,7 +103,7 @@ func TestCheck(t *testing.T) {
 				ctx: ctxNoMd,
 				req: req,
 			},
-			err: accessService.ErrMetadataNotProvided,
+			err: ErrMetadataNotProvided,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
 				return mock
@@ -117,7 +119,24 @@ func TestCheck(t *testing.T) {
 				ctx: ctxNoAuthHeader,
 				req: req,
 			},
-			err: accessService.ErrAuthHeaderNotProvided,
+			err: ErrAuthHeaderNotProvided,
+			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
+				mock := repositoryMocks.NewAccessRepositoryMock(mc)
+				return mock
+			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
+				return mock
+			},
+		},
+
+		{
+			name: "authorization header format error case",
+			args: args{
+				ctx: ctxNoAuthPrefix,
+				req: req,
+			},
+			err: ErrInvalidAuthHeaderFormat,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
 				return mock
@@ -128,14 +147,15 @@ func TestCheck(t *testing.T) {
 			},
 		},
 		{
-			name: "authorization header format error case",
+			name: "get role endpoints error case",
 			args: args{
-				ctx: ctxNoAuthPrefix,
+				ctx: ctx,
 				req: req,
 			},
-			err: accessService.ErrInvalidAuthHeaderFormat,
+			err: ErrFailedToReadAccessPolicy,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
+				mock.GetRoleEndpointsMock.Expect(ctx).Return(nil, ErrFailedToReadAccessPolicy)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
@@ -149,7 +169,7 @@ func TestCheck(t *testing.T) {
 				ctx: ctx,
 				req: endpointNotExists,
 			},
-			err: accessService.ErrEndpointNotFound,
+			err: ErrEndpointNotFound,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
 				mock.GetRoleEndpointsMock.Expect(ctx).Return(endpointPermissions, nil)
@@ -166,14 +186,16 @@ func TestCheck(t *testing.T) {
 				ctx: ctx,
 				req: req,
 			},
-			err: accessService.ErrInvalidAccessToken,
+			err: ErrInvalidAccessToken,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyAccessTokenMock.Expect(accessToken, secretKeyBytes).Return(nil, accessService.ErrInvalidAccessToken)
+				mock.VerifyAccessTokenMock.
+					Expect(accessToken, secretKeyBytes).
+					Return(nil, ErrInvalidAccessToken)
 				return mock
 			},
 		},
@@ -183,7 +205,7 @@ func TestCheck(t *testing.T) {
 				ctx: ctx,
 				req: req,
 			},
-			err: accessService.ErrAccessDenied,
+			err: ErrAccessDenied,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
 				return mock
@@ -214,11 +236,10 @@ func TestCheck(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			accessRepositoryMock := tt.accessRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
-			srv := accessService.NewService(accessRepositoryMock, tokenOperationsMock, jwtConfig)
+			srv := NewService(accessRepositoryMock, tokenOperationsMock, jwtConfig)
 
 			err := srv.Check(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)

@@ -1,4 +1,4 @@
-package tests
+package auth
 
 import (
 	"context"
@@ -14,20 +14,19 @@ import (
 	"github.com/8thgencore/microservice-auth/internal/model"
 	"github.com/8thgencore/microservice-auth/internal/repository"
 	repositoryMocks "github.com/8thgencore/microservice-auth/internal/repository/mocks"
-	authService "github.com/8thgencore/microservice-auth/internal/service/auth"
 	"github.com/8thgencore/microservice-auth/internal/tokens"
 	tokenMocks "github.com/8thgencore/microservice-auth/internal/tokens/mocks"
 )
 
 var (
-	userID          int64 = 1
-	username              = "username"
-	password              = "password"
-	passwordWrong         = "passwordWrong"
-	role                  = "USER"
-	refreshToken          = "refresh_token"
-	oldRefreshToken       = "old_refresh_token"
-	accessToken           = "access_token"
+	userID          = int64(1)
+	username        = "username"
+	password        = "password"
+	passwordWrong   = "passwordWrong"
+	role            = "USER"
+	refreshToken    = "refresh_token"
+	oldRefreshToken = "old_refresh_token"
+	accessToken     = "access_token"
 
 	secretKey = "secret"
 
@@ -102,10 +101,10 @@ func TestLogin(t *testing.T) {
 				req: req,
 			},
 			want: nil,
-			err:  authService.ErrUserNotFound,
+			err:  ErrUserNotFound,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
-				mock.GetAuthInfoMock.Expect(minimock.AnyContext, username).Return(nil, authService.ErrUserNotFound)
+				mock.GetAuthInfoMock.Expect(minimock.AnyContext, username).Return(nil, ErrUserNotFound)
 				return mock
 			},
 			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
@@ -124,7 +123,7 @@ func TestLogin(t *testing.T) {
 				req: reqWrongPass,
 			},
 			want: nil,
-			err:  authService.ErrWrongPassword,
+			err:  ErrWrongPassword,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
 				mock.GetAuthInfoMock.Expect(minimock.AnyContext, username).Return(authInfo, nil)
@@ -146,7 +145,7 @@ func TestLogin(t *testing.T) {
 				req: req,
 			},
 			want: nil,
-			err:  authService.ErrTokenGeneration,
+			err:  ErrTokenGeneration,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
 				mock.GetAuthInfoMock.Expect(minimock.AnyContext, username).Return(authInfo, nil)
@@ -160,7 +159,7 @@ func TestLogin(t *testing.T) {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				mock.GenerateAccessTokenMock.
 					Expect(user, []byte(secretKey), jwtConfig.AccessTokenTTL).
-					Return("", authService.ErrTokenGeneration)
+					Return("", ErrTokenGeneration)
 				return mock
 			},
 		},
@@ -171,7 +170,7 @@ func TestLogin(t *testing.T) {
 				req: req,
 			},
 			want: nil,
-			err:  authService.ErrTokenGeneration,
+			err:  ErrTokenGeneration,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
 				mock.GetAuthInfoMock.Expect(minimock.AnyContext, username).Return(authInfo, nil)
@@ -188,7 +187,7 @@ func TestLogin(t *testing.T) {
 					Return(accessToken, nil)
 				mock.GenerateRefreshTokenMock.
 					Expect(user.ID, []byte(secretKey), jwtConfig.RefreshTokenTTL).
-					Return("", authService.ErrTokenGeneration)
+					Return("", ErrTokenGeneration)
 				return mock
 			},
 		},
@@ -225,14 +224,13 @@ func TestLogin(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
 			userRepositoryMock := tt.userRepositoryMock(mc)
 			tokenRepositoryMock := tt.tokenRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
-			srv := authService.NewService(
+			srv := NewService(
 				userRepositoryMock,
 				tokenRepositoryMock,
 				tokenOperationsMock,
@@ -313,7 +311,7 @@ func TestGetAccessToken(t *testing.T) {
 				req: req,
 			},
 			want: "",
-			err:  authService.ErrInvalidRefresh,
+			err:  ErrInvalidRefresh,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
 				return mock
@@ -335,7 +333,7 @@ func TestGetAccessToken(t *testing.T) {
 				req: req,
 			},
 			want: "",
-			err:  authService.ErrInvalidRefresh,
+			err:  ErrInvalidRefresh,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
 				return mock
@@ -357,7 +355,7 @@ func TestGetAccessToken(t *testing.T) {
 				req: req,
 			},
 			want: "",
-			err:  authService.ErrInvalidRefresh,
+			err:  ErrInvalidRefresh,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
 				return mock
@@ -371,7 +369,7 @@ func TestGetAccessToken(t *testing.T) {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				mock.VerifyRefreshTokenMock.
 					Expect(refreshToken, []byte(secretKey)).
-					Return(nil, authService.ErrInvalidRefresh)
+					Return(nil, ErrInvalidRefresh)
 				return mock
 			},
 		},
@@ -382,10 +380,10 @@ func TestGetAccessToken(t *testing.T) {
 				req: req,
 			},
 			want: "",
-			err:  authService.ErrUserNotFound,
+			err:  ErrUserNotFound,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
-				mock.GetMock.Expect(ctx, userID).Return(nil, authService.ErrUserNotFound)
+				mock.GetMock.Expect(ctx, userID).Return(nil, ErrUserNotFound)
 				return mock
 			},
 			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
@@ -408,7 +406,7 @@ func TestGetAccessToken(t *testing.T) {
 				req: req,
 			},
 			want: "",
-			err:  authService.ErrTokenGeneration,
+			err:  ErrTokenGeneration,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
 				mock.GetMock.Expect(ctx, userID).Return(&user, nil)
@@ -424,21 +422,20 @@ func TestGetAccessToken(t *testing.T) {
 				mock.VerifyRefreshTokenMock.Expect(refreshToken, []byte(secretKey)).Return(refreshClaims, nil)
 				mock.GenerateAccessTokenMock.
 					Expect(user, []byte(secretKey), jwtConfig.AccessTokenTTL).
-					Return("", authService.ErrTokenGeneration)
+					Return("", ErrTokenGeneration)
 				return mock
 			},
 		},
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
 			userRepositoryMock := tt.userRepositoryMock(mc)
 			tokenRepositoryMock := tt.tokenRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
-			srv := authService.NewService(
+			srv := NewService(
 				userRepositoryMock,
 				tokenRepositoryMock,
 				tokenOperationsMock,
@@ -517,7 +514,7 @@ func TestGetRefreshToken(t *testing.T) {
 				req: req,
 			},
 			want: "",
-			err:  authService.ErrInvalidRefresh,
+			err:  ErrInvalidRefresh,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
 				return mock
@@ -539,7 +536,7 @@ func TestGetRefreshToken(t *testing.T) {
 				req: req,
 			},
 			want: "",
-			err:  authService.ErrInvalidRefresh,
+			err:  ErrInvalidRefresh,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
 				return mock
@@ -551,7 +548,7 @@ func TestGetRefreshToken(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyRefreshTokenMock.Expect(oldRefreshToken, []byte(secretKey)).Return(nil, authService.ErrInvalidRefresh)
+				mock.VerifyRefreshTokenMock.Expect(oldRefreshToken, []byte(secretKey)).Return(nil, ErrInvalidRefresh)
 				return mock
 			},
 		},
@@ -562,7 +559,7 @@ func TestGetRefreshToken(t *testing.T) {
 				req: req,
 			},
 			want: "",
-			err:  authService.ErrTokenGeneration,
+			err:  ErrTokenGeneration,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
 				return mock
@@ -577,7 +574,7 @@ func TestGetRefreshToken(t *testing.T) {
 				mock.VerifyRefreshTokenMock.Expect(oldRefreshToken, []byte(secretKey)).Return(refreshClaims, nil)
 				mock.GenerateRefreshTokenMock.
 					Expect(user.ID, []byte(secretKey), jwtConfig.RefreshTokenTTL).
-					Return("", authService.ErrTokenGeneration)
+					Return("", ErrTokenGeneration)
 				return mock
 			},
 		},
@@ -588,7 +585,7 @@ func TestGetRefreshToken(t *testing.T) {
 				req: req,
 			},
 			want: "",
-			err:  authService.ErrTokenGeneration,
+			err:  ErrTokenGeneration,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
 				return mock
@@ -596,7 +593,7 @@ func TestGetRefreshToken(t *testing.T) {
 			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
 				mock := repositoryMocks.NewTokenRepositoryMock(mc)
 				mock.IsTokenRevokedMock.Expect(ctx, oldRefreshToken).Return(false, nil)
-				mock.AddRevokedTokenMock.Expect(ctx, oldRefreshToken).Return(authService.ErrTokenGeneration)
+				mock.AddRevokedTokenMock.Expect(ctx, oldRefreshToken).Return(ErrTokenGeneration)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
@@ -611,14 +608,13 @@ func TestGetRefreshToken(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
 			userRepositoryMock := tt.userRepositoryMock(mc)
 			tokenRepositoryMock := tt.tokenRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
-			srv := authService.NewService(
+			srv := NewService(
 				userRepositoryMock,
 				tokenRepositoryMock,
 				tokenOperationsMock,
@@ -680,14 +676,14 @@ func TestLogout(t *testing.T) {
 				ctx:          ctx,
 				refreshToken: refreshToken,
 			},
-			err: authService.ErrInvalidRefresh,
+			err: ErrInvalidRefresh,
 			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
 				mock := repositoryMocks.NewTokenRepositoryMock(mc)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyRefreshTokenMock.Expect(refreshToken, secretKey).Return(nil, authService.ErrInvalidRefresh)
+				mock.VerifyRefreshTokenMock.Expect(refreshToken, secretKey).Return(nil, ErrInvalidRefresh)
 				return mock
 			},
 		},
@@ -697,7 +693,7 @@ func TestLogout(t *testing.T) {
 				ctx:          ctx,
 				refreshToken: refreshToken,
 			},
-			err: authService.ErrLogoutFailed,
+			err: ErrLogoutFailed,
 			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
 				mock := repositoryMocks.NewTokenRepositoryMock(mc)
 				mock.AddRevokedTokenMock.Expect(ctx, refreshToken).Return(errors.New("db error"))
@@ -712,13 +708,12 @@ func TestLogout(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
 			tokenRepositoryMock := tt.tokenRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
-			srv := authService.NewService(
+			srv := NewService(
 				nil, // userRepository не используется в этом методе
 				tokenRepositoryMock,
 				tokenOperationsMock,

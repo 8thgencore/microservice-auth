@@ -1,4 +1,4 @@
-package tests
+package user
 
 import (
 	"context"
@@ -16,8 +16,30 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	repositoryMocks "github.com/8thgencore/microservice-auth/internal/repository/mocks"
-	userService "github.com/8thgencore/microservice-auth/internal/service/user"
 	dbMocks "github.com/8thgencore/microservice-common/pkg/db/mocks"
+)
+
+var (
+	id              = int64(1)
+	name            = "name"
+	email           = "email"
+	password        = "password"
+	passwordConfirm = "passwordConfirm"
+	role            = "USER"
+	createdAt       = timestamppb.Now()
+	updatedAt       = timestamppb.Now()
+
+	user = &model.User{
+		ID:        id,
+		Name:      name,
+		Email:     email,
+		Role:      role,
+		CreatedAt: createdAt.AsTime(),
+		UpdatedAt: sql.NullTime{
+			Time:  updatedAt.AsTime(),
+			Valid: true,
+		},
+	}
 )
 
 // TestCreate tests the creation of a new user.
@@ -36,16 +58,6 @@ func TestCreate(t *testing.T) {
 	var (
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
-
-		id              = int64(1)
-		name            = "name"
-		email           = "email"
-		password        = "password"
-		passwordConfirm = "passwordConfirm"
-		role            = "USER"
-
-		repositoryErr = fmt.Errorf("failed to create user")
-		passwordsErr  = fmt.Errorf("passwords don't match")
 
 		opts = pgx.TxOptions{IsoLevel: pgx.ReadCommitted}
 
@@ -112,7 +124,7 @@ func TestCreate(t *testing.T) {
 				req: reqPassNotMatch,
 			},
 			want: 0,
-			err:  passwordsErr,
+			err:  ErrPasswordsMismatch,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
 				return mock
@@ -133,10 +145,10 @@ func TestCreate(t *testing.T) {
 				req: req,
 			},
 			want: 0,
-			err:  repositoryErr,
+			err:  ErrUserCreate,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
-				mock.CreateMock.Expect(minimock.AnyContext, req).Return(0, repositoryErr)
+				mock.CreateMock.Expect(minimock.AnyContext, req).Return(0, ErrUserCreate)
 				return mock
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
@@ -158,7 +170,7 @@ func TestCreate(t *testing.T) {
 				req: req,
 			},
 			want: 0,
-			err:  repositoryErr,
+			err:  ErrUserCreate,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
 				mock.CreateMock.Expect(minimock.AnyContext, req).Return(id, nil)
@@ -166,7 +178,7 @@ func TestCreate(t *testing.T) {
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
-				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(repositoryErr)
+				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(ErrUserCreate)
 				return mock
 			},
 			transactorMock: func(mc *minimock.Controller) db.Transactor {
@@ -186,7 +198,7 @@ func TestCreate(t *testing.T) {
 			userRepositoryMock := tt.userRepositoryMock(mc)
 			logRepositoryMock := tt.logRepositoryMock(mc)
 			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
-			srv := userService.NewService(userRepositoryMock, logRepositoryMock, txManagerMock)
+			srv := NewService(userRepositoryMock, logRepositoryMock, txManagerMock)
 
 			res, err := srv.Create(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)
@@ -211,31 +223,10 @@ func TestGet(t *testing.T) {
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
 
-		id        = int64(1)
-		name      = "name"
-		email     = "email"
-		role      = "USER"
-		createdAt = timestamppb.Now()
-		updatedAt = timestamppb.Now()
-
-		repositoryErr = fmt.Errorf("failed to read user info")
-
 		opts = pgx.TxOptions{IsoLevel: pgx.ReadCommitted}
 
 		reqLog = &model.Log{
-			Text: fmt.Sprintf("Read info about user with id: %d", id),
-		}
-
-		res = &model.User{
-			ID:        id,
-			Name:      name,
-			Email:     email,
-			Role:      role,
-			CreatedAt: createdAt.AsTime(),
-			UpdatedAt: sql.NullTime{
-				Time:  updatedAt.AsTime(),
-				Valid: true,
-			},
+			Text: fmt.Sprintf("Read user info with id: %d", id),
 		}
 	)
 
@@ -254,11 +245,11 @@ func TestGet(t *testing.T) {
 				ctx: ctx,
 				req: id,
 			},
-			want: res,
+			want: user,
 			err:  nil,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
-				mock.GetMock.Expect(minimock.AnyContext, id).Return(res, nil)
+				mock.GetMock.Expect(minimock.AnyContext, id).Return(user, nil)
 				return mock
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
@@ -281,10 +272,10 @@ func TestGet(t *testing.T) {
 				req: id,
 			},
 			want: nil,
-			err:  repositoryErr,
+			err:  ErrUserRead,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
-				mock.GetMock.Expect(minimock.AnyContext, id).Return(nil, repositoryErr)
+				mock.GetMock.Expect(minimock.AnyContext, id).Return(nil, ErrUserRead)
 				return mock
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
@@ -306,15 +297,15 @@ func TestGet(t *testing.T) {
 				req: id,
 			},
 			want: nil,
-			err:  repositoryErr,
+			err:  ErrUserRead,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
-				mock.GetMock.Expect(minimock.AnyContext, id).Return(res, nil)
+				mock.GetMock.Expect(minimock.AnyContext, id).Return(user, nil)
 				return mock
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
-				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(repositoryErr)
+				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(ErrUserRead)
 				return mock
 			},
 			transactorMock: func(mc *minimock.Controller) db.Transactor {
@@ -334,7 +325,7 @@ func TestGet(t *testing.T) {
 			userRepositoryMock := tt.userRepositoryMock(mc)
 			logRepositoryMock := tt.logRepositoryMock(mc)
 			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
-			srv := userService.NewService(userRepositoryMock, logRepositoryMock, txManagerMock)
+			srv := NewService(userRepositoryMock, logRepositoryMock, txManagerMock)
 
 			res, err := srv.Get(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)
@@ -358,13 +349,6 @@ func TestUpdate(t *testing.T) {
 	var (
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
-
-		id    = int64(1)
-		name  = "name"
-		email = "email"
-		role  = "USER"
-
-		repositoryErr = fmt.Errorf("failed to update user info")
 
 		opts = pgx.TxOptions{IsoLevel: pgx.ReadCommitted}
 
@@ -406,6 +390,7 @@ func TestUpdate(t *testing.T) {
 			err: nil,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
+				mock.GetMock.Expect(minimock.AnyContext, user.ID).Return(user, nil)
 				mock.UpdateMock.Expect(minimock.AnyContext, req).Return(nil)
 				return mock
 			},
@@ -428,10 +413,11 @@ func TestUpdate(t *testing.T) {
 				ctx: ctx,
 				req: req,
 			},
-			err: repositoryErr,
+			err: ErrUserUpdate,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
-				mock.UpdateMock.Expect(minimock.AnyContext, req).Return(repositoryErr)
+				mock.GetMock.Expect(minimock.AnyContext, user.ID).Return(user, nil)
+				mock.UpdateMock.Expect(minimock.AnyContext, req).Return(ErrUserUpdate)
 				return mock
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
@@ -452,15 +438,16 @@ func TestUpdate(t *testing.T) {
 				ctx: ctx,
 				req: req,
 			},
-			err: repositoryErr,
+			err: ErrUserUpdate,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
+				mock.GetMock.Expect(minimock.AnyContext, user.ID).Return(user, nil)
 				mock.UpdateMock.Expect(minimock.AnyContext, req).Return(nil)
 				return mock
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
-				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(repositoryErr)
+				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(ErrUserUpdate)
 				return mock
 			},
 			transactorMock: func(mc *minimock.Controller) db.Transactor {
@@ -480,7 +467,7 @@ func TestUpdate(t *testing.T) {
 			userRepositoryMock := tt.userRepositoryMock(mc)
 			logRepositoryMock := tt.logRepositoryMock(mc)
 			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
-			srv := userService.NewService(userRepositoryMock, logRepositoryMock, txManagerMock)
+			srv := NewService(userRepositoryMock, logRepositoryMock, txManagerMock)
 
 			err := srv.Update(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)
@@ -506,8 +493,6 @@ func TestDelete(t *testing.T) {
 
 		id = int64(1)
 
-		repositoryErr = fmt.Errorf("failed to delete user")
-
 		opts = pgx.TxOptions{IsoLevel: pgx.ReadCommitted}
 
 		reqLog = &model.Log{
@@ -532,6 +517,7 @@ func TestDelete(t *testing.T) {
 			err: nil,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
+				mock.GetMock.Expect(minimock.AnyContext, user.ID).Return(user, nil)
 				mock.DeleteMock.Expect(minimock.AnyContext, id).Return(nil)
 				return mock
 			},
@@ -554,10 +540,11 @@ func TestDelete(t *testing.T) {
 				ctx: ctx,
 				req: id,
 			},
-			err: repositoryErr,
+			err: ErrUserDelete,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
-				mock.DeleteMock.Expect(minimock.AnyContext, id).Return(repositoryErr)
+				mock.GetMock.Expect(minimock.AnyContext, user.ID).Return(user, nil)
+				mock.DeleteMock.Expect(minimock.AnyContext, id).Return(ErrUserDelete)
 				return mock
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
@@ -578,15 +565,16 @@ func TestDelete(t *testing.T) {
 				ctx: ctx,
 				req: id,
 			},
-			err: repositoryErr,
+			err: ErrUserDelete,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
+				mock.GetMock.Expect(minimock.AnyContext, user.ID).Return(user, nil)
 				mock.DeleteMock.Expect(minimock.AnyContext, id).Return(nil)
 				return mock
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
-				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(repositoryErr)
+				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(ErrUserDelete)
 				return mock
 			},
 			transactorMock: func(mc *minimock.Controller) db.Transactor {
@@ -606,7 +594,7 @@ func TestDelete(t *testing.T) {
 			userRepositoryMock := tt.userRepositoryMock(mc)
 			logRepositoryMock := tt.logRepositoryMock(mc)
 			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
-			srv := userService.NewService(userRepositoryMock, logRepositoryMock, txManagerMock)
+			srv := NewService(userRepositoryMock, logRepositoryMock, txManagerMock)
 
 			err := srv.Delete(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)
