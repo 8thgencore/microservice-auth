@@ -13,13 +13,13 @@ import (
 var (
 	ErrUserNotFound    = errors.New("user not found")
 	ErrWrongPassword   = errors.New("wrong password")
-	ErrAccessTokenGen  = errors.New("failed to generate access token")
-	ErrRefreshTokenGen = errors.New("failed to generate refresh token")
+	ErrTokenGeneration = errors.New("failed to generate token")
 	ErrInvalidRefresh  = errors.New("invalid refresh token")
 	ErrLogoutFailed    = errors.New("failed to logout")
 )
 
-func (s *serv) Login(ctx context.Context, creds *model.UserCreds) (*model.TokenPair, error) {
+// Login checks the user's credentials and returns a token pair if they are valid
+func (s *authService) Login(ctx context.Context, creds *model.UserCreds) (*model.TokenPair, error) {
 	authInfo, err := s.userRepository.GetAuthInfo(ctx, creds.Username)
 	if err != nil {
 		return nil, ErrUserNotFound
@@ -39,7 +39,7 @@ func (s *serv) Login(ctx context.Context, creds *model.UserCreds) (*model.TokenP
 		s.jwtConfig.AccessTokenTTL,
 	)
 	if err != nil {
-		return nil, ErrAccessTokenGen
+		return nil, ErrTokenGeneration
 	}
 
 	refreshToken, err := s.tokenOperations.GenerateRefreshToken(
@@ -48,7 +48,7 @@ func (s *serv) Login(ctx context.Context, creds *model.UserCreds) (*model.TokenP
 		s.jwtConfig.RefreshTokenTTL,
 	)
 	if err != nil {
-		return nil, ErrRefreshTokenGen
+		return nil, ErrTokenGeneration
 	}
 
 	return &model.TokenPair{
@@ -57,13 +57,10 @@ func (s *serv) Login(ctx context.Context, creds *model.UserCreds) (*model.TokenP
 	}, nil
 }
 
-func (s *serv) GetAccessToken(ctx context.Context, refreshToken string) (string, error) {
-	revoked, err := s.tokenRepository.IsTokenRevoked(ctx, refreshToken)
-	if err != nil {
-		return "", ErrRefreshTokenGen
-	}
-	if revoked {
-		return "", ErrInvalidRefresh
+// GetAccessToken generates a new access token for a user given a valid refresh token
+func (s *authService) GetAccessToken(ctx context.Context, refreshToken string) (string, error) {
+	if err := s.validateRefreshToken(refreshToken); err != nil {
+		return "", err
 	}
 
 	claims, err := s.tokenOperations.VerifyRefreshToken(refreshToken, []byte(s.jwtConfig.SecretKey))
@@ -77,6 +74,7 @@ func (s *serv) GetAccessToken(ctx context.Context, refreshToken string) (string,
 	}
 
 	accessToken, err := s.tokenOperations.GenerateAccessToken(model.User{
+		ID:   user.ID,
 		Name: user.Name,
 		Role: user.Role,
 	},
@@ -84,19 +82,16 @@ func (s *serv) GetAccessToken(ctx context.Context, refreshToken string) (string,
 		s.jwtConfig.AccessTokenTTL,
 	)
 	if err != nil {
-		return "", ErrAccessTokenGen
+		return "", ErrTokenGeneration
 	}
 
 	return accessToken, nil
 }
 
-func (s *serv) GetRefreshToken(ctx context.Context, oldRefreshToken string) (string, error) {
-	revoked, err := s.tokenRepository.IsTokenRevoked(ctx, oldRefreshToken)
-	if err != nil {
-		return "", ErrInvalidRefresh
-	}
-	if revoked {
-		return "", ErrInvalidRefresh
+// GetRefreshToken generates a new refresh token for a user given a valid old refresh token
+func (s *authService) GetRefreshToken(ctx context.Context, oldRefreshToken string) (string, error) {
+	if err := s.validateRefreshToken(oldRefreshToken); err != nil {
+		return "", err
 	}
 
 	claims, err := s.tokenOperations.VerifyRefreshToken(oldRefreshToken, []byte(s.jwtConfig.SecretKey))
@@ -110,19 +105,18 @@ func (s *serv) GetRefreshToken(ctx context.Context, oldRefreshToken string) (str
 		s.jwtConfig.RefreshTokenTTL,
 	)
 	if err != nil {
-		return "", ErrRefreshTokenGen
+		return "", ErrTokenGeneration
 	}
 
 	if err = s.tokenRepository.AddRevokedToken(ctx, oldRefreshToken); err != nil {
-		return "", ErrRefreshTokenGen
+		return "", ErrTokenGeneration
 	}
 
 	return refreshToken, nil
 }
 
-// Logout invalidates the refresh token.
-func (s *serv) Logout(ctx context.Context, refreshToken string) error {
-	// Verify the refresh token
+// Logout invalidates the refresh token by adding it to the list of revoked tokens
+func (s *authService) Logout(ctx context.Context, refreshToken string) error {
 	_, err := s.tokenOperations.VerifyRefreshToken(refreshToken, []byte(s.jwtConfig.SecretKey))
 	if err != nil {
 		return ErrInvalidRefresh
@@ -132,5 +126,17 @@ func (s *serv) Logout(ctx context.Context, refreshToken string) error {
 		return ErrLogoutFailed
 	}
 
+	return nil
+}
+
+// validateRefreshToken checks if a refresh token is valid and not revoked
+func (s *authService) validateRefreshToken(refreshToken string) error {
+	revoked, err := s.tokenRepository.IsTokenRevoked(context.Background(), refreshToken)
+	if err != nil {
+		return ErrInvalidRefresh
+	}
+	if revoked {
+		return ErrInvalidRefresh
+	}
 	return nil
 }
