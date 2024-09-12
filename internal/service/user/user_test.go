@@ -42,6 +42,26 @@ var (
 	}
 )
 
+var (
+	opts = pgx.TxOptions{IsoLevel: pgx.ReadCommitted}
+
+	transactorCommitMock = func(mc *minimock.Controller) db.Transactor {
+		mock := dbMocks.NewTransactorMock(mc)
+		txMock := dbMocks.NewTxMock(mc)
+		mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
+		txMock.CommitMock.Expect(minimock.AnyContext).Return(nil)
+		return mock
+	}
+
+	transactorRollbackMock = func(mc *minimock.Controller) db.Transactor {
+		mock := dbMocks.NewTransactorMock(mc)
+		txMock := dbMocks.NewTxMock(mc)
+		mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
+		txMock.RollbackMock.Expect(minimock.AnyContext).Return(nil)
+		return mock
+	}
+)
+
 // TestCreate tests the creation of a new user.
 func TestCreate(t *testing.T) {
 	t.Parallel()
@@ -58,8 +78,6 @@ func TestCreate(t *testing.T) {
 	var (
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
-
-		opts = pgx.TxOptions{IsoLevel: pgx.ReadCommitted}
 
 		req = &model.UserCreate{
 			Name:            name,
@@ -109,13 +127,7 @@ func TestCreate(t *testing.T) {
 				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(nil)
 				return mock
 			},
-			transactorMock: func(mc *minimock.Controller) db.Transactor {
-				mock := dbMocks.NewTransactorMock(mc)
-				txMock := dbMocks.NewTxMock(mc)
-				mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
-				txMock.CommitMock.Expect(minimock.AnyContext).Return(nil)
-				return mock
-			},
+			transactorMock: transactorCommitMock,
 		},
 		{
 			name: "passwords match error case",
@@ -155,13 +167,7 @@ func TestCreate(t *testing.T) {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				return mock
 			},
-			transactorMock: func(mc *minimock.Controller) db.Transactor {
-				mock := dbMocks.NewTransactorMock(mc)
-				txMock := dbMocks.NewTxMock(mc)
-				mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
-				txMock.RollbackMock.Expect(minimock.AnyContext).Return(nil)
-				return mock
-			},
+			transactorMock: transactorRollbackMock,
 		},
 		{
 			name: "log repository error case",
@@ -181,13 +187,7 @@ func TestCreate(t *testing.T) {
 				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(ErrUserCreate)
 				return mock
 			},
-			transactorMock: func(mc *minimock.Controller) db.Transactor {
-				mock := dbMocks.NewTransactorMock(mc)
-				txMock := dbMocks.NewTxMock(mc)
-				mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
-				txMock.RollbackMock.Expect(minimock.AnyContext).Return(nil)
-				return mock
-			},
+			transactorMock: transactorRollbackMock,
 		},
 	}
 
@@ -223,8 +223,6 @@ func TestGet(t *testing.T) {
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
 
-		opts = pgx.TxOptions{IsoLevel: pgx.ReadCommitted}
-
 		reqLog = &model.Log{
 			Text: fmt.Sprintf("Read user info with id: %d", id),
 		}
@@ -257,13 +255,7 @@ func TestGet(t *testing.T) {
 				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(nil)
 				return mock
 			},
-			transactorMock: func(mc *minimock.Controller) db.Transactor {
-				mock := dbMocks.NewTransactorMock(mc)
-				txMock := dbMocks.NewTxMock(mc)
-				mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
-				txMock.CommitMock.Expect(minimock.AnyContext).Return(nil)
-				return mock
-			},
+			transactorMock: transactorCommitMock,
 		},
 		{
 			name: "user repository get error case",
@@ -282,13 +274,7 @@ func TestGet(t *testing.T) {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				return mock
 			},
-			transactorMock: func(mc *minimock.Controller) db.Transactor {
-				mock := dbMocks.NewTransactorMock(mc)
-				txMock := dbMocks.NewTxMock(mc)
-				mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
-				txMock.RollbackMock.Expect(minimock.AnyContext).Return(nil)
-				return mock
-			},
+			transactorMock: transactorRollbackMock,
 		},
 		{
 			name: "log repository error case",
@@ -308,13 +294,7 @@ func TestGet(t *testing.T) {
 				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(ErrUserRead)
 				return mock
 			},
-			transactorMock: func(mc *minimock.Controller) db.Transactor {
-				mock := dbMocks.NewTransactorMock(mc)
-				txMock := dbMocks.NewTxMock(mc)
-				mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
-				txMock.RollbackMock.Expect(minimock.AnyContext).Return(nil)
-				return mock
-			},
+			transactorMock: transactorRollbackMock,
 		},
 		{
 			name: "user not found error case",
@@ -333,13 +313,7 @@ func TestGet(t *testing.T) {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				return mock
 			},
-			transactorMock: func(mc *minimock.Controller) db.Transactor {
-				mock := dbMocks.NewTransactorMock(mc)
-				txMock := dbMocks.NewTxMock(mc)
-				mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
-				txMock.RollbackMock.Expect(minimock.AnyContext).Return(nil)
-				return mock
-			},
+			transactorMock: transactorRollbackMock,
 		},
 	}
 
@@ -374,8 +348,6 @@ func TestUpdate(t *testing.T) {
 	var (
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
-
-		opts = pgx.TxOptions{IsoLevel: pgx.ReadCommitted}
 
 		req = &model.UserUpdate{
 			ID: id,
@@ -424,13 +396,7 @@ func TestUpdate(t *testing.T) {
 				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(nil)
 				return mock
 			},
-			transactorMock: func(mc *minimock.Controller) db.Transactor {
-				mock := dbMocks.NewTransactorMock(mc)
-				txMock := dbMocks.NewTxMock(mc)
-				mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
-				txMock.CommitMock.Expect(minimock.AnyContext).Return(nil)
-				return mock
-			},
+			transactorMock: transactorCommitMock,
 		},
 		{
 			name: "user repository get error case",
@@ -448,13 +414,7 @@ func TestUpdate(t *testing.T) {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				return mock
 			},
-			transactorMock: func(mc *minimock.Controller) db.Transactor {
-				mock := dbMocks.NewTransactorMock(mc)
-				txMock := dbMocks.NewTxMock(mc)
-				mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
-				txMock.RollbackMock.Expect(minimock.AnyContext).Return(nil)
-				return mock
-			},
+			transactorMock: transactorRollbackMock,
 		},
 		{
 			name: "user repository update error case",
@@ -473,13 +433,7 @@ func TestUpdate(t *testing.T) {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				return mock
 			},
-			transactorMock: func(mc *minimock.Controller) db.Transactor {
-				mock := dbMocks.NewTransactorMock(mc)
-				txMock := dbMocks.NewTxMock(mc)
-				mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
-				txMock.RollbackMock.Expect(minimock.AnyContext).Return(nil)
-				return mock
-			},
+			transactorMock: transactorRollbackMock,
 		},
 		{
 			name: "log repository error case",
@@ -499,13 +453,7 @@ func TestUpdate(t *testing.T) {
 				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(ErrUserUpdate)
 				return mock
 			},
-			transactorMock: func(mc *minimock.Controller) db.Transactor {
-				mock := dbMocks.NewTransactorMock(mc)
-				txMock := dbMocks.NewTxMock(mc)
-				mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
-				txMock.RollbackMock.Expect(minimock.AnyContext).Return(nil)
-				return mock
-			},
+			transactorMock: transactorRollbackMock,
 		},
 	}
 
@@ -542,8 +490,6 @@ func TestDelete(t *testing.T) {
 
 		id = int64(1)
 
-		opts = pgx.TxOptions{IsoLevel: pgx.ReadCommitted}
-
 		reqLog = &model.Log{
 			Text: fmt.Sprintf("Deleted user with id: %d", id),
 		}
@@ -575,13 +521,7 @@ func TestDelete(t *testing.T) {
 				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(nil)
 				return mock
 			},
-			transactorMock: func(mc *minimock.Controller) db.Transactor {
-				mock := dbMocks.NewTransactorMock(mc)
-				txMock := dbMocks.NewTxMock(mc)
-				mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
-				txMock.CommitMock.Expect(minimock.AnyContext).Return(nil)
-				return mock
-			},
+			transactorMock: transactorCommitMock,
 		},
 		{
 			name: "user repository get error case",
@@ -599,13 +539,7 @@ func TestDelete(t *testing.T) {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				return mock
 			},
-			transactorMock: func(mc *minimock.Controller) db.Transactor {
-				mock := dbMocks.NewTransactorMock(mc)
-				txMock := dbMocks.NewTxMock(mc)
-				mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
-				txMock.RollbackMock.Expect(minimock.AnyContext).Return(nil)
-				return mock
-			},
+			transactorMock: transactorRollbackMock,
 		},
 		{
 			name: "user repository delete error case",
@@ -624,13 +558,7 @@ func TestDelete(t *testing.T) {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				return mock
 			},
-			transactorMock: func(mc *minimock.Controller) db.Transactor {
-				mock := dbMocks.NewTransactorMock(mc)
-				txMock := dbMocks.NewTxMock(mc)
-				mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
-				txMock.RollbackMock.Expect(minimock.AnyContext).Return(nil)
-				return mock
-			},
+			transactorMock: transactorRollbackMock,
 		},
 		{
 			name: "log repository error case",
@@ -650,13 +578,7 @@ func TestDelete(t *testing.T) {
 				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(ErrUserDelete)
 				return mock
 			},
-			transactorMock: func(mc *minimock.Controller) db.Transactor {
-				mock := dbMocks.NewTransactorMock(mc)
-				txMock := dbMocks.NewTxMock(mc)
-				mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
-				txMock.RollbackMock.Expect(minimock.AnyContext).Return(nil)
-				return mock
-			},
+			transactorMock: transactorRollbackMock,
 		},
 		{
 			name: "user not found error case",
@@ -664,7 +586,7 @@ func TestDelete(t *testing.T) {
 				ctx: ctx,
 				req: id,
 			},
-			err:  ErrUserNotFound,
+			err: ErrUserNotFound,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
 				mock.GetMock.Expect(minimock.AnyContext, id).Return(nil, ErrUserNotFound)
@@ -674,13 +596,7 @@ func TestDelete(t *testing.T) {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				return mock
 			},
-			transactorMock: func(mc *minimock.Controller) db.Transactor {
-				mock := dbMocks.NewTransactorMock(mc)
-				txMock := dbMocks.NewTxMock(mc)
-				mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
-				txMock.RollbackMock.Expect(minimock.AnyContext).Return(nil)
-				return mock
-			},
+			transactorMock: transactorRollbackMock,
 		},
 	}
 
