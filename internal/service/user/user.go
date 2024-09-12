@@ -30,11 +30,11 @@ func (s *serv) Create(ctx context.Context, user *model.UserCreate) (int64, error
 	}
 
 	// Hash the password
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	hashedPassword, err := hashPassword(user.Password)
 	if err != nil {
-		return 0, ErrPasswordProcessing
+		return 0, err
 	}
-	user.Password = string(hashedPassword)
+	user.Password = hashedPassword
 
 	// Create the user
 	var id int64
@@ -98,6 +98,9 @@ func (s *serv) Update(ctx context.Context, user *model.UserUpdate) error {
 		return s.logUserAction(ctx, "Updated user", user.ID)
 	})
 	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			return ErrUserNotFound
+		}
 		if errors.Is(err, ErrUserNameExists) {
 			return ErrUserNameExists
 		}
@@ -126,10 +129,22 @@ func (s *serv) Delete(ctx context.Context, id int64) error {
 		return s.logUserAction(ctx, "Deleted user", id)
 	})
 	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			return ErrUserNotFound
+		}
 		return ErrUserDelete
 	}
 
 	return nil
+}
+
+// Helper function for password hashing
+func hashPassword(password string) (string, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", ErrPasswordProcessing
+	}
+	return string(hashedPassword), nil
 }
 
 // logUserAction is a helper function to log actions performed on a user.
