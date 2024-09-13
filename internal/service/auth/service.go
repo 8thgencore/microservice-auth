@@ -7,7 +7,7 @@ import (
 	"github.com/8thgencore/microservice-auth/internal/tokens"
 )
 
-type serv struct {
+type authService struct {
 	userRepository  repository.UserRepository
 	tokenRepository repository.TokenRepository
 	tokenOperations tokens.TokenOperations
@@ -21,7 +21,7 @@ func NewService(
 	tokenOperations tokens.TokenOperations,
 	jwtConfig config.JWTConfig,
 ) service.AuthService {
-	return &serv{
+	return &authService{
 		userRepository:  userRepository,
 		tokenRepository: tokenRepository,
 		tokenOperations: tokenOperations,
