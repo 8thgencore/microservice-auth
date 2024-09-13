@@ -34,23 +34,32 @@ var (
 	ErrAccessDenied = errors.New("access denied")
 )
 
-var accessibleRoles map[string][]string
-
-func (s *serv) Check(ctx context.Context, endpoint string) error {
+func (s *accessService) Check(ctx context.Context, endpoint string) error {
 	token, err := s.extractToken(ctx)
 	if err != nil {
 		return err
 	}
 
-	if accessibleRoles == nil {
-		endpointPermissions, errRepo := s.accessRepository.GetRoleEndpoints(ctx)
-		if errRepo != nil {
-			return ErrFailedToReadAccessPolicy
+	s.rolesMutex.RLock()
+	// Check if the accessibleRoles map is nil and initialize it if necessary
+	if s.accessibleRoles == nil {
+		s.rolesMutex.RUnlock() // Unlock read lock before acquiring write lock
+		s.rolesMutex.Lock()    // Lock for write to initialize map
+		defer s.rolesMutex.Unlock()
+
+		// Double-check in case it was initialized by another goroutine
+		if s.accessibleRoles == nil {
+			endpointPermissions, errRepo := s.accessRepository.GetRoleEndpoints(ctx)
+			if errRepo != nil {
+				return ErrFailedToReadAccessPolicy
+			}
+			s.accessibleRoles = converter.ToEndpointPermissionsMap(endpointPermissions)
 		}
-		accessibleRoles = converter.ToEndpointPermissionsMap(endpointPermissions)
+	} else {
+		defer s.rolesMutex.RUnlock()
 	}
 
-	roles, ok := accessibleRoles[endpoint]
+	roles, ok := s.accessibleRoles[endpoint]
 	if !ok {
 		return ErrEndpointNotFound
 	}
@@ -68,65 +77,69 @@ func (s *serv) Check(ctx context.Context, endpoint string) error {
 }
 
 // AddRoleEndpoint adds a new resource after verifying access permissions.
-func (s *serv) AddRoleEndpoint(ctx context.Context, endpoint string, roles []string) error {
-	// Check access permissions for the "AddResource" endpoint.
+func (s *accessService) AddRoleEndpoint(ctx context.Context, endpoint string, roles []string) error {
 	err := s.Check(ctx, "AddResource")
 	if err != nil {
 		return err
 	}
 
-	// Call the repository to add the resource.
 	err = s.accessRepository.AddRoleEndpoint(ctx, endpoint, roles)
 	if err != nil {
 		return err
 	}
 
+	s.rolesMutex.Lock()
+	defer s.rolesMutex.Unlock()
+
+	s.accessibleRoles[endpoint] = roles
 	return nil
 }
 
 // UpdateRoleEndpoint edits an existing resource after verifying access permissions.
-func (s *serv) UpdateRoleEndpoint(ctx context.Context, endpoint string, roles []string) error {
-	// Check access permissions for the "EditResource" endpoint.
+func (s *accessService) UpdateRoleEndpoint(ctx context.Context, endpoint string, roles []string) error {
 	err := s.Check(ctx, "EditResource")
 	if err != nil {
 		return err
 	}
 
-	// Call the repository to edit the resource.
 	err = s.accessRepository.UpdateRoleEndpoint(ctx, endpoint, roles)
 	if err != nil {
 		return err
 	}
 
+	s.rolesMutex.Lock()
+	defer s.rolesMutex.Unlock()
+
+	s.accessibleRoles[endpoint] = roles
 	return nil
 }
 
 // DeleteRoleEndpoint deletes a resource after verifying access permissions.
-func (s *serv) DeleteRoleEndpoint(ctx context.Context, endpoint string) error {
-	// Check access permissions for the "DeleteResource" endpoint.
+func (s *accessService) DeleteRoleEndpoint(ctx context.Context, endpoint string) error {
 	err := s.Check(ctx, "DeleteResource")
 	if err != nil {
 		return err
 	}
 
-	// Call the repository to delete the resource.
 	err = s.accessRepository.DeleteRoleEndpoint(ctx, endpoint)
 	if err != nil {
 		return err
 	}
 
+	s.rolesMutex.Lock()
+	defer s.rolesMutex.Unlock()
+
+	delete(s.accessibleRoles, endpoint)
 	return nil
 }
 
 // ListRoleEndpoints retrieves the list of resources after verifying access permissions.
-func (s *serv) ListRoleEndpoints(ctx context.Context) ([]*model.EndpointPermissions, error) {
-	// Check access permissions for the "GetResourceList" endpoint.
+func (s *accessService) ListRoleEndpoints(ctx context.Context) ([]*model.EndpointPermissions, error) {
 	err := s.Check(ctx, "GetResourceList")
 	if err != nil {
 		return nil, err
 	}
 
-	// Call the repository to get the list of resources.
 	resources, err := s.accessRepository.GetRoleEndpoints(ctx)
 	if err != nil {
 		return nil, err
@@ -135,7 +148,7 @@ func (s *serv) ListRoleEndpoints(ctx context.Context) ([]*model.EndpointPermissi
 	return resources, nil
 }
 
-func (s *serv) extractToken(ctx context.Context) (string, error) {
+func (s *accessService) extractToken(ctx context.Context) (string, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return "", ErrMetadataNotProvided

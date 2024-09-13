@@ -79,7 +79,6 @@ func (t *tokenOperations) VerifyAccessToken(tokenStr string, secretKey []byte) (
 			return secretKey, nil
 		},
 	)
-
 	if err != nil {
 		return nil, fmt.Errorf("invalid access token: %w", err)
 	}
@@ -108,7 +107,6 @@ func (t *tokenOperations) VerifyRefreshToken(tokenStr string, secretKey []byte) 
 			return secretKey, nil
 		},
 	)
-
 	if err != nil {
 		return nil, fmt.Errorf("invalid refresh token: %w", err)
 	}

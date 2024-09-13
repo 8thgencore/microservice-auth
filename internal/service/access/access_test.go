@@ -87,9 +87,6 @@ func TestCheck(t *testing.T) {
 		req = endpointCreate
 	)
 
-	// clean accessible roles
-	accessibleRoles = nil
-
 	tests := []struct {
 		name                 string
 		args                 args

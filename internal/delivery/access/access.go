@@ -20,7 +20,10 @@ func (i *Implementation) Check(ctx context.Context, req *accessv1.CheckRequest) 
 }
 
 // AddRoleEndpoint adds a new role-endpoint permission.
-func (i *Implementation) AddRoleEndpoint(ctx context.Context, req *accessv1.AddRoleEndpointRequest) (*empty.Empty, error) {
+func (i *Implementation) AddRoleEndpoint(
+	ctx context.Context,
+	req *accessv1.AddRoleEndpointRequest,
+) (*empty.Empty, error) {
 	err := i.accessService.AddRoleEndpoint(ctx, req.GetEndpoint(), req.GetAllowedRoles())
 	if err != nil {
 		return nil, err
@@ -30,7 +33,10 @@ func (i *Implementation) AddRoleEndpoint(ctx context.Context, req *accessv1.AddR
 }
 
 // UpdateRoleEndpoint updates an existing role-endpoint permission.
-func (i *Implementation) UpdateRoleEndpoint(ctx context.Context, req *accessv1.UpdateRoleEndpointRequest) (*empty.Empty, error) {
+func (i *Implementation) UpdateRoleEndpoint(
+	ctx context.Context,
+	req *accessv1.UpdateRoleEndpointRequest,
+) (*empty.Empty, error) {
 	err := i.accessService.UpdateRoleEndpoint(ctx, req.GetEndpoint(), req.GetAllowedRoles())
 	if err != nil {
 		return nil, err
@@ -40,7 +46,10 @@ func (i *Implementation) UpdateRoleEndpoint(ctx context.Context, req *accessv1.U
 }
 
 // DeleteRoleEndpoint deletes an existing role-endpoint permission.
-func (i *Implementation) DeleteRoleEndpoint(ctx context.Context, req *accessv1.DeleteRoleEndpointRequest) (*empty.Empty, error) {
+func (i *Implementation) DeleteRoleEndpoint(
+	ctx context.Context,
+	req *accessv1.DeleteRoleEndpointRequest,
+) (*empty.Empty, error) {
 	err := i.accessService.DeleteRoleEndpoint(ctx, req.GetEndpoint())
 	if err != nil {
 		return nil, err
@@ -50,7 +59,10 @@ func (i *Implementation) DeleteRoleEndpoint(ctx context.Context, req *accessv1.D
 }
 
 // ListRoleEndpoints retrieves the list of role-endpoint permissions.
-func (i *Implementation) ListRoleEndpoints(ctx context.Context, _ *empty.Empty) (*accessv1.ListRoleEndpointsResponse, error) {
+func (i *Implementation) ListRoleEndpoints(
+	ctx context.Context,
+	_ *empty.Empty,
+) (*accessv1.ListRoleEndpointsResponse, error) {
 	endpoints, err := i.accessService.ListRoleEndpoints(ctx)
 	if err != nil {
 		return nil, err
