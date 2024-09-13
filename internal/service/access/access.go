@@ -37,21 +37,10 @@ var (
 var accessibleRoles map[string][]string
 
 func (s *serv) Check(ctx context.Context, endpoint string) error {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return ErrMetadataNotProvided
+	token, err := s.extractToken(ctx)
+	if err != nil {
+		return err
 	}
-
-	authHeader, ok := md[authMetadataHeader]
-	if !ok || len(authHeader) == 0 {
-		return ErrAuthHeaderNotProvided
-	}
-
-	if !strings.HasPrefix(authHeader[0], authPrefix) {
-		return ErrInvalidAuthHeaderFormat
-	}
-
-	accessToken := strings.TrimPrefix(authHeader[0], authPrefix)
 
 	if accessibleRoles == nil {
 		endpointPermissions, errRepo := s.accessRepository.GetRoleEndpoints(ctx)
@@ -66,7 +55,7 @@ func (s *serv) Check(ctx context.Context, endpoint string) error {
 		return ErrEndpointNotFound
 	}
 
-	claims, err := s.tokenOperations.VerifyAccessToken(accessToken, []byte(s.jwtConfig.SecretKey))
+	claims, err := s.tokenOperations.VerifyAccessToken(token, []byte(s.jwtConfig.SecretKey))
 	if err != nil {
 		return ErrInvalidAccessToken
 	}
@@ -144,4 +133,22 @@ func (s *serv) ListRoleEndpoints(ctx context.Context) ([]*model.EndpointPermissi
 	}
 
 	return resources, nil
+}
+
+func (s *serv) extractToken(ctx context.Context) (string, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return "", ErrMetadataNotProvided
+	}
+
+	authHeader, ok := md[authMetadataHeader]
+	if !ok || len(authHeader) == 0 {
+		return "", ErrAuthHeaderNotProvided
+	}
+
+	if !strings.HasPrefix(authHeader[0], authPrefix) {
+		return "", ErrInvalidAuthHeaderFormat
+	}
+
+	return strings.TrimPrefix(authHeader[0], authPrefix), nil
 }
