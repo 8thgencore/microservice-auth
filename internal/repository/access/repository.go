@@ -51,3 +51,62 @@ func (r *repo) GetRoleEndpoints(ctx context.Context) ([]*model.EndpointPermissio
 
 	return converter.ToEndpointPermissionsFromRepo(endpointPermissions), nil
 }
+
+func (r *repo) AddRoleEndpoint(ctx context.Context, endpoint string, allowedRoles []string) error {
+	builderInsert := sq.Insert(tableName).
+		Columns(endpointColumn, allowedRolesColumn).
+		Values(endpoint, allowedRoles).
+		PlaceholderFormat(sq.Dollar)
+
+	query, args, err := builderInsert.ToSql()
+	if err != nil {
+		return err
+	}
+
+	q := db.Query{
+		Name:     "access_repository.AddRoleEndpoint",
+		QueryRaw: query,
+	}
+
+	_, err = r.db.DB().ExecContext(ctx, q, args...)
+	return err
+}
+
+func (r *repo) UpdateRoleEndpoint(ctx context.Context, endpoint string, allowedRoles []string) error {
+	builderUpdate := sq.Update(tableName).
+		Set(allowedRolesColumn, allowedRoles).
+		Where(sq.Eq{endpointColumn: endpoint}).
+		PlaceholderFormat(sq.Dollar)
+
+	query, args, err := builderUpdate.ToSql()
+	if err != nil {
+		return err
+	}
+
+	q := db.Query{
+		Name:     "access_repository.UpdateRoleEndpoint",
+		QueryRaw: query,
+	}
+
+	_, err = r.db.DB().ExecContext(ctx, q, args...)
+	return err
+}
+
+func (r *repo) DeleteRoleEndpoint(ctx context.Context, endpoint string) error {
+	builderDelete := sq.Delete(tableName).
+		Where(sq.Eq{endpointColumn: endpoint}).
+		PlaceholderFormat(sq.Dollar)
+
+	query, args, err := builderDelete.ToSql()
+	if err != nil {
+		return err
+	}
+
+	q := db.Query{
+		Name:     "access_repository.DeleteRoleEndpoint",
+		QueryRaw: query,
+	}
+
+	_, err = r.db.DB().ExecContext(ctx, q, args...)
+	return err
+}

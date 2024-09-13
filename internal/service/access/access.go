@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/metadata"
 
 	"github.com/8thgencore/microservice-auth/internal/converter"
+	"github.com/8thgencore/microservice-auth/internal/model"
 )
 
 const (
@@ -75,4 +76,72 @@ func (s *serv) Check(ctx context.Context, endpoint string) error {
 	}
 
 	return nil
+}
+
+// AddRoleEndpoint adds a new resource after verifying access permissions.
+func (s *serv) AddRoleEndpoint(ctx context.Context, endpoint string, roles []string) error {
+	// Check access permissions for the "AddResource" endpoint.
+	err := s.Check(ctx, "AddResource")
+	if err != nil {
+		return err
+	}
+
+	// Call the repository to add the resource.
+	err = s.accessRepository.AddRoleEndpoint(ctx, endpoint, roles)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpdateRoleEndpoint edits an existing resource after verifying access permissions.
+func (s *serv) UpdateRoleEndpoint(ctx context.Context, endpoint string, roles []string) error {
+	// Check access permissions for the "EditResource" endpoint.
+	err := s.Check(ctx, "EditResource")
+	if err != nil {
+		return err
+	}
+
+	// Call the repository to edit the resource.
+	err = s.accessRepository.UpdateRoleEndpoint(ctx, endpoint, roles)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeleteRoleEndpoint deletes a resource after verifying access permissions.
+func (s *serv) DeleteRoleEndpoint(ctx context.Context, endpoint string) error {
+	// Check access permissions for the "DeleteResource" endpoint.
+	err := s.Check(ctx, "DeleteResource")
+	if err != nil {
+		return err
+	}
+
+	// Call the repository to delete the resource.
+	err = s.accessRepository.DeleteRoleEndpoint(ctx, endpoint)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ListRoleEndpoints retrieves the list of resources after verifying access permissions.
+func (s *serv) ListRoleEndpoints(ctx context.Context) ([]*model.EndpointPermissions, error) {
+	// Check access permissions for the "GetResourceList" endpoint.
+	err := s.Check(ctx, "GetResourceList")
+	if err != nil {
+		return nil, err
+	}
+
+	// Call the repository to get the list of resources.
+	resources, err := s.accessRepository.GetRoleEndpoints(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return resources, nil
 }

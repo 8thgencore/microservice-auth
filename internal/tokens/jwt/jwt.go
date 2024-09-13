@@ -22,7 +22,8 @@ func NewTokenOperations() tokens.TokenOperations {
 
 // GenerateAccessToken creates JWT access token for the user.
 func (t *tokenOperations) GenerateAccessToken(
-	user model.User, secretKey []byte,
+	user model.User,
+	secretKey []byte,
 	duration time.Duration,
 ) (string, error) {
 	claims := model.UserClaims{
@@ -67,6 +68,7 @@ func (t *tokenOperations) VerifyAccessToken(tokenStr string, secretKey []byte) (
 			return secretKey, nil
 		},
 	)
+
 	if err != nil {
 		return nil, fmt.Errorf("invalid access token: %s", err.Error())
 	}
@@ -92,11 +94,13 @@ func (t *tokenOperations) VerifyRefreshToken(tokenStr string, secretKey []byte) 
 			return secretKey, nil
 		},
 	)
+
 	if err != nil {
 		return nil, fmt.Errorf("invalid refresh token: %s", err.Error())
 	}
 
 	claims, ok := token.Claims.(*model.RefreshClaims)
+
 	if !ok || !token.Valid {
 		return nil, errors.New("invalid refresh token claims")
 	}
