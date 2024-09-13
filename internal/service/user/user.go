@@ -54,7 +54,6 @@ func (s *serv) Create(ctx context.Context, user *model.UserCreate) (int64, error
 		if errors.Is(err, ErrUserEmailExists) {
 			return 0, ErrUserEmailExists
 		}
-
 		return 0, ErrUserCreate
 	}
 
