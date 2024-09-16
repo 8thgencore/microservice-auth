@@ -8,7 +8,6 @@ import (
 
 	"google.golang.org/grpc/metadata"
 
-	"github.com/8thgencore/microservice-auth/internal/converter"
 	"github.com/8thgencore/microservice-auth/internal/model"
 )
 
@@ -48,25 +47,9 @@ func (s *accessService) Check(ctx context.Context, endpoint string) error {
 	}
 
 	s.rolesMutex.RLock()
-	// Check if the accessibleRoles map is nil and initialize it if necessary
-	if s.accessibleRoles == nil {
-		s.rolesMutex.RUnlock() // Unlock read lock before acquiring write lock
-		s.rolesMutex.Lock()    // Lock for write to initialize map
-		defer s.rolesMutex.Unlock()
-
-		// Double-check in case it was initialized by another goroutine
-		if s.accessibleRoles == nil {
-			endpointPermissions, errRepo := s.accessRepository.GetRoleEndpoints(ctx)
-			if errRepo != nil {
-				return ErrFailedToReadAccessPolicy
-			}
-			s.accessibleRoles = converter.ToEndpointPermissionsMap(endpointPermissions)
-		}
-	} else {
-		defer s.rolesMutex.RUnlock()
-	}
-
 	roles, ok := s.accessibleRoles[endpoint]
+	s.rolesMutex.RUnlock()
+
 	if !ok {
 		return ErrEndpointNotFound
 	}

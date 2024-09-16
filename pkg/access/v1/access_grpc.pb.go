@@ -24,7 +24,7 @@ const (
 	AccessV1_AddRoleEndpoint_FullMethodName    = "/access_v1.AccessV1/AddRoleEndpoint"
 	AccessV1_UpdateRoleEndpoint_FullMethodName = "/access_v1.AccessV1/UpdateRoleEndpoint"
 	AccessV1_DeleteRoleEndpoint_FullMethodName = "/access_v1.AccessV1/DeleteRoleEndpoint"
-	AccessV1_GetRoleEndpoints_FullMethodName  = "/access_v1.AccessV1/GetRoleEndpoints"
+	AccessV1_GetRoleEndpoints_FullMethodName   = "/access_v1.AccessV1/GetRoleEndpoints"
 )
 
 // AccessV1Client is the client API for AccessV1 service.
