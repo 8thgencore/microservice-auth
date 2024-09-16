@@ -455,7 +455,7 @@ var file_access_proto_goTypes = []any{
 	(*AddRoleEndpointRequest)(nil),    // 1: access_v1.AddRoleEndpointRequest
 	(*UpdateRoleEndpointRequest)(nil), // 2: access_v1.UpdateRoleEndpointRequest
 	(*DeleteRoleEndpointRequest)(nil), // 3: access_v1.DeleteRoleEndpointRequest
-	(*GetRoleEndpointsResponse)(nil), // 4: access_v1.GetRoleEndpointsResponse
+	(*GetRoleEndpointsResponse)(nil),  // 4: access_v1.GetRoleEndpointsResponse
 	(*EndpointPermissions)(nil),       // 5: access_v1.EndpointPermissions
 	(v1.Role)(0),                      // 6: user_v1.Role
 	(*emptypb.Empty)(nil),             // 7: google.protobuf.Empty

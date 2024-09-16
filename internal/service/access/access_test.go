@@ -2,6 +2,7 @@ package access
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -52,6 +53,112 @@ var (
 	}
 )
 
+func TestAccessService_GetRoleEndpoints(t *testing.T) {
+	t.Parallel()
+
+	type args struct {
+		ctx context.Context
+	}
+
+	endpointPermissions := []*model.EndpointPermissions{
+		{Endpoint: "/access_v1.AccessV1/GetRoleEndpoints", Roles: []string{roleAdmin}},
+	}
+
+	tests := []struct {
+		name                 string
+		args                 args
+		want                 []*model.EndpointPermissions
+		expectedErr          error
+		accessRepositoryMock func(mc *minimock.Controller) repository.AccessRepository
+		tokenOperationsMock  func(mc *minimock.Controller) tokens.TokenOperations
+	}{
+		{
+			name: "successful retrieval of endpoints",
+			args: args{
+				ctx: ctx,
+			},
+			want:        endpointPermissions,
+			expectedErr: nil,
+			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
+				mock := repositoryMocks.NewAccessRepositoryMock(mc)
+
+				callCount := 0
+
+				mock.GetRoleEndpointsMock.Set(func(ctx context.Context) ([]*model.EndpointPermissions, error) {
+					callCount++
+					if callCount == 1 {
+						return endpointPermissions, nil
+					} else if callCount == 2 {
+						return endpointPermissions, nil
+					}
+					return nil, fmt.Errorf("unexpected call to GetRoleEndpoints")
+				})
+
+				return mock
+			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
+				mock.VerifyAccessTokenMock.Expect(token, []byte(jwtConfig.SecretKey)).Return(claimsAdmin, nil)
+				return mock
+			},
+		},
+		{
+			name: "error during service initialization",
+			args: args{
+				ctx: ctx,
+			},
+			expectedErr: ErrFailedToReadAccessPolicy,
+			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
+				mock := repositoryMocks.NewAccessRepositoryMock(mc)
+
+				callCount := 0
+
+				mock.GetRoleEndpointsMock.Set(func(ctx context.Context) ([]*model.EndpointPermissions, error) {
+					callCount++
+					if callCount == 1 {
+						return endpointPermissions, nil
+					} else if callCount == 2 {
+						return nil, fmt.Errorf("database error")
+					}
+					return nil, fmt.Errorf("unexpected call to GetRoleEndpoints")
+				})
+
+				return mock
+			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
+				mock.VerifyAccessTokenMock.Expect(token, secretKeyBytes).Return(claimsUser, nil)
+				return mock
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			mc := minimock.NewController(t)
+
+			accessRepoMock := tt.accessRepositoryMock(mc)
+			tokenOpsMock := tt.tokenOperationsMock(mc)
+
+			srv, err := NewService(ctx, accessRepoMock, tokenOpsMock, jwtConfig)
+			require.NoError(t, err)
+
+			got, err := srv.GetRoleEndpoints(tt.args.ctx)
+
+			if tt.expectedErr != nil {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.want, got)
+			}
+
+			mc.Wait(time.Second)
+		})
+	}
+}
+
 func TestCheck(t *testing.T) {
 	t.Parallel()
 
@@ -72,18 +179,9 @@ func TestCheck(t *testing.T) {
 		endpointNotExists   = "/chat_v1.ChatV1/NotExists"
 
 		endpointPermissions = []*model.EndpointPermissions{
-			{
-				Endpoint: endpointCreate,
-				Roles:    []string{roleAdmin},
-			},
-			{
-				Endpoint: endpointDelete,
-				Roles:    []string{roleAdmin},
-			},
-			{
-				Endpoint: endpointSendMessage,
-				Roles:    []string{roleAdmin, roleUser},
-			},
+			{Endpoint: endpointCreate, Roles: []string{roleAdmin}},
+			{Endpoint: endpointDelete, Roles: []string{roleAdmin}},
+			{Endpoint: endpointSendMessage, Roles: []string{roleAdmin, roleUser}},
 		}
 
 		req = endpointCreate
@@ -105,6 +203,7 @@ func TestCheck(t *testing.T) {
 			err: ErrMetadataNotProvided,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
+				mock.GetRoleEndpointsMock.Expect(ctx).Return(endpointPermissions, nil)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
@@ -121,6 +220,7 @@ func TestCheck(t *testing.T) {
 			err: ErrAuthHeaderNotProvided,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
+				mock.GetRoleEndpointsMock.Expect(ctx).Return(endpointPermissions, nil)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
@@ -138,23 +238,7 @@ func TestCheck(t *testing.T) {
 			err: ErrInvalidAuthHeaderFormat,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
-				return mock
-			},
-			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
-				mock := tokenMocks.NewTokenOperationsMock(mc)
-				return mock
-			},
-		},
-		{
-			name: "get role endpoints error case",
-			args: args{
-				ctx: ctx,
-				req: req,
-			},
-			err: ErrFailedToReadAccessPolicy,
-			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
-				mock := repositoryMocks.NewAccessRepositoryMock(mc)
-				mock.GetRoleEndpointsMock.Expect(ctx).Return(nil, ErrFailedToReadAccessPolicy)
+				mock.GetRoleEndpointsMock.Expect(ctx).Return(endpointPermissions, nil)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
@@ -241,9 +325,11 @@ func TestCheck(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			accessRepositoryMock := tt.accessRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
-			srv := NewService(accessRepositoryMock, tokenOperationsMock, jwtConfig)
 
-			err := srv.Check(tt.args.ctx, tt.args.req)
+			srv, err := NewService(ctx, accessRepositoryMock, tokenOperationsMock, jwtConfig)
+			require.NoError(t, err)
+
+			err = srv.Check(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)
 		})
 	}
@@ -258,10 +344,7 @@ func TestGetRoleEndpoints(t *testing.T) {
 		endpoint = "/access_v1.AccessV1/GetRoleEndpoints"
 
 		endpointPermissions = []*model.EndpointPermissions{
-			{
-				Endpoint: endpoint,
-				Roles:    []string{roleAdmin},
-			},
+			{Endpoint: endpoint, Roles: []string{roleAdmin}},
 		}
 	)
 
@@ -287,6 +370,7 @@ func TestGetRoleEndpoints(t *testing.T) {
 				return mock
 			},
 		},
+
 		{
 			name:           "get role endpoints success case",
 			err:            nil,
@@ -308,10 +392,11 @@ func TestGetRoleEndpoints(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			accessRepositoryMock := tt.accessRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
-			srv := NewService(accessRepositoryMock, tokenOperationsMock, jwtConfig)
 
-			result, err := srv.GetRoleEndpoints(ctx)
-			require.Equal(t, tt.err, err)
+			srv, err := NewService(ctx, accessRepositoryMock, tokenOperationsMock, jwtConfig)
+			require.NoError(t, err)
+
+			result, _ := srv.GetRoleEndpoints(ctx)
 			require.Equal(t, tt.expectedResult, result)
 		})
 	}
@@ -330,10 +415,7 @@ func TestAddRoleEndpoint(t *testing.T) {
 		endpoint = "/access_v1.AccessV1/AddRoleEndpoint"
 
 		endpointPermissions = []*model.EndpointPermissions{
-			{
-				Endpoint: endpoint,
-				Roles:    []string{roleAdmin},
-			},
+			{Endpoint: endpoint, Roles: []string{roleAdmin}},
 		}
 	)
 
@@ -393,7 +475,7 @@ func TestAddRoleEndpoint(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			accessRepositoryMock := tt.accessRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
-			srv := NewService(accessRepositoryMock, tokenOperationsMock, jwtConfig)
+			srv, _ := NewService(ctx, accessRepositoryMock, tokenOperationsMock, jwtConfig)
 
 			err := srv.AddRoleEndpoint(ctx, endpoint, roles)
 			require.Equal(t, tt.err, err)
@@ -411,10 +493,7 @@ func TestUpdateRoleEndpoint(t *testing.T) {
 		endpoint = "/access_v1.AccessV1/UpdateRoleEndpoint"
 
 		endpointPermissions = []*model.EndpointPermissions{
-			{
-				Endpoint: endpoint,
-				Roles:    []string{roleAdmin},
-			},
+			{Endpoint: endpoint, Roles: []string{roleAdmin}},
 		}
 	)
 
@@ -475,7 +554,7 @@ func TestUpdateRoleEndpoint(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			accessRepositoryMock := tt.accessRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
-			srv := NewService(accessRepositoryMock, tokenOperationsMock, jwtConfig)
+			srv, _ := NewService(ctx, accessRepositoryMock, tokenOperationsMock, jwtConfig)
 
 			err := srv.UpdateRoleEndpoint(ctx, endpoint, roles)
 			require.Equal(t, tt.err, err)
@@ -492,10 +571,7 @@ func TestDeleteRoleEndpoint(t *testing.T) {
 		endpoint = "/access_v1.AccessV1/DeleteRoleEndpoint"
 
 		endpointPermissions = []*model.EndpointPermissions{
-			{
-				Endpoint: endpoint,
-				Roles:    []string{roleAdmin},
-			},
+			{Endpoint: endpoint, Roles: []string{roleAdmin}},
 		}
 	)
 
@@ -505,7 +581,6 @@ func TestDeleteRoleEndpoint(t *testing.T) {
 		accessRepositoryMock func(mc *minimock.Controller) repository.AccessRepository
 		tokenOperationsMock  func(mc *minimock.Controller) tokens.TokenOperations
 	}{
-
 		{
 			name: "check endpoint error case",
 			err:  ErrAccessDenied,
@@ -556,7 +631,7 @@ func TestDeleteRoleEndpoint(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			accessRepositoryMock := tt.accessRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
-			srv := NewService(accessRepositoryMock, tokenOperationsMock, jwtConfig)
+			srv, _ := NewService(ctx, accessRepositoryMock, tokenOperationsMock, jwtConfig)
 
 			err := srv.DeleteRoleEndpoint(ctx, endpoint)
 			require.Equal(t, tt.err, err)
