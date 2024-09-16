@@ -34,6 +34,13 @@ var (
 	ErrAccessDenied = errors.New("access denied")
 )
 
+var (
+	// ErrEndpointAlreadyExists occurs when trying to add an endpoint that already exists.
+	ErrEndpointAlreadyExists = errors.New("endpoint already exists")
+	// ErrEndpointDoesNotExist occurs when trying to access or modify an endpoint that does not exist.
+	ErrEndpointDoesNotExist = errors.New("endpoint does not exist")
+)
+
 func (s *accessService) Check(ctx context.Context, endpoint string) error {
 	token, err := s.extractToken(ctx)
 	if err != nil {
@@ -78,7 +85,7 @@ func (s *accessService) Check(ctx context.Context, endpoint string) error {
 
 // AddRoleEndpoint adds a new resource after verifying access permissions.
 func (s *accessService) AddRoleEndpoint(ctx context.Context, endpoint string, roles []string) error {
-	err := s.Check(ctx, "AddResource")
+	err := s.Check(ctx, "/access_v1.AccessV1/AddRoleEndpoint")
 	if err != nil {
 		return err
 	}
@@ -97,7 +104,7 @@ func (s *accessService) AddRoleEndpoint(ctx context.Context, endpoint string, ro
 
 // UpdateRoleEndpoint edits an existing resource after verifying access permissions.
 func (s *accessService) UpdateRoleEndpoint(ctx context.Context, endpoint string, roles []string) error {
-	err := s.Check(ctx, "EditResource")
+	err := s.Check(ctx, "/access_v1.AccessV1/UpdateRoleEndpoint")
 	if err != nil {
 		return err
 	}
@@ -116,7 +123,7 @@ func (s *accessService) UpdateRoleEndpoint(ctx context.Context, endpoint string,
 
 // DeleteRoleEndpoint deletes a resource after verifying access permissions.
 func (s *accessService) DeleteRoleEndpoint(ctx context.Context, endpoint string) error {
-	err := s.Check(ctx, "DeleteResource")
+	err := s.Check(ctx, "/access_v1.AccessV1/DeleteRoleEndpoint")
 	if err != nil {
 		return err
 	}
@@ -135,7 +142,7 @@ func (s *accessService) DeleteRoleEndpoint(ctx context.Context, endpoint string)
 
 // ListRoleEndpoints retrieves the list of resources after verifying access permissions.
 func (s *accessService) ListRoleEndpoints(ctx context.Context) ([]*model.EndpointPermissions, error) {
-	err := s.Check(ctx, "GetResourceList")
+	err := s.Check(ctx, "/access_v1.AccessV1/ListRoleEndpoints")
 	if err != nil {
 		return nil, err
 	}

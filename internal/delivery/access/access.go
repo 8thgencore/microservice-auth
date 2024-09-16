@@ -24,7 +24,7 @@ func (i *Implementation) AddRoleEndpoint(
 	ctx context.Context,
 	req *accessv1.AddRoleEndpointRequest,
 ) (*empty.Empty, error) {
-	err := i.accessService.AddRoleEndpoint(ctx, req.GetEndpoint(), req.GetAllowedRoles())
+	err := i.accessService.AddRoleEndpoint(ctx, req.GetEndpoint(), converter.ToRoleStrings(req.GetAllowedRoles()))
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (i *Implementation) UpdateRoleEndpoint(
 	ctx context.Context,
 	req *accessv1.UpdateRoleEndpointRequest,
 ) (*empty.Empty, error) {
-	err := i.accessService.UpdateRoleEndpoint(ctx, req.GetEndpoint(), req.GetAllowedRoles())
+	err := i.accessService.UpdateRoleEndpoint(ctx, req.GetEndpoint(), converter.ToRoleStrings(req.GetAllowedRoles()))
 	if err != nil {
 		return nil, err
 	}

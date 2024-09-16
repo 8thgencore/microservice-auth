@@ -18,7 +18,7 @@ func ToEndpointPermissionsMap(endpointPermissions []*model.EndpointPermissions) 
 func ToEndpointPermissionsFromAPI(endpointPermissions *accessv1.EndpointPermissions) *model.EndpointPermissions {
 	return &model.EndpointPermissions{
 		Endpoint: endpointPermissions.Endpoint,
-		Roles:    endpointPermissions.AllowedRoles,
+		Roles:    ToRoleStrings(endpointPermissions.AllowedRoles),
 	}
 }
 
@@ -26,6 +26,6 @@ func ToEndpointPermissionsFromAPI(endpointPermissions *accessv1.EndpointPermissi
 func ToEndpointPermissionsService(endpointPermissions *model.EndpointPermissions) *accessv1.EndpointPermissions {
 	return &accessv1.EndpointPermissions{
 		Endpoint:     endpointPermissions.Endpoint,
-		AllowedRoles: endpointPermissions.Roles,
+		AllowedRoles: ToRoleEnumsAPI(endpointPermissions.Roles),
 	}
 }

@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package access_v1;
 
+import "user.proto";
 import "google/protobuf/empty.proto";
 import "validate/validate.proto";
 import "google/api/annotations.proto";
@@ -57,15 +58,22 @@ message AddRoleEndpointRequest {
     // Endpoint to which roles will be added.
     string endpoint = 1 [(validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/-]+$"}];
     // Roles allowed to access this endpoint.
-    repeated string allowed_roles = 2 [(validate.rules).repeated = {min_items: 1}];
+    repeated user_v1.Role allowed_roles = 2 [
+        (validate.rules).enum.defined_only = true,
+        (validate.rules).repeated = {min_items: 1}
+    ];
 }
 
 message UpdateRoleEndpointRequest {
     // Endpoint to be updated.
     string endpoint = 1 [(validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/-]+$"}];
     // Updated roles for this endpoint.
-    repeated string allowed_roles = 2 [(validate.rules).repeated = {min_items: 1}];
+    repeated user_v1.Role allowed_roles = 2 [
+        (validate.rules).enum.defined_only = true,
+        (validate.rules).repeated = {min_items: 1}
+    ];
 }
+
 
 message DeleteRoleEndpointRequest {
     // Endpoint to be deleted.
@@ -80,5 +88,8 @@ message ListRoleEndpointsResponse {
 // Represents endpoint permissions including the endpoint and the roles allowed to access it.
 message EndpointPermissions {
     string endpoint = 1 [(validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/-]+$"}];
-    repeated string allowed_roles = 2 [(validate.rules).repeated = {min_items: 1}];
+    repeated user_v1.Role allowed_roles = 2 [
+        (validate.rules).enum.defined_only = true,
+        (validate.rules).repeated = {min_items: 1}
+    ];
 }
