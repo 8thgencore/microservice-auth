@@ -17,6 +17,8 @@ import (
 	"unicode/utf8"
 
 	"google.golang.org/protobuf/types/known/anypb"
+
+	user_v1 "github.com/8thgencore/microservice-auth/pkg/user/v1"
 )
 
 // ensure the imports are used
@@ -33,6 +35,8 @@ var (
 	_ = (*mail.Address)(nil)
 	_ = anypb.Any{}
 	_ = sort.Sort
+
+	_ = user_v1.Role(0)
 )
 
 // Validate checks the field values on CheckRequest with the rules defined in

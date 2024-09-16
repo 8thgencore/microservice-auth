@@ -2,8 +2,12 @@ package access
 
 import (
 	"context"
+	"errors"
 
+	accessService "github.com/8thgencore/microservice-auth/internal/service/access"
 	sq "github.com/Masterminds/squirrel"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/8thgencore/microservice-auth/internal/model"
 	"github.com/8thgencore/microservice-auth/internal/repository"
@@ -69,6 +73,13 @@ func (r *repo) AddRoleEndpoint(ctx context.Context, endpoint string, allowedRole
 	}
 
 	_, err = r.db.DB().ExecContext(ctx, q, args...)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
+			return accessService.ErrEndpointAlreadyExists
+		}
+	}
+
 	return err
 }
 

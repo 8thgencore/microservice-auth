@@ -99,7 +99,7 @@ generate-auth-api:
 
 generate-access-api:
 	mkdir -p pkg/access/v1
-	protoc --proto_path api/access/v1 --proto_path vendor.protogen \
+	protoc --proto_path api/access/v1 --proto_path api/user/v1 --proto_path vendor.protogen \
 	--go_out=pkg/access/v1 --go_opt=paths=source_relative \
 	--plugin=protoc-gen-go=$(LOCAL_BIN)/protoc-gen-go \
 	--go-grpc_out=pkg/access/v1 --go-grpc_opt=paths=source_relative \
