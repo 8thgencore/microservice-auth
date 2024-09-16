@@ -562,22 +562,22 @@ var _ interface {
 
 var _DeleteRoleEndpointRequest_Endpoint_Pattern = regexp.MustCompile("^[a-zA-Z0-9_/-]+$")
 
-// Validate checks the field values on ListRoleEndpointsResponse with the rules
+// Validate checks the field values on GetRoleEndpointsResponse with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *ListRoleEndpointsResponse) Validate() error {
+func (m *GetRoleEndpointsResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on ListRoleEndpointsResponse with the
+// ValidateAll checks the field values on GetRoleEndpointsResponse with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// ListRoleEndpointsResponseMultiError, or nil if none found.
-func (m *ListRoleEndpointsResponse) ValidateAll() error {
+// GetRoleEndpointsResponseMultiError, or nil if none found.
+func (m *GetRoleEndpointsResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *ListRoleEndpointsResponse) validate(all bool) error {
+func (m *GetRoleEndpointsResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -591,7 +591,7 @@ func (m *ListRoleEndpointsResponse) validate(all bool) error {
 			switch v := interface{}(item).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, ListRoleEndpointsResponseValidationError{
+					errors = append(errors, GetRoleEndpointsResponseValidationError{
 						field:  fmt.Sprintf("EndpointPermissions[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -599,7 +599,7 @@ func (m *ListRoleEndpointsResponse) validate(all bool) error {
 				}
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
-					errors = append(errors, ListRoleEndpointsResponseValidationError{
+					errors = append(errors, GetRoleEndpointsResponseValidationError{
 						field:  fmt.Sprintf("EndpointPermissions[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -608,7 +608,7 @@ func (m *ListRoleEndpointsResponse) validate(all bool) error {
 			}
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				return ListRoleEndpointsResponseValidationError{
+				return GetRoleEndpointsResponseValidationError{
 					field:  fmt.Sprintf("EndpointPermissions[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -619,19 +619,19 @@ func (m *ListRoleEndpointsResponse) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return ListRoleEndpointsResponseMultiError(errors)
+		return GetRoleEndpointsResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// ListRoleEndpointsResponseMultiError is an error wrapping multiple validation
-// errors returned by ListRoleEndpointsResponse.ValidateAll() if the
+// GetRoleEndpointsResponseMultiError is an error wrapping multiple validation
+// errors returned by GetRoleEndpointsResponse.ValidateAll() if the
 // designated constraints aren't met.
-type ListRoleEndpointsResponseMultiError []error
+type GetRoleEndpointsResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m ListRoleEndpointsResponseMultiError) Error() string {
+func (m GetRoleEndpointsResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -640,11 +640,11 @@ func (m ListRoleEndpointsResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m ListRoleEndpointsResponseMultiError) AllErrors() []error { return m }
+func (m GetRoleEndpointsResponseMultiError) AllErrors() []error { return m }
 
-// ListRoleEndpointsResponseValidationError is the validation error returned by
-// ListRoleEndpointsResponse.Validate if the designated constraints aren't met.
-type ListRoleEndpointsResponseValidationError struct {
+// GetRoleEndpointsResponseValidationError is the validation error returned by
+// GetRoleEndpointsResponse.Validate if the designated constraints aren't met.
+type GetRoleEndpointsResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -652,24 +652,24 @@ type ListRoleEndpointsResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e ListRoleEndpointsResponseValidationError) Field() string { return e.field }
+func (e GetRoleEndpointsResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e ListRoleEndpointsResponseValidationError) Reason() string { return e.reason }
+func (e GetRoleEndpointsResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e ListRoleEndpointsResponseValidationError) Cause() error { return e.cause }
+func (e GetRoleEndpointsResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e ListRoleEndpointsResponseValidationError) Key() bool { return e.key }
+func (e GetRoleEndpointsResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e ListRoleEndpointsResponseValidationError) ErrorName() string {
-	return "ListRoleEndpointsResponseValidationError"
+func (e GetRoleEndpointsResponseValidationError) ErrorName() string {
+	return "GetRoleEndpointsResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e ListRoleEndpointsResponseValidationError) Error() string {
+func (e GetRoleEndpointsResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -681,14 +681,14 @@ func (e ListRoleEndpointsResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sListRoleEndpointsResponse.%s: %s%s",
+		"invalid %sGetRoleEndpointsResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = ListRoleEndpointsResponseValidationError{}
+var _ error = GetRoleEndpointsResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -696,7 +696,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = ListRoleEndpointsResponseValidationError{}
+} = GetRoleEndpointsResponseValidationError{}
 
 // Validate checks the field values on EndpointPermissions with the rules
 // defined in the proto definition for this message. If any rules are

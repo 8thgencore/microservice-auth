@@ -58,12 +58,12 @@ func (i *Implementation) DeleteRoleEndpoint(
 	return &empty.Empty{}, nil
 }
 
-// ListRoleEndpoints retrieves the list of role-endpoint permissions.
-func (i *Implementation) ListRoleEndpoints(
+// GetRoleEndpoints retrieves the list of role-endpoint permissions.
+func (i *Implementation) GetRoleEndpoints(
 	ctx context.Context,
 	_ *empty.Empty,
-) (*accessv1.ListRoleEndpointsResponse, error) {
-	endpoints, err := i.accessService.ListRoleEndpoints(ctx)
+) (*accessv1.GetRoleEndpointsResponse, error) {
+	endpoints, err := i.accessService.GetRoleEndpoints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (i *Implementation) ListRoleEndpoints(
 		endpointPermissions = append(endpointPermissions, converter.ToEndpointPermissionsService(ep))
 	}
 
-	return &accessv1.ListRoleEndpointsResponse{
+	return &accessv1.GetRoleEndpointsResponse{
 		EndpointPermissions: endpointPermissions,
 	}, nil
 }

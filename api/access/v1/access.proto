@@ -42,7 +42,7 @@ service AccessV1 {
     }
 
     // List all endpoints and their allowed roles.
-    rpc ListRoleEndpoints (google.protobuf.Empty) returns (ListRoleEndpointsResponse) {
+    rpc GetRoleEndpoints (google.protobuf.Empty) returns (GetRoleEndpointsResponse) {
         option (google.api.http) = {
             get: "/v1/access/role-endpoints"
         };
@@ -80,7 +80,7 @@ message DeleteRoleEndpointRequest {
     string endpoint = 1 [(validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/-]+$"}];
 }
 
-message ListRoleEndpointsResponse {
+message GetRoleEndpointsResponse {
     // List of endpoint permissions.
     repeated EndpointPermissions endpoint_permissions = 1;
 }

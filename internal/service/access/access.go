@@ -83,6 +83,21 @@ func (s *accessService) Check(ctx context.Context, endpoint string) error {
 	return nil
 }
 
+// GetRoleEndpoints retrieves the list of resources after verifying access permissions.
+func (s *accessService) GetRoleEndpoints(ctx context.Context) ([]*model.EndpointPermissions, error) {
+	err := s.Check(ctx, "/access_v1.AccessV1/GetRoleEndpoints")
+	if err != nil {
+		return nil, err
+	}
+
+	resources, err := s.accessRepository.GetRoleEndpoints(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return resources, nil
+}
+
 // AddRoleEndpoint adds a new resource after verifying access permissions.
 func (s *accessService) AddRoleEndpoint(ctx context.Context, endpoint string, roles []string) error {
 	err := s.Check(ctx, "/access_v1.AccessV1/AddRoleEndpoint")
@@ -138,21 +153,6 @@ func (s *accessService) DeleteRoleEndpoint(ctx context.Context, endpoint string)
 
 	delete(s.accessibleRoles, endpoint)
 	return nil
-}
-
-// ListRoleEndpoints retrieves the list of resources after verifying access permissions.
-func (s *accessService) ListRoleEndpoints(ctx context.Context) ([]*model.EndpointPermissions, error) {
-	err := s.Check(ctx, "/access_v1.AccessV1/ListRoleEndpoints")
-	if err != nil {
-		return nil, err
-	}
-
-	resources, err := s.accessRepository.GetRoleEndpoints(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return resources, nil
 }
 
 func (s *accessService) extractToken(ctx context.Context) (string, error) {
