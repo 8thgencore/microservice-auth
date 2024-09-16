@@ -25,6 +25,7 @@ linters:
   disable-all: true
   enable:
     - errcheck
+    - gocognit
     - goconst
     - goimports
     - gosec
@@ -34,6 +35,7 @@ linters:
     - lll
     - revive
     - staticcheck
+    - stylecheck
     - typecheck
     - unused
 
