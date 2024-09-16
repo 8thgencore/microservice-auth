@@ -38,12 +38,12 @@ type AccessServiceMock struct {
 	beforeDeleteRoleEndpointCounter uint64
 	DeleteRoleEndpointMock          mAccessServiceMockDeleteRoleEndpoint
 
-	funcListRoleEndpoints          func(ctx context.Context) (epa1 []*model.EndpointPermissions, err error)
-	funcListRoleEndpointsOrigin    string
-	inspectFuncListRoleEndpoints   func(ctx context.Context)
-	afterListRoleEndpointsCounter  uint64
-	beforeListRoleEndpointsCounter uint64
-	ListRoleEndpointsMock          mAccessServiceMockListRoleEndpoints
+	funcGetRoleEndpoints          func(ctx context.Context) (epa1 []*model.EndpointPermissions, err error)
+	funcGetRoleEndpointsOrigin    string
+	inspectFuncGetRoleEndpoints   func(ctx context.Context)
+	afterGetRoleEndpointsCounter  uint64
+	beforeGetRoleEndpointsCounter uint64
+	GetRoleEndpointsMock          mAccessServiceMockGetRoleEndpoints
 
 	funcUpdateRoleEndpoint          func(ctx context.Context, endpoint string, roles []string) (err error)
 	funcUpdateRoleEndpointOrigin    string
@@ -70,8 +70,8 @@ func NewAccessServiceMock(t minimock.Tester) *AccessServiceMock {
 	m.DeleteRoleEndpointMock = mAccessServiceMockDeleteRoleEndpoint{mock: m}
 	m.DeleteRoleEndpointMock.callArgs = []*AccessServiceMockDeleteRoleEndpointParams{}
 
-	m.ListRoleEndpointsMock = mAccessServiceMockListRoleEndpoints{mock: m}
-	m.ListRoleEndpointsMock.callArgs = []*AccessServiceMockListRoleEndpointsParams{}
+	m.GetRoleEndpointsMock = mAccessServiceMockGetRoleEndpoints{mock: m}
+	m.GetRoleEndpointsMock.callArgs = []*AccessServiceMockGetRoleEndpointsParams{}
 
 	m.UpdateRoleEndpointMock = mAccessServiceMockUpdateRoleEndpoint{mock: m}
 	m.UpdateRoleEndpointMock.callArgs = []*AccessServiceMockUpdateRoleEndpointParams{}
@@ -1138,48 +1138,48 @@ func (m *AccessServiceMock) MinimockDeleteRoleEndpointInspect() {
 	}
 }
 
-type mAccessServiceMockListRoleEndpoints struct {
+type mAccessServiceMockGetRoleEndpoints struct {
 	optional           bool
 	mock               *AccessServiceMock
-	defaultExpectation *AccessServiceMockListRoleEndpointsExpectation
-	expectations       []*AccessServiceMockListRoleEndpointsExpectation
+	defaultExpectation *AccessServiceMockGetRoleEndpointsExpectation
+	expectations       []*AccessServiceMockGetRoleEndpointsExpectation
 
-	callArgs []*AccessServiceMockListRoleEndpointsParams
+	callArgs []*AccessServiceMockGetRoleEndpointsParams
 	mutex    sync.RWMutex
 
 	expectedInvocations       uint64
 	expectedInvocationsOrigin string
 }
 
-// AccessServiceMockListRoleEndpointsExpectation specifies expectation struct of the AccessService.ListRoleEndpoints
-type AccessServiceMockListRoleEndpointsExpectation struct {
+// AccessServiceMockGetRoleEndpointsExpectation specifies expectation struct of the AccessService.GetRoleEndpoints
+type AccessServiceMockGetRoleEndpointsExpectation struct {
 	mock               *AccessServiceMock
-	params             *AccessServiceMockListRoleEndpointsParams
-	paramPtrs          *AccessServiceMockListRoleEndpointsParamPtrs
-	expectationOrigins AccessServiceMockListRoleEndpointsExpectationOrigins
-	results            *AccessServiceMockListRoleEndpointsResults
+	params             *AccessServiceMockGetRoleEndpointsParams
+	paramPtrs          *AccessServiceMockGetRoleEndpointsParamPtrs
+	expectationOrigins AccessServiceMockGetRoleEndpointsExpectationOrigins
+	results            *AccessServiceMockGetRoleEndpointsResults
 	returnOrigin       string
 	Counter            uint64
 }
 
-// AccessServiceMockListRoleEndpointsParams contains parameters of the AccessService.ListRoleEndpoints
-type AccessServiceMockListRoleEndpointsParams struct {
+// AccessServiceMockGetRoleEndpointsParams contains parameters of the AccessService.GetRoleEndpoints
+type AccessServiceMockGetRoleEndpointsParams struct {
 	ctx context.Context
 }
 
-// AccessServiceMockListRoleEndpointsParamPtrs contains pointers to parameters of the AccessService.ListRoleEndpoints
-type AccessServiceMockListRoleEndpointsParamPtrs struct {
+// AccessServiceMockGetRoleEndpointsParamPtrs contains pointers to parameters of the AccessService.GetRoleEndpoints
+type AccessServiceMockGetRoleEndpointsParamPtrs struct {
 	ctx *context.Context
 }
 
-// AccessServiceMockListRoleEndpointsResults contains results of the AccessService.ListRoleEndpoints
-type AccessServiceMockListRoleEndpointsResults struct {
+// AccessServiceMockGetRoleEndpointsResults contains results of the AccessService.GetRoleEndpoints
+type AccessServiceMockGetRoleEndpointsResults struct {
 	epa1 []*model.EndpointPermissions
 	err  error
 }
 
-// AccessServiceMockListRoleEndpointsOrigins contains origins of expectations of the AccessService.ListRoleEndpoints
-type AccessServiceMockListRoleEndpointsExpectationOrigins struct {
+// AccessServiceMockGetRoleEndpointsOrigins contains origins of expectations of the AccessService.GetRoleEndpoints
+type AccessServiceMockGetRoleEndpointsExpectationOrigins struct {
 	origin    string
 	originCtx string
 }
@@ -1189,264 +1189,264 @@ type AccessServiceMockListRoleEndpointsExpectationOrigins struct {
 // Optional() makes method check to work in '0 or more' mode.
 // It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
 // catch the problems when the expected method call is totally skipped during test run.
-func (mmListRoleEndpoints *mAccessServiceMockListRoleEndpoints) Optional() *mAccessServiceMockListRoleEndpoints {
-	mmListRoleEndpoints.optional = true
-	return mmListRoleEndpoints
+func (mmGetRoleEndpoints *mAccessServiceMockGetRoleEndpoints) Optional() *mAccessServiceMockGetRoleEndpoints {
+	mmGetRoleEndpoints.optional = true
+	return mmGetRoleEndpoints
 }
 
-// Expect sets up expected params for AccessService.ListRoleEndpoints
-func (mmListRoleEndpoints *mAccessServiceMockListRoleEndpoints) Expect(ctx context.Context) *mAccessServiceMockListRoleEndpoints {
-	if mmListRoleEndpoints.mock.funcListRoleEndpoints != nil {
-		mmListRoleEndpoints.mock.t.Fatalf("AccessServiceMock.ListRoleEndpoints mock is already set by Set")
+// Expect sets up expected params for AccessService.GetRoleEndpoints
+func (mmGetRoleEndpoints *mAccessServiceMockGetRoleEndpoints) Expect(ctx context.Context) *mAccessServiceMockGetRoleEndpoints {
+	if mmGetRoleEndpoints.mock.funcGetRoleEndpoints != nil {
+		mmGetRoleEndpoints.mock.t.Fatalf("AccessServiceMock.GetRoleEndpoints mock is already set by Set")
 	}
 
-	if mmListRoleEndpoints.defaultExpectation == nil {
-		mmListRoleEndpoints.defaultExpectation = &AccessServiceMockListRoleEndpointsExpectation{}
+	if mmGetRoleEndpoints.defaultExpectation == nil {
+		mmGetRoleEndpoints.defaultExpectation = &AccessServiceMockGetRoleEndpointsExpectation{}
 	}
 
-	if mmListRoleEndpoints.defaultExpectation.paramPtrs != nil {
-		mmListRoleEndpoints.mock.t.Fatalf("AccessServiceMock.ListRoleEndpoints mock is already set by ExpectParams functions")
+	if mmGetRoleEndpoints.defaultExpectation.paramPtrs != nil {
+		mmGetRoleEndpoints.mock.t.Fatalf("AccessServiceMock.GetRoleEndpoints mock is already set by ExpectParams functions")
 	}
 
-	mmListRoleEndpoints.defaultExpectation.params = &AccessServiceMockListRoleEndpointsParams{ctx}
-	mmListRoleEndpoints.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
-	for _, e := range mmListRoleEndpoints.expectations {
-		if minimock.Equal(e.params, mmListRoleEndpoints.defaultExpectation.params) {
-			mmListRoleEndpoints.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmListRoleEndpoints.defaultExpectation.params)
+	mmGetRoleEndpoints.defaultExpectation.params = &AccessServiceMockGetRoleEndpointsParams{ctx}
+	mmGetRoleEndpoints.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmGetRoleEndpoints.expectations {
+		if minimock.Equal(e.params, mmGetRoleEndpoints.defaultExpectation.params) {
+			mmGetRoleEndpoints.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmGetRoleEndpoints.defaultExpectation.params)
 		}
 	}
 
-	return mmListRoleEndpoints
+	return mmGetRoleEndpoints
 }
 
-// ExpectCtxParam1 sets up expected param ctx for AccessService.ListRoleEndpoints
-func (mmListRoleEndpoints *mAccessServiceMockListRoleEndpoints) ExpectCtxParam1(ctx context.Context) *mAccessServiceMockListRoleEndpoints {
-	if mmListRoleEndpoints.mock.funcListRoleEndpoints != nil {
-		mmListRoleEndpoints.mock.t.Fatalf("AccessServiceMock.ListRoleEndpoints mock is already set by Set")
+// ExpectCtxParam1 sets up expected param ctx for AccessService.GetRoleEndpoints
+func (mmGetRoleEndpoints *mAccessServiceMockGetRoleEndpoints) ExpectCtxParam1(ctx context.Context) *mAccessServiceMockGetRoleEndpoints {
+	if mmGetRoleEndpoints.mock.funcGetRoleEndpoints != nil {
+		mmGetRoleEndpoints.mock.t.Fatalf("AccessServiceMock.GetRoleEndpoints mock is already set by Set")
 	}
 
-	if mmListRoleEndpoints.defaultExpectation == nil {
-		mmListRoleEndpoints.defaultExpectation = &AccessServiceMockListRoleEndpointsExpectation{}
+	if mmGetRoleEndpoints.defaultExpectation == nil {
+		mmGetRoleEndpoints.defaultExpectation = &AccessServiceMockGetRoleEndpointsExpectation{}
 	}
 
-	if mmListRoleEndpoints.defaultExpectation.params != nil {
-		mmListRoleEndpoints.mock.t.Fatalf("AccessServiceMock.ListRoleEndpoints mock is already set by Expect")
+	if mmGetRoleEndpoints.defaultExpectation.params != nil {
+		mmGetRoleEndpoints.mock.t.Fatalf("AccessServiceMock.GetRoleEndpoints mock is already set by Expect")
 	}
 
-	if mmListRoleEndpoints.defaultExpectation.paramPtrs == nil {
-		mmListRoleEndpoints.defaultExpectation.paramPtrs = &AccessServiceMockListRoleEndpointsParamPtrs{}
+	if mmGetRoleEndpoints.defaultExpectation.paramPtrs == nil {
+		mmGetRoleEndpoints.defaultExpectation.paramPtrs = &AccessServiceMockGetRoleEndpointsParamPtrs{}
 	}
-	mmListRoleEndpoints.defaultExpectation.paramPtrs.ctx = &ctx
-	mmListRoleEndpoints.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
+	mmGetRoleEndpoints.defaultExpectation.paramPtrs.ctx = &ctx
+	mmGetRoleEndpoints.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
 
-	return mmListRoleEndpoints
+	return mmGetRoleEndpoints
 }
 
-// Inspect accepts an inspector function that has same arguments as the AccessService.ListRoleEndpoints
-func (mmListRoleEndpoints *mAccessServiceMockListRoleEndpoints) Inspect(f func(ctx context.Context)) *mAccessServiceMockListRoleEndpoints {
-	if mmListRoleEndpoints.mock.inspectFuncListRoleEndpoints != nil {
-		mmListRoleEndpoints.mock.t.Fatalf("Inspect function is already set for AccessServiceMock.ListRoleEndpoints")
+// Inspect accepts an inspector function that has same arguments as the AccessService.GetRoleEndpoints
+func (mmGetRoleEndpoints *mAccessServiceMockGetRoleEndpoints) Inspect(f func(ctx context.Context)) *mAccessServiceMockGetRoleEndpoints {
+	if mmGetRoleEndpoints.mock.inspectFuncGetRoleEndpoints != nil {
+		mmGetRoleEndpoints.mock.t.Fatalf("Inspect function is already set for AccessServiceMock.GetRoleEndpoints")
 	}
 
-	mmListRoleEndpoints.mock.inspectFuncListRoleEndpoints = f
+	mmGetRoleEndpoints.mock.inspectFuncGetRoleEndpoints = f
 
-	return mmListRoleEndpoints
+	return mmGetRoleEndpoints
 }
 
-// Return sets up results that will be returned by AccessService.ListRoleEndpoints
-func (mmListRoleEndpoints *mAccessServiceMockListRoleEndpoints) Return(epa1 []*model.EndpointPermissions, err error) *AccessServiceMock {
-	if mmListRoleEndpoints.mock.funcListRoleEndpoints != nil {
-		mmListRoleEndpoints.mock.t.Fatalf("AccessServiceMock.ListRoleEndpoints mock is already set by Set")
+// Return sets up results that will be returned by AccessService.GetRoleEndpoints
+func (mmGetRoleEndpoints *mAccessServiceMockGetRoleEndpoints) Return(epa1 []*model.EndpointPermissions, err error) *AccessServiceMock {
+	if mmGetRoleEndpoints.mock.funcGetRoleEndpoints != nil {
+		mmGetRoleEndpoints.mock.t.Fatalf("AccessServiceMock.GetRoleEndpoints mock is already set by Set")
 	}
 
-	if mmListRoleEndpoints.defaultExpectation == nil {
-		mmListRoleEndpoints.defaultExpectation = &AccessServiceMockListRoleEndpointsExpectation{mock: mmListRoleEndpoints.mock}
+	if mmGetRoleEndpoints.defaultExpectation == nil {
+		mmGetRoleEndpoints.defaultExpectation = &AccessServiceMockGetRoleEndpointsExpectation{mock: mmGetRoleEndpoints.mock}
 	}
-	mmListRoleEndpoints.defaultExpectation.results = &AccessServiceMockListRoleEndpointsResults{epa1, err}
-	mmListRoleEndpoints.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
-	return mmListRoleEndpoints.mock
+	mmGetRoleEndpoints.defaultExpectation.results = &AccessServiceMockGetRoleEndpointsResults{epa1, err}
+	mmGetRoleEndpoints.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmGetRoleEndpoints.mock
 }
 
-// Set uses given function f to mock the AccessService.ListRoleEndpoints method
-func (mmListRoleEndpoints *mAccessServiceMockListRoleEndpoints) Set(f func(ctx context.Context) (epa1 []*model.EndpointPermissions, err error)) *AccessServiceMock {
-	if mmListRoleEndpoints.defaultExpectation != nil {
-		mmListRoleEndpoints.mock.t.Fatalf("Default expectation is already set for the AccessService.ListRoleEndpoints method")
+// Set uses given function f to mock the AccessService.GetRoleEndpoints method
+func (mmGetRoleEndpoints *mAccessServiceMockGetRoleEndpoints) Set(f func(ctx context.Context) (epa1 []*model.EndpointPermissions, err error)) *AccessServiceMock {
+	if mmGetRoleEndpoints.defaultExpectation != nil {
+		mmGetRoleEndpoints.mock.t.Fatalf("Default expectation is already set for the AccessService.GetRoleEndpoints method")
 	}
 
-	if len(mmListRoleEndpoints.expectations) > 0 {
-		mmListRoleEndpoints.mock.t.Fatalf("Some expectations are already set for the AccessService.ListRoleEndpoints method")
+	if len(mmGetRoleEndpoints.expectations) > 0 {
+		mmGetRoleEndpoints.mock.t.Fatalf("Some expectations are already set for the AccessService.GetRoleEndpoints method")
 	}
 
-	mmListRoleEndpoints.mock.funcListRoleEndpoints = f
-	mmListRoleEndpoints.mock.funcListRoleEndpointsOrigin = minimock.CallerInfo(1)
-	return mmListRoleEndpoints.mock
+	mmGetRoleEndpoints.mock.funcGetRoleEndpoints = f
+	mmGetRoleEndpoints.mock.funcGetRoleEndpointsOrigin = minimock.CallerInfo(1)
+	return mmGetRoleEndpoints.mock
 }
 
-// When sets expectation for the AccessService.ListRoleEndpoints which will trigger the result defined by the following
+// When sets expectation for the AccessService.GetRoleEndpoints which will trigger the result defined by the following
 // Then helper
-func (mmListRoleEndpoints *mAccessServiceMockListRoleEndpoints) When(ctx context.Context) *AccessServiceMockListRoleEndpointsExpectation {
-	if mmListRoleEndpoints.mock.funcListRoleEndpoints != nil {
-		mmListRoleEndpoints.mock.t.Fatalf("AccessServiceMock.ListRoleEndpoints mock is already set by Set")
+func (mmGetRoleEndpoints *mAccessServiceMockGetRoleEndpoints) When(ctx context.Context) *AccessServiceMockGetRoleEndpointsExpectation {
+	if mmGetRoleEndpoints.mock.funcGetRoleEndpoints != nil {
+		mmGetRoleEndpoints.mock.t.Fatalf("AccessServiceMock.GetRoleEndpoints mock is already set by Set")
 	}
 
-	expectation := &AccessServiceMockListRoleEndpointsExpectation{
-		mock:               mmListRoleEndpoints.mock,
-		params:             &AccessServiceMockListRoleEndpointsParams{ctx},
-		expectationOrigins: AccessServiceMockListRoleEndpointsExpectationOrigins{origin: minimock.CallerInfo(1)},
+	expectation := &AccessServiceMockGetRoleEndpointsExpectation{
+		mock:               mmGetRoleEndpoints.mock,
+		params:             &AccessServiceMockGetRoleEndpointsParams{ctx},
+		expectationOrigins: AccessServiceMockGetRoleEndpointsExpectationOrigins{origin: minimock.CallerInfo(1)},
 	}
-	mmListRoleEndpoints.expectations = append(mmListRoleEndpoints.expectations, expectation)
+	mmGetRoleEndpoints.expectations = append(mmGetRoleEndpoints.expectations, expectation)
 	return expectation
 }
 
-// Then sets up AccessService.ListRoleEndpoints return parameters for the expectation previously defined by the When method
-func (e *AccessServiceMockListRoleEndpointsExpectation) Then(epa1 []*model.EndpointPermissions, err error) *AccessServiceMock {
-	e.results = &AccessServiceMockListRoleEndpointsResults{epa1, err}
+// Then sets up AccessService.GetRoleEndpoints return parameters for the expectation previously defined by the When method
+func (e *AccessServiceMockGetRoleEndpointsExpectation) Then(epa1 []*model.EndpointPermissions, err error) *AccessServiceMock {
+	e.results = &AccessServiceMockGetRoleEndpointsResults{epa1, err}
 	return e.mock
 }
 
-// Times sets number of times AccessService.ListRoleEndpoints should be invoked
-func (mmListRoleEndpoints *mAccessServiceMockListRoleEndpoints) Times(n uint64) *mAccessServiceMockListRoleEndpoints {
+// Times sets number of times AccessService.GetRoleEndpoints should be invoked
+func (mmGetRoleEndpoints *mAccessServiceMockGetRoleEndpoints) Times(n uint64) *mAccessServiceMockGetRoleEndpoints {
 	if n == 0 {
-		mmListRoleEndpoints.mock.t.Fatalf("Times of AccessServiceMock.ListRoleEndpoints mock can not be zero")
+		mmGetRoleEndpoints.mock.t.Fatalf("Times of AccessServiceMock.GetRoleEndpoints mock can not be zero")
 	}
-	mm_atomic.StoreUint64(&mmListRoleEndpoints.expectedInvocations, n)
-	mmListRoleEndpoints.expectedInvocationsOrigin = minimock.CallerInfo(1)
-	return mmListRoleEndpoints
+	mm_atomic.StoreUint64(&mmGetRoleEndpoints.expectedInvocations, n)
+	mmGetRoleEndpoints.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmGetRoleEndpoints
 }
 
-func (mmListRoleEndpoints *mAccessServiceMockListRoleEndpoints) invocationsDone() bool {
-	if len(mmListRoleEndpoints.expectations) == 0 && mmListRoleEndpoints.defaultExpectation == nil && mmListRoleEndpoints.mock.funcListRoleEndpoints == nil {
+func (mmGetRoleEndpoints *mAccessServiceMockGetRoleEndpoints) invocationsDone() bool {
+	if len(mmGetRoleEndpoints.expectations) == 0 && mmGetRoleEndpoints.defaultExpectation == nil && mmGetRoleEndpoints.mock.funcGetRoleEndpoints == nil {
 		return true
 	}
 
-	totalInvocations := mm_atomic.LoadUint64(&mmListRoleEndpoints.mock.afterListRoleEndpointsCounter)
-	expectedInvocations := mm_atomic.LoadUint64(&mmListRoleEndpoints.expectedInvocations)
+	totalInvocations := mm_atomic.LoadUint64(&mmGetRoleEndpoints.mock.afterGetRoleEndpointsCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmGetRoleEndpoints.expectedInvocations)
 
 	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
 }
 
-// ListRoleEndpoints implements mm_service.AccessService
-func (mmListRoleEndpoints *AccessServiceMock) ListRoleEndpoints(ctx context.Context) (epa1 []*model.EndpointPermissions, err error) {
-	mm_atomic.AddUint64(&mmListRoleEndpoints.beforeListRoleEndpointsCounter, 1)
-	defer mm_atomic.AddUint64(&mmListRoleEndpoints.afterListRoleEndpointsCounter, 1)
+// GetRoleEndpoints implements mm_service.AccessService
+func (mmGetRoleEndpoints *AccessServiceMock) GetRoleEndpoints(ctx context.Context) (epa1 []*model.EndpointPermissions, err error) {
+	mm_atomic.AddUint64(&mmGetRoleEndpoints.beforeGetRoleEndpointsCounter, 1)
+	defer mm_atomic.AddUint64(&mmGetRoleEndpoints.afterGetRoleEndpointsCounter, 1)
 
-	mmListRoleEndpoints.t.Helper()
+	mmGetRoleEndpoints.t.Helper()
 
-	if mmListRoleEndpoints.inspectFuncListRoleEndpoints != nil {
-		mmListRoleEndpoints.inspectFuncListRoleEndpoints(ctx)
+	if mmGetRoleEndpoints.inspectFuncGetRoleEndpoints != nil {
+		mmGetRoleEndpoints.inspectFuncGetRoleEndpoints(ctx)
 	}
 
-	mm_params := AccessServiceMockListRoleEndpointsParams{ctx}
+	mm_params := AccessServiceMockGetRoleEndpointsParams{ctx}
 
 	// Record call args
-	mmListRoleEndpoints.ListRoleEndpointsMock.mutex.Lock()
-	mmListRoleEndpoints.ListRoleEndpointsMock.callArgs = append(mmListRoleEndpoints.ListRoleEndpointsMock.callArgs, &mm_params)
-	mmListRoleEndpoints.ListRoleEndpointsMock.mutex.Unlock()
+	mmGetRoleEndpoints.GetRoleEndpointsMock.mutex.Lock()
+	mmGetRoleEndpoints.GetRoleEndpointsMock.callArgs = append(mmGetRoleEndpoints.GetRoleEndpointsMock.callArgs, &mm_params)
+	mmGetRoleEndpoints.GetRoleEndpointsMock.mutex.Unlock()
 
-	for _, e := range mmListRoleEndpoints.ListRoleEndpointsMock.expectations {
+	for _, e := range mmGetRoleEndpoints.GetRoleEndpointsMock.expectations {
 		if minimock.Equal(*e.params, mm_params) {
 			mm_atomic.AddUint64(&e.Counter, 1)
 			return e.results.epa1, e.results.err
 		}
 	}
 
-	if mmListRoleEndpoints.ListRoleEndpointsMock.defaultExpectation != nil {
-		mm_atomic.AddUint64(&mmListRoleEndpoints.ListRoleEndpointsMock.defaultExpectation.Counter, 1)
-		mm_want := mmListRoleEndpoints.ListRoleEndpointsMock.defaultExpectation.params
-		mm_want_ptrs := mmListRoleEndpoints.ListRoleEndpointsMock.defaultExpectation.paramPtrs
+	if mmGetRoleEndpoints.GetRoleEndpointsMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmGetRoleEndpoints.GetRoleEndpointsMock.defaultExpectation.Counter, 1)
+		mm_want := mmGetRoleEndpoints.GetRoleEndpointsMock.defaultExpectation.params
+		mm_want_ptrs := mmGetRoleEndpoints.GetRoleEndpointsMock.defaultExpectation.paramPtrs
 
-		mm_got := AccessServiceMockListRoleEndpointsParams{ctx}
+		mm_got := AccessServiceMockGetRoleEndpointsParams{ctx}
 
 		if mm_want_ptrs != nil {
 
 			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
-				mmListRoleEndpoints.t.Errorf("AccessServiceMock.ListRoleEndpoints got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-					mmListRoleEndpoints.ListRoleEndpointsMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+				mmGetRoleEndpoints.t.Errorf("AccessServiceMock.GetRoleEndpoints got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGetRoleEndpoints.GetRoleEndpointsMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
 			}
 
 		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
-			mmListRoleEndpoints.t.Errorf("AccessServiceMock.ListRoleEndpoints got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-				mmListRoleEndpoints.ListRoleEndpointsMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+			mmGetRoleEndpoints.t.Errorf("AccessServiceMock.GetRoleEndpoints got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmGetRoleEndpoints.GetRoleEndpointsMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
 		}
 
-		mm_results := mmListRoleEndpoints.ListRoleEndpointsMock.defaultExpectation.results
+		mm_results := mmGetRoleEndpoints.GetRoleEndpointsMock.defaultExpectation.results
 		if mm_results == nil {
-			mmListRoleEndpoints.t.Fatal("No results are set for the AccessServiceMock.ListRoleEndpoints")
+			mmGetRoleEndpoints.t.Fatal("No results are set for the AccessServiceMock.GetRoleEndpoints")
 		}
 		return (*mm_results).epa1, (*mm_results).err
 	}
-	if mmListRoleEndpoints.funcListRoleEndpoints != nil {
-		return mmListRoleEndpoints.funcListRoleEndpoints(ctx)
+	if mmGetRoleEndpoints.funcGetRoleEndpoints != nil {
+		return mmGetRoleEndpoints.funcGetRoleEndpoints(ctx)
 	}
-	mmListRoleEndpoints.t.Fatalf("Unexpected call to AccessServiceMock.ListRoleEndpoints. %v", ctx)
+	mmGetRoleEndpoints.t.Fatalf("Unexpected call to AccessServiceMock.GetRoleEndpoints. %v", ctx)
 	return
 }
 
-// ListRoleEndpointsAfterCounter returns a count of finished AccessServiceMock.ListRoleEndpoints invocations
-func (mmListRoleEndpoints *AccessServiceMock) ListRoleEndpointsAfterCounter() uint64 {
-	return mm_atomic.LoadUint64(&mmListRoleEndpoints.afterListRoleEndpointsCounter)
+// GetRoleEndpointsAfterCounter returns a count of finished AccessServiceMock.GetRoleEndpoints invocations
+func (mmGetRoleEndpoints *AccessServiceMock) GetRoleEndpointsAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmGetRoleEndpoints.afterGetRoleEndpointsCounter)
 }
 
-// ListRoleEndpointsBeforeCounter returns a count of AccessServiceMock.ListRoleEndpoints invocations
-func (mmListRoleEndpoints *AccessServiceMock) ListRoleEndpointsBeforeCounter() uint64 {
-	return mm_atomic.LoadUint64(&mmListRoleEndpoints.beforeListRoleEndpointsCounter)
+// GetRoleEndpointsBeforeCounter returns a count of AccessServiceMock.GetRoleEndpoints invocations
+func (mmGetRoleEndpoints *AccessServiceMock) GetRoleEndpointsBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmGetRoleEndpoints.beforeGetRoleEndpointsCounter)
 }
 
-// Calls returns a list of arguments used in each call to AccessServiceMock.ListRoleEndpoints.
+// Calls returns a list of arguments used in each call to AccessServiceMock.GetRoleEndpoints.
 // The list is in the same order as the calls were made (i.e. recent calls have a higher index)
-func (mmListRoleEndpoints *mAccessServiceMockListRoleEndpoints) Calls() []*AccessServiceMockListRoleEndpointsParams {
-	mmListRoleEndpoints.mutex.RLock()
+func (mmGetRoleEndpoints *mAccessServiceMockGetRoleEndpoints) Calls() []*AccessServiceMockGetRoleEndpointsParams {
+	mmGetRoleEndpoints.mutex.RLock()
 
-	argCopy := make([]*AccessServiceMockListRoleEndpointsParams, len(mmListRoleEndpoints.callArgs))
-	copy(argCopy, mmListRoleEndpoints.callArgs)
+	argCopy := make([]*AccessServiceMockGetRoleEndpointsParams, len(mmGetRoleEndpoints.callArgs))
+	copy(argCopy, mmGetRoleEndpoints.callArgs)
 
-	mmListRoleEndpoints.mutex.RUnlock()
+	mmGetRoleEndpoints.mutex.RUnlock()
 
 	return argCopy
 }
 
-// MinimockListRoleEndpointsDone returns true if the count of the ListRoleEndpoints invocations corresponds
+// MinimockGetRoleEndpointsDone returns true if the count of the GetRoleEndpoints invocations corresponds
 // the number of defined expectations
-func (m *AccessServiceMock) MinimockListRoleEndpointsDone() bool {
-	if m.ListRoleEndpointsMock.optional {
+func (m *AccessServiceMock) MinimockGetRoleEndpointsDone() bool {
+	if m.GetRoleEndpointsMock.optional {
 		// Optional methods provide '0 or more' call count restriction.
 		return true
 	}
 
-	for _, e := range m.ListRoleEndpointsMock.expectations {
+	for _, e := range m.GetRoleEndpointsMock.expectations {
 		if mm_atomic.LoadUint64(&e.Counter) < 1 {
 			return false
 		}
 	}
 
-	return m.ListRoleEndpointsMock.invocationsDone()
+	return m.GetRoleEndpointsMock.invocationsDone()
 }
 
-// MinimockListRoleEndpointsInspect logs each unmet expectation
-func (m *AccessServiceMock) MinimockListRoleEndpointsInspect() {
-	for _, e := range m.ListRoleEndpointsMock.expectations {
+// MinimockGetRoleEndpointsInspect logs each unmet expectation
+func (m *AccessServiceMock) MinimockGetRoleEndpointsInspect() {
+	for _, e := range m.GetRoleEndpointsMock.expectations {
 		if mm_atomic.LoadUint64(&e.Counter) < 1 {
-			m.t.Errorf("Expected call to AccessServiceMock.ListRoleEndpoints at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+			m.t.Errorf("Expected call to AccessServiceMock.GetRoleEndpoints at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
 		}
 	}
 
-	afterListRoleEndpointsCounter := mm_atomic.LoadUint64(&m.afterListRoleEndpointsCounter)
+	afterGetRoleEndpointsCounter := mm_atomic.LoadUint64(&m.afterGetRoleEndpointsCounter)
 	// if default expectation was set then invocations count should be greater than zero
-	if m.ListRoleEndpointsMock.defaultExpectation != nil && afterListRoleEndpointsCounter < 1 {
-		if m.ListRoleEndpointsMock.defaultExpectation.params == nil {
-			m.t.Errorf("Expected call to AccessServiceMock.ListRoleEndpoints at\n%s", m.ListRoleEndpointsMock.defaultExpectation.returnOrigin)
+	if m.GetRoleEndpointsMock.defaultExpectation != nil && afterGetRoleEndpointsCounter < 1 {
+		if m.GetRoleEndpointsMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to AccessServiceMock.GetRoleEndpoints at\n%s", m.GetRoleEndpointsMock.defaultExpectation.returnOrigin)
 		} else {
-			m.t.Errorf("Expected call to AccessServiceMock.ListRoleEndpoints at\n%s with params: %#v", m.ListRoleEndpointsMock.defaultExpectation.expectationOrigins.origin, *m.ListRoleEndpointsMock.defaultExpectation.params)
+			m.t.Errorf("Expected call to AccessServiceMock.GetRoleEndpoints at\n%s with params: %#v", m.GetRoleEndpointsMock.defaultExpectation.expectationOrigins.origin, *m.GetRoleEndpointsMock.defaultExpectation.params)
 		}
 	}
 	// if func was set then invocations count should be greater than zero
-	if m.funcListRoleEndpoints != nil && afterListRoleEndpointsCounter < 1 {
-		m.t.Errorf("Expected call to AccessServiceMock.ListRoleEndpoints at\n%s", m.funcListRoleEndpointsOrigin)
+	if m.funcGetRoleEndpoints != nil && afterGetRoleEndpointsCounter < 1 {
+		m.t.Errorf("Expected call to AccessServiceMock.GetRoleEndpoints at\n%s", m.funcGetRoleEndpointsOrigin)
 	}
 
-	if !m.ListRoleEndpointsMock.invocationsDone() && afterListRoleEndpointsCounter > 0 {
-		m.t.Errorf("Expected %d calls to AccessServiceMock.ListRoleEndpoints at\n%s but found %d calls",
-			mm_atomic.LoadUint64(&m.ListRoleEndpointsMock.expectedInvocations), m.ListRoleEndpointsMock.expectedInvocationsOrigin, afterListRoleEndpointsCounter)
+	if !m.GetRoleEndpointsMock.invocationsDone() && afterGetRoleEndpointsCounter > 0 {
+		m.t.Errorf("Expected %d calls to AccessServiceMock.GetRoleEndpoints at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.GetRoleEndpointsMock.expectedInvocations), m.GetRoleEndpointsMock.expectedInvocationsOrigin, afterGetRoleEndpointsCounter)
 	}
 }
 
@@ -1833,7 +1833,7 @@ func (m *AccessServiceMock) MinimockFinish() {
 
 			m.MinimockDeleteRoleEndpointInspect()
 
-			m.MinimockListRoleEndpointsInspect()
+			m.MinimockGetRoleEndpointsInspect()
 
 			m.MinimockUpdateRoleEndpointInspect()
 		}
@@ -1862,6 +1862,6 @@ func (m *AccessServiceMock) minimockDone() bool {
 		m.MinimockAddRoleEndpointDone() &&
 		m.MinimockCheckDone() &&
 		m.MinimockDeleteRoleEndpointDone() &&
-		m.MinimockListRoleEndpointsDone() &&
+		m.MinimockGetRoleEndpointsDone() &&
 		m.MinimockUpdateRoleEndpointDone()
 }

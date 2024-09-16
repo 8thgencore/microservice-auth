@@ -234,7 +234,7 @@ func (x *DeleteRoleEndpointRequest) GetEndpoint() string {
 	return ""
 }
 
-type ListRoleEndpointsResponse struct {
+type GetRoleEndpointsResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -243,8 +243,8 @@ type ListRoleEndpointsResponse struct {
 	EndpointPermissions []*EndpointPermissions `protobuf:"bytes,1,rep,name=endpoint_permissions,json=endpointPermissions,proto3" json:"endpoint_permissions,omitempty"`
 }
 
-func (x *ListRoleEndpointsResponse) Reset() {
-	*x = ListRoleEndpointsResponse{}
+func (x *GetRoleEndpointsResponse) Reset() {
+	*x = GetRoleEndpointsResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_access_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -252,13 +252,13 @@ func (x *ListRoleEndpointsResponse) Reset() {
 	}
 }
 
-func (x *ListRoleEndpointsResponse) String() string {
+func (x *GetRoleEndpointsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListRoleEndpointsResponse) ProtoMessage() {}
+func (*GetRoleEndpointsResponse) ProtoMessage() {}
 
-func (x *ListRoleEndpointsResponse) ProtoReflect() protoreflect.Message {
+func (x *GetRoleEndpointsResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_access_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -270,12 +270,12 @@ func (x *ListRoleEndpointsResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListRoleEndpointsResponse.ProtoReflect.Descriptor instead.
-func (*ListRoleEndpointsResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetRoleEndpointsResponse.ProtoReflect.Descriptor instead.
+func (*GetRoleEndpointsResponse) Descriptor() ([]byte, []int) {
 	return file_access_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *ListRoleEndpointsResponse) GetEndpointPermissions() []*EndpointPermissions {
+func (x *GetRoleEndpointsResponse) GetEndpointPermissions() []*EndpointPermissions {
 	if x != nil {
 		return x.EndpointPermissions
 	}
@@ -455,7 +455,7 @@ var file_access_proto_goTypes = []any{
 	(*AddRoleEndpointRequest)(nil),    // 1: access_v1.AddRoleEndpointRequest
 	(*UpdateRoleEndpointRequest)(nil), // 2: access_v1.UpdateRoleEndpointRequest
 	(*DeleteRoleEndpointRequest)(nil), // 3: access_v1.DeleteRoleEndpointRequest
-	(*ListRoleEndpointsResponse)(nil), // 4: access_v1.ListRoleEndpointsResponse
+	(*GetRoleEndpointsResponse)(nil), // 4: access_v1.GetRoleEndpointsResponse
 	(*EndpointPermissions)(nil),       // 5: access_v1.EndpointPermissions
 	(v1.Role)(0),                      // 6: user_v1.Role
 	(*emptypb.Empty)(nil),             // 7: google.protobuf.Empty
@@ -463,18 +463,18 @@ var file_access_proto_goTypes = []any{
 var file_access_proto_depIdxs = []int32{
 	6, // 0: access_v1.AddRoleEndpointRequest.allowed_roles:type_name -> user_v1.Role
 	6, // 1: access_v1.UpdateRoleEndpointRequest.allowed_roles:type_name -> user_v1.Role
-	5, // 2: access_v1.ListRoleEndpointsResponse.endpoint_permissions:type_name -> access_v1.EndpointPermissions
+	5, // 2: access_v1.GetRoleEndpointsResponse.endpoint_permissions:type_name -> access_v1.EndpointPermissions
 	6, // 3: access_v1.EndpointPermissions.allowed_roles:type_name -> user_v1.Role
 	0, // 4: access_v1.AccessV1.Check:input_type -> access_v1.CheckRequest
 	1, // 5: access_v1.AccessV1.AddRoleEndpoint:input_type -> access_v1.AddRoleEndpointRequest
 	2, // 6: access_v1.AccessV1.UpdateRoleEndpoint:input_type -> access_v1.UpdateRoleEndpointRequest
 	3, // 7: access_v1.AccessV1.DeleteRoleEndpoint:input_type -> access_v1.DeleteRoleEndpointRequest
-	7, // 8: access_v1.AccessV1.ListRoleEndpoints:input_type -> google.protobuf.Empty
+	7, // 8: access_v1.AccessV1.GetRoleEndpoints:input_type -> google.protobuf.Empty
 	7, // 9: access_v1.AccessV1.Check:output_type -> google.protobuf.Empty
 	7, // 10: access_v1.AccessV1.AddRoleEndpoint:output_type -> google.protobuf.Empty
 	7, // 11: access_v1.AccessV1.UpdateRoleEndpoint:output_type -> google.protobuf.Empty
 	7, // 12: access_v1.AccessV1.DeleteRoleEndpoint:output_type -> google.protobuf.Empty
-	4, // 13: access_v1.AccessV1.ListRoleEndpoints:output_type -> access_v1.ListRoleEndpointsResponse
+	4, // 13: access_v1.AccessV1.GetRoleEndpoints:output_type -> access_v1.GetRoleEndpointsResponse
 	9, // [9:14] is the sub-list for method output_type
 	4, // [4:9] is the sub-list for method input_type
 	4, // [4:4] is the sub-list for extension type_name
@@ -537,7 +537,7 @@ func file_access_proto_init() {
 			}
 		}
 		file_access_proto_msgTypes[4].Exporter = func(v any, i int) any {
-			switch v := v.(*ListRoleEndpointsResponse); i {
+			switch v := v.(*GetRoleEndpointsResponse); i {
 			case 0:
 				return &v.state
 			case 1:

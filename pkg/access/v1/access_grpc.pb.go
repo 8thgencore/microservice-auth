@@ -24,7 +24,7 @@ const (
 	AccessV1_AddRoleEndpoint_FullMethodName    = "/access_v1.AccessV1/AddRoleEndpoint"
 	AccessV1_UpdateRoleEndpoint_FullMethodName = "/access_v1.AccessV1/UpdateRoleEndpoint"
 	AccessV1_DeleteRoleEndpoint_FullMethodName = "/access_v1.AccessV1/DeleteRoleEndpoint"
-	AccessV1_ListRoleEndpoints_FullMethodName  = "/access_v1.AccessV1/ListRoleEndpoints"
+	AccessV1_GetRoleEndpoints_FullMethodName  = "/access_v1.AccessV1/GetRoleEndpoints"
 )
 
 // AccessV1Client is the client API for AccessV1 service.
@@ -40,7 +40,7 @@ type AccessV1Client interface {
 	// Delete an existing endpoint permission.
 	DeleteRoleEndpoint(ctx context.Context, in *DeleteRoleEndpointRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// List all endpoints and their allowed roles.
-	ListRoleEndpoints(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListRoleEndpointsResponse, error)
+	GetRoleEndpoints(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetRoleEndpointsResponse, error)
 }
 
 type accessV1Client struct {
@@ -91,10 +91,10 @@ func (c *accessV1Client) DeleteRoleEndpoint(ctx context.Context, in *DeleteRoleE
 	return out, nil
 }
 
-func (c *accessV1Client) ListRoleEndpoints(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListRoleEndpointsResponse, error) {
+func (c *accessV1Client) GetRoleEndpoints(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetRoleEndpointsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListRoleEndpointsResponse)
-	err := c.cc.Invoke(ctx, AccessV1_ListRoleEndpoints_FullMethodName, in, out, cOpts...)
+	out := new(GetRoleEndpointsResponse)
+	err := c.cc.Invoke(ctx, AccessV1_GetRoleEndpoints_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ type AccessV1Server interface {
 	// Delete an existing endpoint permission.
 	DeleteRoleEndpoint(context.Context, *DeleteRoleEndpointRequest) (*emptypb.Empty, error)
 	// List all endpoints and their allowed roles.
-	ListRoleEndpoints(context.Context, *emptypb.Empty) (*ListRoleEndpointsResponse, error)
+	GetRoleEndpoints(context.Context, *emptypb.Empty) (*GetRoleEndpointsResponse, error)
 	mustEmbedUnimplementedAccessV1Server()
 }
 
@@ -137,8 +137,8 @@ func (UnimplementedAccessV1Server) UpdateRoleEndpoint(context.Context, *UpdateRo
 func (UnimplementedAccessV1Server) DeleteRoleEndpoint(context.Context, *DeleteRoleEndpointRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteRoleEndpoint not implemented")
 }
-func (UnimplementedAccessV1Server) ListRoleEndpoints(context.Context, *emptypb.Empty) (*ListRoleEndpointsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListRoleEndpoints not implemented")
+func (UnimplementedAccessV1Server) GetRoleEndpoints(context.Context, *emptypb.Empty) (*GetRoleEndpointsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRoleEndpoints not implemented")
 }
 func (UnimplementedAccessV1Server) mustEmbedUnimplementedAccessV1Server() {}
 func (UnimplementedAccessV1Server) testEmbeddedByValue()                  {}
@@ -233,20 +233,20 @@ func _AccessV1_DeleteRoleEndpoint_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AccessV1_ListRoleEndpoints_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AccessV1_GetRoleEndpoints_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AccessV1Server).ListRoleEndpoints(ctx, in)
+		return srv.(AccessV1Server).GetRoleEndpoints(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AccessV1_ListRoleEndpoints_FullMethodName,
+		FullMethod: AccessV1_GetRoleEndpoints_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccessV1Server).ListRoleEndpoints(ctx, req.(*emptypb.Empty))
+		return srv.(AccessV1Server).GetRoleEndpoints(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -275,8 +275,8 @@ var AccessV1_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AccessV1_DeleteRoleEndpoint_Handler,
 		},
 		{
-			MethodName: "ListRoleEndpoints",
-			Handler:    _AccessV1_ListRoleEndpoints_Handler,
+			MethodName: "GetRoleEndpoints",
+			Handler:    _AccessV1_GetRoleEndpoints_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
