@@ -76,6 +76,7 @@ func (t *tokenOperations) VerifyAccessToken(tokenStr string, secretKey []byte) (
 			if token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Method.Alg())
 			}
+
 			return secretKey, nil
 		},
 	)
@@ -104,6 +105,7 @@ func (t *tokenOperations) VerifyRefreshToken(tokenStr string, secretKey []byte) 
 			if token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Method.Alg())
 			}
+
 			return secretKey, nil
 		},
 	)

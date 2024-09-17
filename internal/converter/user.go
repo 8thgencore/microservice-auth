@@ -91,5 +91,6 @@ func ToRoleEnumsAPI(roleStrings []string) []userv1.Role {
 			roles = append(roles, userv1.Role(val))
 		}
 	}
+
 	return roles
 }

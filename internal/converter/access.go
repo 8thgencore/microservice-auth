@@ -11,6 +11,7 @@ func ToEndpointPermissionsMap(endpointPermissions []*model.EndpointPermissions) 
 	for _, e := range endpointPermissions {
 		res[e.Endpoint] = e.Roles
 	}
+
 	return res
 }
 

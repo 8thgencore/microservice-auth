@@ -14,6 +14,12 @@ import (
 const (
 	authMetadataHeader = "authorization"
 	authPrefix         = "Bearer "
+
+	// Constants for service endpoints
+	getRoleEndpointsEndpoint   = "/access_v1.AccessV1/GetRoleEndpoints"
+	addRoleEndpointEndpoint    = "/access_v1.AccessV1/AddRoleEndpoint"
+	updateRoleEndpointEndpoint = "/access_v1.AccessV1/UpdateRoleEndpoint"
+	deleteRoleEndpointEndpoint = "/access_v1.AccessV1/DeleteRoleEndpoint"
 )
 
 var (
@@ -68,7 +74,7 @@ func (s *accessService) Check(ctx context.Context, endpoint string) error {
 
 // GetRoleEndpoints retrieves the list of resources after verifying access permissions.
 func (s *accessService) GetRoleEndpoints(ctx context.Context) ([]*model.EndpointPermissions, error) {
-	err := s.Check(ctx, "/access_v1.AccessV1/GetRoleEndpoints")
+	err := s.Check(ctx, getRoleEndpointsEndpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +89,7 @@ func (s *accessService) GetRoleEndpoints(ctx context.Context) ([]*model.Endpoint
 
 // AddRoleEndpoint adds a new resource after verifying access permissions.
 func (s *accessService) AddRoleEndpoint(ctx context.Context, endpoint string, roles []string) error {
-	err := s.Check(ctx, "/access_v1.AccessV1/AddRoleEndpoint")
+	err := s.Check(ctx, addRoleEndpointEndpoint)
 	if err != nil {
 		return err
 	}
@@ -97,12 +103,13 @@ func (s *accessService) AddRoleEndpoint(ctx context.Context, endpoint string, ro
 	defer s.rolesMutex.Unlock()
 
 	s.accessibleRoles[endpoint] = roles
+
 	return nil
 }
 
 // UpdateRoleEndpoint edits an existing resource after verifying access permissions.
 func (s *accessService) UpdateRoleEndpoint(ctx context.Context, endpoint string, roles []string) error {
-	err := s.Check(ctx, "/access_v1.AccessV1/UpdateRoleEndpoint")
+	err := s.Check(ctx, updateRoleEndpointEndpoint)
 	if err != nil {
 		return err
 	}
@@ -116,12 +123,13 @@ func (s *accessService) UpdateRoleEndpoint(ctx context.Context, endpoint string,
 	defer s.rolesMutex.Unlock()
 
 	s.accessibleRoles[endpoint] = roles
+
 	return nil
 }
 
 // DeleteRoleEndpoint deletes a resource after verifying access permissions.
 func (s *accessService) DeleteRoleEndpoint(ctx context.Context, endpoint string) error {
-	err := s.Check(ctx, "/access_v1.AccessV1/DeleteRoleEndpoint")
+	err := s.Check(ctx, deleteRoleEndpointEndpoint)
 	if err != nil {
 		return err
 	}
@@ -135,6 +143,7 @@ func (s *accessService) DeleteRoleEndpoint(ctx context.Context, endpoint string)
 	defer s.rolesMutex.Unlock()
 
 	delete(s.accessibleRoles, endpoint)
+
 	return nil
 }
 

@@ -37,6 +37,7 @@ func (r *repo) IsTokenRevoked(ctx context.Context, refreshToken string) (bool, e
 		if string(err.Error()) == "key not found" {
 			return false, nil
 		}
+
 		return false, err
 	}
 

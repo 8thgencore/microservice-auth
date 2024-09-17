@@ -188,6 +188,7 @@ func TestLogin(t *testing.T) {
 				mock.GenerateRefreshTokenMock.
 					Expect(user.ID, []byte(secretKey), jwtConfig.RefreshTokenTTL).
 					Return("", ErrTokenGeneration)
+
 				return mock
 			},
 		},
@@ -218,6 +219,7 @@ func TestLogin(t *testing.T) {
 				mock.GenerateRefreshTokenMock.
 					Expect(user.ID, []byte(secretKey), jwtConfig.RefreshTokenTTL).
 					Return(refreshToken, nil)
+
 				return mock
 			},
 		},
@@ -301,6 +303,7 @@ func TestGetAccessToken(t *testing.T) {
 				mock.GenerateAccessTokenMock.
 					Expect(user, []byte(secretKey), jwtConfig.AccessTokenTTL).
 					Return(accessToken, nil)
+
 				return mock
 			},
 		},
@@ -423,6 +426,7 @@ func TestGetAccessToken(t *testing.T) {
 				mock.GenerateAccessTokenMock.
 					Expect(user, []byte(secretKey), jwtConfig.AccessTokenTTL).
 					Return("", ErrTokenGeneration)
+
 				return mock
 			},
 		},
@@ -504,6 +508,7 @@ func TestGetRefreshToken(t *testing.T) {
 				mock.GenerateRefreshTokenMock.
 					Expect(user.ID, []byte(secretKey), jwtConfig.RefreshTokenTTL).
 					Return(refreshToken, nil)
+
 				return mock
 			},
 		},
@@ -575,6 +580,7 @@ func TestGetRefreshToken(t *testing.T) {
 				mock.GenerateRefreshTokenMock.
 					Expect(user.ID, []byte(secretKey), jwtConfig.RefreshTokenTTL).
 					Return("", ErrTokenGeneration)
+
 				return mock
 			},
 		},
@@ -602,6 +608,7 @@ func TestGetRefreshToken(t *testing.T) {
 				mock.GenerateRefreshTokenMock.
 					Expect(user.ID, []byte(secretKey), jwtConfig.RefreshTokenTTL).
 					Return(refreshToken, nil)
+
 				return mock
 			},
 		},

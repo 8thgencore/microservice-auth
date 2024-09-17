@@ -107,6 +107,7 @@ func (s *ServiceProvider) AuthService(ctx context.Context) service.AuthService {
 			s.Config.JWT,
 		)
 	}
+
 	return s.authService
 }
 
@@ -124,6 +125,7 @@ func (s *ServiceProvider) AccessService(ctx context.Context) service.AccessServi
 			logger.Fatal("failed to run access service: ", zap.Error(err))
 		}
 	}
+
 	return s.accessService
 }
 
