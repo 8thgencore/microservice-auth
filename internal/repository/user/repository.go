@@ -71,6 +71,7 @@ func (r *repo) Create(ctx context.Context, user *model.UserCreate) (int64, error
 				return 0, userService.ErrUserEmailExists
 			}
 		}
+
 		return 0, err
 	}
 
@@ -100,6 +101,7 @@ func (r *repo) Get(ctx context.Context, id int64) (*model.User, error) {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, userService.ErrUserNotFound
 		}
+
 		return nil, err
 	}
 
@@ -196,6 +198,7 @@ func (r *repo) GetAuthInfo(ctx context.Context, username string) (*model.AuthInf
 		if err == pgx.ErrNoRows {
 			return nil, err
 		}
+
 		return nil, err
 	}
 

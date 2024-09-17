@@ -20,5 +20,6 @@ func LogInterceptor(
 	if err != nil {
 		logger.Error(err.Error(), zap.String("method", info.FullMethod), zap.Any("req", req))
 	}
+
 	return res, err
 }

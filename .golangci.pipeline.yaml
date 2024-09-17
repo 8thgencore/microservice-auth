@@ -20,6 +20,11 @@ linters-settings:
     min-occurrences: 2
   lll:
     line-length: 120 
+  nlreturn:
+    # Size of the block (including return statement that is still "OK")
+    # so no return split required.
+    # Default: 1
+    block-size: 5
 
 linters:
   disable-all: true
@@ -33,6 +38,7 @@ linters:
     - govet
     - ineffassign
     - lll
+    - nlreturn
     - revive
     - staticcheck
     - stylecheck

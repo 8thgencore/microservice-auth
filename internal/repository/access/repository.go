@@ -100,6 +100,7 @@ func (r *repo) UpdateRoleEndpoint(ctx context.Context, endpoint string, allowedR
 	}
 
 	_, err = r.db.DB().ExecContext(ctx, q, args...)
+
 	return err
 }
 
@@ -119,5 +120,6 @@ func (r *repo) DeleteRoleEndpoint(ctx context.Context, endpoint string) error {
 	}
 
 	_, err = r.db.DB().ExecContext(ctx, q, args...)
+
 	return err
 }
