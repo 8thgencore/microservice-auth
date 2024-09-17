@@ -138,5 +138,6 @@ func (s *authService) validateRefreshToken(refreshToken string) error {
 	if revoked {
 		return ErrInvalidRefresh
 	}
+
 	return nil
 }

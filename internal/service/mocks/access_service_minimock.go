@@ -8,6 +8,7 @@ import (
 	mm_atomic "sync/atomic"
 	mm_time "time"
 
+	"github.com/8thgencore/microservice-auth/internal/model"
 	"github.com/gojuno/minimock/v3"
 )
 
@@ -16,12 +17,40 @@ type AccessServiceMock struct {
 	t          minimock.Tester
 	finishOnce sync.Once
 
+	funcAddRoleEndpoint          func(ctx context.Context, endpoint string, roles []string) (err error)
+	funcAddRoleEndpointOrigin    string
+	inspectFuncAddRoleEndpoint   func(ctx context.Context, endpoint string, roles []string)
+	afterAddRoleEndpointCounter  uint64
+	beforeAddRoleEndpointCounter uint64
+	AddRoleEndpointMock          mAccessServiceMockAddRoleEndpoint
+
 	funcCheck          func(ctx context.Context, endpoint string) (err error)
 	funcCheckOrigin    string
 	inspectFuncCheck   func(ctx context.Context, endpoint string)
 	afterCheckCounter  uint64
 	beforeCheckCounter uint64
 	CheckMock          mAccessServiceMockCheck
+
+	funcDeleteRoleEndpoint          func(ctx context.Context, endpoint string) (err error)
+	funcDeleteRoleEndpointOrigin    string
+	inspectFuncDeleteRoleEndpoint   func(ctx context.Context, endpoint string)
+	afterDeleteRoleEndpointCounter  uint64
+	beforeDeleteRoleEndpointCounter uint64
+	DeleteRoleEndpointMock          mAccessServiceMockDeleteRoleEndpoint
+
+	funcGetRoleEndpoints          func(ctx context.Context) (epa1 []*model.EndpointPermissions, err error)
+	funcGetRoleEndpointsOrigin    string
+	inspectFuncGetRoleEndpoints   func(ctx context.Context)
+	afterGetRoleEndpointsCounter  uint64
+	beforeGetRoleEndpointsCounter uint64
+	GetRoleEndpointsMock          mAccessServiceMockGetRoleEndpoints
+
+	funcUpdateRoleEndpoint          func(ctx context.Context, endpoint string, roles []string) (err error)
+	funcUpdateRoleEndpointOrigin    string
+	inspectFuncUpdateRoleEndpoint   func(ctx context.Context, endpoint string, roles []string)
+	afterUpdateRoleEndpointCounter  uint64
+	beforeUpdateRoleEndpointCounter uint64
+	UpdateRoleEndpointMock          mAccessServiceMockUpdateRoleEndpoint
 }
 
 // NewAccessServiceMock returns a mock for mm_service.AccessService
@@ -32,12 +61,397 @@ func NewAccessServiceMock(t minimock.Tester) *AccessServiceMock {
 		controller.RegisterMocker(m)
 	}
 
+	m.AddRoleEndpointMock = mAccessServiceMockAddRoleEndpoint{mock: m}
+	m.AddRoleEndpointMock.callArgs = []*AccessServiceMockAddRoleEndpointParams{}
+
 	m.CheckMock = mAccessServiceMockCheck{mock: m}
 	m.CheckMock.callArgs = []*AccessServiceMockCheckParams{}
+
+	m.DeleteRoleEndpointMock = mAccessServiceMockDeleteRoleEndpoint{mock: m}
+	m.DeleteRoleEndpointMock.callArgs = []*AccessServiceMockDeleteRoleEndpointParams{}
+
+	m.GetRoleEndpointsMock = mAccessServiceMockGetRoleEndpoints{mock: m}
+	m.GetRoleEndpointsMock.callArgs = []*AccessServiceMockGetRoleEndpointsParams{}
+
+	m.UpdateRoleEndpointMock = mAccessServiceMockUpdateRoleEndpoint{mock: m}
+	m.UpdateRoleEndpointMock.callArgs = []*AccessServiceMockUpdateRoleEndpointParams{}
 
 	t.Cleanup(m.MinimockFinish)
 
 	return m
+}
+
+type mAccessServiceMockAddRoleEndpoint struct {
+	optional           bool
+	mock               *AccessServiceMock
+	defaultExpectation *AccessServiceMockAddRoleEndpointExpectation
+	expectations       []*AccessServiceMockAddRoleEndpointExpectation
+
+	callArgs []*AccessServiceMockAddRoleEndpointParams
+	mutex    sync.RWMutex
+
+	expectedInvocations       uint64
+	expectedInvocationsOrigin string
+}
+
+// AccessServiceMockAddRoleEndpointExpectation specifies expectation struct of the AccessService.AddRoleEndpoint
+type AccessServiceMockAddRoleEndpointExpectation struct {
+	mock               *AccessServiceMock
+	params             *AccessServiceMockAddRoleEndpointParams
+	paramPtrs          *AccessServiceMockAddRoleEndpointParamPtrs
+	expectationOrigins AccessServiceMockAddRoleEndpointExpectationOrigins
+	results            *AccessServiceMockAddRoleEndpointResults
+	returnOrigin       string
+	Counter            uint64
+}
+
+// AccessServiceMockAddRoleEndpointParams contains parameters of the AccessService.AddRoleEndpoint
+type AccessServiceMockAddRoleEndpointParams struct {
+	ctx      context.Context
+	endpoint string
+	roles    []string
+}
+
+// AccessServiceMockAddRoleEndpointParamPtrs contains pointers to parameters of the AccessService.AddRoleEndpoint
+type AccessServiceMockAddRoleEndpointParamPtrs struct {
+	ctx      *context.Context
+	endpoint *string
+	roles    *[]string
+}
+
+// AccessServiceMockAddRoleEndpointResults contains results of the AccessService.AddRoleEndpoint
+type AccessServiceMockAddRoleEndpointResults struct {
+	err error
+}
+
+// AccessServiceMockAddRoleEndpointOrigins contains origins of expectations of the AccessService.AddRoleEndpoint
+type AccessServiceMockAddRoleEndpointExpectationOrigins struct {
+	origin         string
+	originCtx      string
+	originEndpoint string
+	originRoles    string
+}
+
+// Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
+// the test will fail minimock's automatic final call check if the mocked method was not called at least once.
+// Optional() makes method check to work in '0 or more' mode.
+// It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
+// catch the problems when the expected method call is totally skipped during test run.
+func (mmAddRoleEndpoint *mAccessServiceMockAddRoleEndpoint) Optional() *mAccessServiceMockAddRoleEndpoint {
+	mmAddRoleEndpoint.optional = true
+	return mmAddRoleEndpoint
+}
+
+// Expect sets up expected params for AccessService.AddRoleEndpoint
+func (mmAddRoleEndpoint *mAccessServiceMockAddRoleEndpoint) Expect(ctx context.Context, endpoint string, roles []string) *mAccessServiceMockAddRoleEndpoint {
+	if mmAddRoleEndpoint.mock.funcAddRoleEndpoint != nil {
+		mmAddRoleEndpoint.mock.t.Fatalf("AccessServiceMock.AddRoleEndpoint mock is already set by Set")
+	}
+
+	if mmAddRoleEndpoint.defaultExpectation == nil {
+		mmAddRoleEndpoint.defaultExpectation = &AccessServiceMockAddRoleEndpointExpectation{}
+	}
+
+	if mmAddRoleEndpoint.defaultExpectation.paramPtrs != nil {
+		mmAddRoleEndpoint.mock.t.Fatalf("AccessServiceMock.AddRoleEndpoint mock is already set by ExpectParams functions")
+	}
+
+	mmAddRoleEndpoint.defaultExpectation.params = &AccessServiceMockAddRoleEndpointParams{ctx, endpoint, roles}
+	mmAddRoleEndpoint.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmAddRoleEndpoint.expectations {
+		if minimock.Equal(e.params, mmAddRoleEndpoint.defaultExpectation.params) {
+			mmAddRoleEndpoint.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmAddRoleEndpoint.defaultExpectation.params)
+		}
+	}
+
+	return mmAddRoleEndpoint
+}
+
+// ExpectCtxParam1 sets up expected param ctx for AccessService.AddRoleEndpoint
+func (mmAddRoleEndpoint *mAccessServiceMockAddRoleEndpoint) ExpectCtxParam1(ctx context.Context) *mAccessServiceMockAddRoleEndpoint {
+	if mmAddRoleEndpoint.mock.funcAddRoleEndpoint != nil {
+		mmAddRoleEndpoint.mock.t.Fatalf("AccessServiceMock.AddRoleEndpoint mock is already set by Set")
+	}
+
+	if mmAddRoleEndpoint.defaultExpectation == nil {
+		mmAddRoleEndpoint.defaultExpectation = &AccessServiceMockAddRoleEndpointExpectation{}
+	}
+
+	if mmAddRoleEndpoint.defaultExpectation.params != nil {
+		mmAddRoleEndpoint.mock.t.Fatalf("AccessServiceMock.AddRoleEndpoint mock is already set by Expect")
+	}
+
+	if mmAddRoleEndpoint.defaultExpectation.paramPtrs == nil {
+		mmAddRoleEndpoint.defaultExpectation.paramPtrs = &AccessServiceMockAddRoleEndpointParamPtrs{}
+	}
+	mmAddRoleEndpoint.defaultExpectation.paramPtrs.ctx = &ctx
+	mmAddRoleEndpoint.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
+
+	return mmAddRoleEndpoint
+}
+
+// ExpectEndpointParam2 sets up expected param endpoint for AccessService.AddRoleEndpoint
+func (mmAddRoleEndpoint *mAccessServiceMockAddRoleEndpoint) ExpectEndpointParam2(endpoint string) *mAccessServiceMockAddRoleEndpoint {
+	if mmAddRoleEndpoint.mock.funcAddRoleEndpoint != nil {
+		mmAddRoleEndpoint.mock.t.Fatalf("AccessServiceMock.AddRoleEndpoint mock is already set by Set")
+	}
+
+	if mmAddRoleEndpoint.defaultExpectation == nil {
+		mmAddRoleEndpoint.defaultExpectation = &AccessServiceMockAddRoleEndpointExpectation{}
+	}
+
+	if mmAddRoleEndpoint.defaultExpectation.params != nil {
+		mmAddRoleEndpoint.mock.t.Fatalf("AccessServiceMock.AddRoleEndpoint mock is already set by Expect")
+	}
+
+	if mmAddRoleEndpoint.defaultExpectation.paramPtrs == nil {
+		mmAddRoleEndpoint.defaultExpectation.paramPtrs = &AccessServiceMockAddRoleEndpointParamPtrs{}
+	}
+	mmAddRoleEndpoint.defaultExpectation.paramPtrs.endpoint = &endpoint
+	mmAddRoleEndpoint.defaultExpectation.expectationOrigins.originEndpoint = minimock.CallerInfo(1)
+
+	return mmAddRoleEndpoint
+}
+
+// ExpectRolesParam3 sets up expected param roles for AccessService.AddRoleEndpoint
+func (mmAddRoleEndpoint *mAccessServiceMockAddRoleEndpoint) ExpectRolesParam3(roles []string) *mAccessServiceMockAddRoleEndpoint {
+	if mmAddRoleEndpoint.mock.funcAddRoleEndpoint != nil {
+		mmAddRoleEndpoint.mock.t.Fatalf("AccessServiceMock.AddRoleEndpoint mock is already set by Set")
+	}
+
+	if mmAddRoleEndpoint.defaultExpectation == nil {
+		mmAddRoleEndpoint.defaultExpectation = &AccessServiceMockAddRoleEndpointExpectation{}
+	}
+
+	if mmAddRoleEndpoint.defaultExpectation.params != nil {
+		mmAddRoleEndpoint.mock.t.Fatalf("AccessServiceMock.AddRoleEndpoint mock is already set by Expect")
+	}
+
+	if mmAddRoleEndpoint.defaultExpectation.paramPtrs == nil {
+		mmAddRoleEndpoint.defaultExpectation.paramPtrs = &AccessServiceMockAddRoleEndpointParamPtrs{}
+	}
+	mmAddRoleEndpoint.defaultExpectation.paramPtrs.roles = &roles
+	mmAddRoleEndpoint.defaultExpectation.expectationOrigins.originRoles = minimock.CallerInfo(1)
+
+	return mmAddRoleEndpoint
+}
+
+// Inspect accepts an inspector function that has same arguments as the AccessService.AddRoleEndpoint
+func (mmAddRoleEndpoint *mAccessServiceMockAddRoleEndpoint) Inspect(f func(ctx context.Context, endpoint string, roles []string)) *mAccessServiceMockAddRoleEndpoint {
+	if mmAddRoleEndpoint.mock.inspectFuncAddRoleEndpoint != nil {
+		mmAddRoleEndpoint.mock.t.Fatalf("Inspect function is already set for AccessServiceMock.AddRoleEndpoint")
+	}
+
+	mmAddRoleEndpoint.mock.inspectFuncAddRoleEndpoint = f
+
+	return mmAddRoleEndpoint
+}
+
+// Return sets up results that will be returned by AccessService.AddRoleEndpoint
+func (mmAddRoleEndpoint *mAccessServiceMockAddRoleEndpoint) Return(err error) *AccessServiceMock {
+	if mmAddRoleEndpoint.mock.funcAddRoleEndpoint != nil {
+		mmAddRoleEndpoint.mock.t.Fatalf("AccessServiceMock.AddRoleEndpoint mock is already set by Set")
+	}
+
+	if mmAddRoleEndpoint.defaultExpectation == nil {
+		mmAddRoleEndpoint.defaultExpectation = &AccessServiceMockAddRoleEndpointExpectation{mock: mmAddRoleEndpoint.mock}
+	}
+	mmAddRoleEndpoint.defaultExpectation.results = &AccessServiceMockAddRoleEndpointResults{err}
+	mmAddRoleEndpoint.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmAddRoleEndpoint.mock
+}
+
+// Set uses given function f to mock the AccessService.AddRoleEndpoint method
+func (mmAddRoleEndpoint *mAccessServiceMockAddRoleEndpoint) Set(f func(ctx context.Context, endpoint string, roles []string) (err error)) *AccessServiceMock {
+	if mmAddRoleEndpoint.defaultExpectation != nil {
+		mmAddRoleEndpoint.mock.t.Fatalf("Default expectation is already set for the AccessService.AddRoleEndpoint method")
+	}
+
+	if len(mmAddRoleEndpoint.expectations) > 0 {
+		mmAddRoleEndpoint.mock.t.Fatalf("Some expectations are already set for the AccessService.AddRoleEndpoint method")
+	}
+
+	mmAddRoleEndpoint.mock.funcAddRoleEndpoint = f
+	mmAddRoleEndpoint.mock.funcAddRoleEndpointOrigin = minimock.CallerInfo(1)
+	return mmAddRoleEndpoint.mock
+}
+
+// When sets expectation for the AccessService.AddRoleEndpoint which will trigger the result defined by the following
+// Then helper
+func (mmAddRoleEndpoint *mAccessServiceMockAddRoleEndpoint) When(ctx context.Context, endpoint string, roles []string) *AccessServiceMockAddRoleEndpointExpectation {
+	if mmAddRoleEndpoint.mock.funcAddRoleEndpoint != nil {
+		mmAddRoleEndpoint.mock.t.Fatalf("AccessServiceMock.AddRoleEndpoint mock is already set by Set")
+	}
+
+	expectation := &AccessServiceMockAddRoleEndpointExpectation{
+		mock:               mmAddRoleEndpoint.mock,
+		params:             &AccessServiceMockAddRoleEndpointParams{ctx, endpoint, roles},
+		expectationOrigins: AccessServiceMockAddRoleEndpointExpectationOrigins{origin: minimock.CallerInfo(1)},
+	}
+	mmAddRoleEndpoint.expectations = append(mmAddRoleEndpoint.expectations, expectation)
+	return expectation
+}
+
+// Then sets up AccessService.AddRoleEndpoint return parameters for the expectation previously defined by the When method
+func (e *AccessServiceMockAddRoleEndpointExpectation) Then(err error) *AccessServiceMock {
+	e.results = &AccessServiceMockAddRoleEndpointResults{err}
+	return e.mock
+}
+
+// Times sets number of times AccessService.AddRoleEndpoint should be invoked
+func (mmAddRoleEndpoint *mAccessServiceMockAddRoleEndpoint) Times(n uint64) *mAccessServiceMockAddRoleEndpoint {
+	if n == 0 {
+		mmAddRoleEndpoint.mock.t.Fatalf("Times of AccessServiceMock.AddRoleEndpoint mock can not be zero")
+	}
+	mm_atomic.StoreUint64(&mmAddRoleEndpoint.expectedInvocations, n)
+	mmAddRoleEndpoint.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmAddRoleEndpoint
+}
+
+func (mmAddRoleEndpoint *mAccessServiceMockAddRoleEndpoint) invocationsDone() bool {
+	if len(mmAddRoleEndpoint.expectations) == 0 && mmAddRoleEndpoint.defaultExpectation == nil && mmAddRoleEndpoint.mock.funcAddRoleEndpoint == nil {
+		return true
+	}
+
+	totalInvocations := mm_atomic.LoadUint64(&mmAddRoleEndpoint.mock.afterAddRoleEndpointCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmAddRoleEndpoint.expectedInvocations)
+
+	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
+}
+
+// AddRoleEndpoint implements mm_service.AccessService
+func (mmAddRoleEndpoint *AccessServiceMock) AddRoleEndpoint(ctx context.Context, endpoint string, roles []string) (err error) {
+	mm_atomic.AddUint64(&mmAddRoleEndpoint.beforeAddRoleEndpointCounter, 1)
+	defer mm_atomic.AddUint64(&mmAddRoleEndpoint.afterAddRoleEndpointCounter, 1)
+
+	mmAddRoleEndpoint.t.Helper()
+
+	if mmAddRoleEndpoint.inspectFuncAddRoleEndpoint != nil {
+		mmAddRoleEndpoint.inspectFuncAddRoleEndpoint(ctx, endpoint, roles)
+	}
+
+	mm_params := AccessServiceMockAddRoleEndpointParams{ctx, endpoint, roles}
+
+	// Record call args
+	mmAddRoleEndpoint.AddRoleEndpointMock.mutex.Lock()
+	mmAddRoleEndpoint.AddRoleEndpointMock.callArgs = append(mmAddRoleEndpoint.AddRoleEndpointMock.callArgs, &mm_params)
+	mmAddRoleEndpoint.AddRoleEndpointMock.mutex.Unlock()
+
+	for _, e := range mmAddRoleEndpoint.AddRoleEndpointMock.expectations {
+		if minimock.Equal(*e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.err
+		}
+	}
+
+	if mmAddRoleEndpoint.AddRoleEndpointMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmAddRoleEndpoint.AddRoleEndpointMock.defaultExpectation.Counter, 1)
+		mm_want := mmAddRoleEndpoint.AddRoleEndpointMock.defaultExpectation.params
+		mm_want_ptrs := mmAddRoleEndpoint.AddRoleEndpointMock.defaultExpectation.paramPtrs
+
+		mm_got := AccessServiceMockAddRoleEndpointParams{ctx, endpoint, roles}
+
+		if mm_want_ptrs != nil {
+
+			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
+				mmAddRoleEndpoint.t.Errorf("AccessServiceMock.AddRoleEndpoint got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmAddRoleEndpoint.AddRoleEndpointMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+			}
+
+			if mm_want_ptrs.endpoint != nil && !minimock.Equal(*mm_want_ptrs.endpoint, mm_got.endpoint) {
+				mmAddRoleEndpoint.t.Errorf("AccessServiceMock.AddRoleEndpoint got unexpected parameter endpoint, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmAddRoleEndpoint.AddRoleEndpointMock.defaultExpectation.expectationOrigins.originEndpoint, *mm_want_ptrs.endpoint, mm_got.endpoint, minimock.Diff(*mm_want_ptrs.endpoint, mm_got.endpoint))
+			}
+
+			if mm_want_ptrs.roles != nil && !minimock.Equal(*mm_want_ptrs.roles, mm_got.roles) {
+				mmAddRoleEndpoint.t.Errorf("AccessServiceMock.AddRoleEndpoint got unexpected parameter roles, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmAddRoleEndpoint.AddRoleEndpointMock.defaultExpectation.expectationOrigins.originRoles, *mm_want_ptrs.roles, mm_got.roles, minimock.Diff(*mm_want_ptrs.roles, mm_got.roles))
+			}
+
+		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmAddRoleEndpoint.t.Errorf("AccessServiceMock.AddRoleEndpoint got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmAddRoleEndpoint.AddRoleEndpointMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmAddRoleEndpoint.AddRoleEndpointMock.defaultExpectation.results
+		if mm_results == nil {
+			mmAddRoleEndpoint.t.Fatal("No results are set for the AccessServiceMock.AddRoleEndpoint")
+		}
+		return (*mm_results).err
+	}
+	if mmAddRoleEndpoint.funcAddRoleEndpoint != nil {
+		return mmAddRoleEndpoint.funcAddRoleEndpoint(ctx, endpoint, roles)
+	}
+	mmAddRoleEndpoint.t.Fatalf("Unexpected call to AccessServiceMock.AddRoleEndpoint. %v %v %v", ctx, endpoint, roles)
+	return
+}
+
+// AddRoleEndpointAfterCounter returns a count of finished AccessServiceMock.AddRoleEndpoint invocations
+func (mmAddRoleEndpoint *AccessServiceMock) AddRoleEndpointAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmAddRoleEndpoint.afterAddRoleEndpointCounter)
+}
+
+// AddRoleEndpointBeforeCounter returns a count of AccessServiceMock.AddRoleEndpoint invocations
+func (mmAddRoleEndpoint *AccessServiceMock) AddRoleEndpointBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmAddRoleEndpoint.beforeAddRoleEndpointCounter)
+}
+
+// Calls returns a list of arguments used in each call to AccessServiceMock.AddRoleEndpoint.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmAddRoleEndpoint *mAccessServiceMockAddRoleEndpoint) Calls() []*AccessServiceMockAddRoleEndpointParams {
+	mmAddRoleEndpoint.mutex.RLock()
+
+	argCopy := make([]*AccessServiceMockAddRoleEndpointParams, len(mmAddRoleEndpoint.callArgs))
+	copy(argCopy, mmAddRoleEndpoint.callArgs)
+
+	mmAddRoleEndpoint.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockAddRoleEndpointDone returns true if the count of the AddRoleEndpoint invocations corresponds
+// the number of defined expectations
+func (m *AccessServiceMock) MinimockAddRoleEndpointDone() bool {
+	if m.AddRoleEndpointMock.optional {
+		// Optional methods provide '0 or more' call count restriction.
+		return true
+	}
+
+	for _, e := range m.AddRoleEndpointMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	return m.AddRoleEndpointMock.invocationsDone()
+}
+
+// MinimockAddRoleEndpointInspect logs each unmet expectation
+func (m *AccessServiceMock) MinimockAddRoleEndpointInspect() {
+	for _, e := range m.AddRoleEndpointMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to AccessServiceMock.AddRoleEndpoint at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+		}
+	}
+
+	afterAddRoleEndpointCounter := mm_atomic.LoadUint64(&m.afterAddRoleEndpointCounter)
+	// if default expectation was set then invocations count should be greater than zero
+	if m.AddRoleEndpointMock.defaultExpectation != nil && afterAddRoleEndpointCounter < 1 {
+		if m.AddRoleEndpointMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to AccessServiceMock.AddRoleEndpoint at\n%s", m.AddRoleEndpointMock.defaultExpectation.returnOrigin)
+		} else {
+			m.t.Errorf("Expected call to AccessServiceMock.AddRoleEndpoint at\n%s with params: %#v", m.AddRoleEndpointMock.defaultExpectation.expectationOrigins.origin, *m.AddRoleEndpointMock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcAddRoleEndpoint != nil && afterAddRoleEndpointCounter < 1 {
+		m.t.Errorf("Expected call to AccessServiceMock.AddRoleEndpoint at\n%s", m.funcAddRoleEndpointOrigin)
+	}
+
+	if !m.AddRoleEndpointMock.invocationsDone() && afterAddRoleEndpointCounter > 0 {
+		m.t.Errorf("Expected %d calls to AccessServiceMock.AddRoleEndpoint at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.AddRoleEndpointMock.expectedInvocations), m.AddRoleEndpointMock.expectedInvocationsOrigin, afterAddRoleEndpointCounter)
+	}
 }
 
 type mAccessServiceMockCheck struct {
@@ -382,11 +796,1046 @@ func (m *AccessServiceMock) MinimockCheckInspect() {
 	}
 }
 
+type mAccessServiceMockDeleteRoleEndpoint struct {
+	optional           bool
+	mock               *AccessServiceMock
+	defaultExpectation *AccessServiceMockDeleteRoleEndpointExpectation
+	expectations       []*AccessServiceMockDeleteRoleEndpointExpectation
+
+	callArgs []*AccessServiceMockDeleteRoleEndpointParams
+	mutex    sync.RWMutex
+
+	expectedInvocations       uint64
+	expectedInvocationsOrigin string
+}
+
+// AccessServiceMockDeleteRoleEndpointExpectation specifies expectation struct of the AccessService.DeleteRoleEndpoint
+type AccessServiceMockDeleteRoleEndpointExpectation struct {
+	mock               *AccessServiceMock
+	params             *AccessServiceMockDeleteRoleEndpointParams
+	paramPtrs          *AccessServiceMockDeleteRoleEndpointParamPtrs
+	expectationOrigins AccessServiceMockDeleteRoleEndpointExpectationOrigins
+	results            *AccessServiceMockDeleteRoleEndpointResults
+	returnOrigin       string
+	Counter            uint64
+}
+
+// AccessServiceMockDeleteRoleEndpointParams contains parameters of the AccessService.DeleteRoleEndpoint
+type AccessServiceMockDeleteRoleEndpointParams struct {
+	ctx      context.Context
+	endpoint string
+}
+
+// AccessServiceMockDeleteRoleEndpointParamPtrs contains pointers to parameters of the AccessService.DeleteRoleEndpoint
+type AccessServiceMockDeleteRoleEndpointParamPtrs struct {
+	ctx      *context.Context
+	endpoint *string
+}
+
+// AccessServiceMockDeleteRoleEndpointResults contains results of the AccessService.DeleteRoleEndpoint
+type AccessServiceMockDeleteRoleEndpointResults struct {
+	err error
+}
+
+// AccessServiceMockDeleteRoleEndpointOrigins contains origins of expectations of the AccessService.DeleteRoleEndpoint
+type AccessServiceMockDeleteRoleEndpointExpectationOrigins struct {
+	origin         string
+	originCtx      string
+	originEndpoint string
+}
+
+// Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
+// the test will fail minimock's automatic final call check if the mocked method was not called at least once.
+// Optional() makes method check to work in '0 or more' mode.
+// It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
+// catch the problems when the expected method call is totally skipped during test run.
+func (mmDeleteRoleEndpoint *mAccessServiceMockDeleteRoleEndpoint) Optional() *mAccessServiceMockDeleteRoleEndpoint {
+	mmDeleteRoleEndpoint.optional = true
+	return mmDeleteRoleEndpoint
+}
+
+// Expect sets up expected params for AccessService.DeleteRoleEndpoint
+func (mmDeleteRoleEndpoint *mAccessServiceMockDeleteRoleEndpoint) Expect(ctx context.Context, endpoint string) *mAccessServiceMockDeleteRoleEndpoint {
+	if mmDeleteRoleEndpoint.mock.funcDeleteRoleEndpoint != nil {
+		mmDeleteRoleEndpoint.mock.t.Fatalf("AccessServiceMock.DeleteRoleEndpoint mock is already set by Set")
+	}
+
+	if mmDeleteRoleEndpoint.defaultExpectation == nil {
+		mmDeleteRoleEndpoint.defaultExpectation = &AccessServiceMockDeleteRoleEndpointExpectation{}
+	}
+
+	if mmDeleteRoleEndpoint.defaultExpectation.paramPtrs != nil {
+		mmDeleteRoleEndpoint.mock.t.Fatalf("AccessServiceMock.DeleteRoleEndpoint mock is already set by ExpectParams functions")
+	}
+
+	mmDeleteRoleEndpoint.defaultExpectation.params = &AccessServiceMockDeleteRoleEndpointParams{ctx, endpoint}
+	mmDeleteRoleEndpoint.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmDeleteRoleEndpoint.expectations {
+		if minimock.Equal(e.params, mmDeleteRoleEndpoint.defaultExpectation.params) {
+			mmDeleteRoleEndpoint.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmDeleteRoleEndpoint.defaultExpectation.params)
+		}
+	}
+
+	return mmDeleteRoleEndpoint
+}
+
+// ExpectCtxParam1 sets up expected param ctx for AccessService.DeleteRoleEndpoint
+func (mmDeleteRoleEndpoint *mAccessServiceMockDeleteRoleEndpoint) ExpectCtxParam1(ctx context.Context) *mAccessServiceMockDeleteRoleEndpoint {
+	if mmDeleteRoleEndpoint.mock.funcDeleteRoleEndpoint != nil {
+		mmDeleteRoleEndpoint.mock.t.Fatalf("AccessServiceMock.DeleteRoleEndpoint mock is already set by Set")
+	}
+
+	if mmDeleteRoleEndpoint.defaultExpectation == nil {
+		mmDeleteRoleEndpoint.defaultExpectation = &AccessServiceMockDeleteRoleEndpointExpectation{}
+	}
+
+	if mmDeleteRoleEndpoint.defaultExpectation.params != nil {
+		mmDeleteRoleEndpoint.mock.t.Fatalf("AccessServiceMock.DeleteRoleEndpoint mock is already set by Expect")
+	}
+
+	if mmDeleteRoleEndpoint.defaultExpectation.paramPtrs == nil {
+		mmDeleteRoleEndpoint.defaultExpectation.paramPtrs = &AccessServiceMockDeleteRoleEndpointParamPtrs{}
+	}
+	mmDeleteRoleEndpoint.defaultExpectation.paramPtrs.ctx = &ctx
+	mmDeleteRoleEndpoint.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
+
+	return mmDeleteRoleEndpoint
+}
+
+// ExpectEndpointParam2 sets up expected param endpoint for AccessService.DeleteRoleEndpoint
+func (mmDeleteRoleEndpoint *mAccessServiceMockDeleteRoleEndpoint) ExpectEndpointParam2(endpoint string) *mAccessServiceMockDeleteRoleEndpoint {
+	if mmDeleteRoleEndpoint.mock.funcDeleteRoleEndpoint != nil {
+		mmDeleteRoleEndpoint.mock.t.Fatalf("AccessServiceMock.DeleteRoleEndpoint mock is already set by Set")
+	}
+
+	if mmDeleteRoleEndpoint.defaultExpectation == nil {
+		mmDeleteRoleEndpoint.defaultExpectation = &AccessServiceMockDeleteRoleEndpointExpectation{}
+	}
+
+	if mmDeleteRoleEndpoint.defaultExpectation.params != nil {
+		mmDeleteRoleEndpoint.mock.t.Fatalf("AccessServiceMock.DeleteRoleEndpoint mock is already set by Expect")
+	}
+
+	if mmDeleteRoleEndpoint.defaultExpectation.paramPtrs == nil {
+		mmDeleteRoleEndpoint.defaultExpectation.paramPtrs = &AccessServiceMockDeleteRoleEndpointParamPtrs{}
+	}
+	mmDeleteRoleEndpoint.defaultExpectation.paramPtrs.endpoint = &endpoint
+	mmDeleteRoleEndpoint.defaultExpectation.expectationOrigins.originEndpoint = minimock.CallerInfo(1)
+
+	return mmDeleteRoleEndpoint
+}
+
+// Inspect accepts an inspector function that has same arguments as the AccessService.DeleteRoleEndpoint
+func (mmDeleteRoleEndpoint *mAccessServiceMockDeleteRoleEndpoint) Inspect(f func(ctx context.Context, endpoint string)) *mAccessServiceMockDeleteRoleEndpoint {
+	if mmDeleteRoleEndpoint.mock.inspectFuncDeleteRoleEndpoint != nil {
+		mmDeleteRoleEndpoint.mock.t.Fatalf("Inspect function is already set for AccessServiceMock.DeleteRoleEndpoint")
+	}
+
+	mmDeleteRoleEndpoint.mock.inspectFuncDeleteRoleEndpoint = f
+
+	return mmDeleteRoleEndpoint
+}
+
+// Return sets up results that will be returned by AccessService.DeleteRoleEndpoint
+func (mmDeleteRoleEndpoint *mAccessServiceMockDeleteRoleEndpoint) Return(err error) *AccessServiceMock {
+	if mmDeleteRoleEndpoint.mock.funcDeleteRoleEndpoint != nil {
+		mmDeleteRoleEndpoint.mock.t.Fatalf("AccessServiceMock.DeleteRoleEndpoint mock is already set by Set")
+	}
+
+	if mmDeleteRoleEndpoint.defaultExpectation == nil {
+		mmDeleteRoleEndpoint.defaultExpectation = &AccessServiceMockDeleteRoleEndpointExpectation{mock: mmDeleteRoleEndpoint.mock}
+	}
+	mmDeleteRoleEndpoint.defaultExpectation.results = &AccessServiceMockDeleteRoleEndpointResults{err}
+	mmDeleteRoleEndpoint.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmDeleteRoleEndpoint.mock
+}
+
+// Set uses given function f to mock the AccessService.DeleteRoleEndpoint method
+func (mmDeleteRoleEndpoint *mAccessServiceMockDeleteRoleEndpoint) Set(f func(ctx context.Context, endpoint string) (err error)) *AccessServiceMock {
+	if mmDeleteRoleEndpoint.defaultExpectation != nil {
+		mmDeleteRoleEndpoint.mock.t.Fatalf("Default expectation is already set for the AccessService.DeleteRoleEndpoint method")
+	}
+
+	if len(mmDeleteRoleEndpoint.expectations) > 0 {
+		mmDeleteRoleEndpoint.mock.t.Fatalf("Some expectations are already set for the AccessService.DeleteRoleEndpoint method")
+	}
+
+	mmDeleteRoleEndpoint.mock.funcDeleteRoleEndpoint = f
+	mmDeleteRoleEndpoint.mock.funcDeleteRoleEndpointOrigin = minimock.CallerInfo(1)
+	return mmDeleteRoleEndpoint.mock
+}
+
+// When sets expectation for the AccessService.DeleteRoleEndpoint which will trigger the result defined by the following
+// Then helper
+func (mmDeleteRoleEndpoint *mAccessServiceMockDeleteRoleEndpoint) When(ctx context.Context, endpoint string) *AccessServiceMockDeleteRoleEndpointExpectation {
+	if mmDeleteRoleEndpoint.mock.funcDeleteRoleEndpoint != nil {
+		mmDeleteRoleEndpoint.mock.t.Fatalf("AccessServiceMock.DeleteRoleEndpoint mock is already set by Set")
+	}
+
+	expectation := &AccessServiceMockDeleteRoleEndpointExpectation{
+		mock:               mmDeleteRoleEndpoint.mock,
+		params:             &AccessServiceMockDeleteRoleEndpointParams{ctx, endpoint},
+		expectationOrigins: AccessServiceMockDeleteRoleEndpointExpectationOrigins{origin: minimock.CallerInfo(1)},
+	}
+	mmDeleteRoleEndpoint.expectations = append(mmDeleteRoleEndpoint.expectations, expectation)
+	return expectation
+}
+
+// Then sets up AccessService.DeleteRoleEndpoint return parameters for the expectation previously defined by the When method
+func (e *AccessServiceMockDeleteRoleEndpointExpectation) Then(err error) *AccessServiceMock {
+	e.results = &AccessServiceMockDeleteRoleEndpointResults{err}
+	return e.mock
+}
+
+// Times sets number of times AccessService.DeleteRoleEndpoint should be invoked
+func (mmDeleteRoleEndpoint *mAccessServiceMockDeleteRoleEndpoint) Times(n uint64) *mAccessServiceMockDeleteRoleEndpoint {
+	if n == 0 {
+		mmDeleteRoleEndpoint.mock.t.Fatalf("Times of AccessServiceMock.DeleteRoleEndpoint mock can not be zero")
+	}
+	mm_atomic.StoreUint64(&mmDeleteRoleEndpoint.expectedInvocations, n)
+	mmDeleteRoleEndpoint.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmDeleteRoleEndpoint
+}
+
+func (mmDeleteRoleEndpoint *mAccessServiceMockDeleteRoleEndpoint) invocationsDone() bool {
+	if len(mmDeleteRoleEndpoint.expectations) == 0 && mmDeleteRoleEndpoint.defaultExpectation == nil && mmDeleteRoleEndpoint.mock.funcDeleteRoleEndpoint == nil {
+		return true
+	}
+
+	totalInvocations := mm_atomic.LoadUint64(&mmDeleteRoleEndpoint.mock.afterDeleteRoleEndpointCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmDeleteRoleEndpoint.expectedInvocations)
+
+	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
+}
+
+// DeleteRoleEndpoint implements mm_service.AccessService
+func (mmDeleteRoleEndpoint *AccessServiceMock) DeleteRoleEndpoint(ctx context.Context, endpoint string) (err error) {
+	mm_atomic.AddUint64(&mmDeleteRoleEndpoint.beforeDeleteRoleEndpointCounter, 1)
+	defer mm_atomic.AddUint64(&mmDeleteRoleEndpoint.afterDeleteRoleEndpointCounter, 1)
+
+	mmDeleteRoleEndpoint.t.Helper()
+
+	if mmDeleteRoleEndpoint.inspectFuncDeleteRoleEndpoint != nil {
+		mmDeleteRoleEndpoint.inspectFuncDeleteRoleEndpoint(ctx, endpoint)
+	}
+
+	mm_params := AccessServiceMockDeleteRoleEndpointParams{ctx, endpoint}
+
+	// Record call args
+	mmDeleteRoleEndpoint.DeleteRoleEndpointMock.mutex.Lock()
+	mmDeleteRoleEndpoint.DeleteRoleEndpointMock.callArgs = append(mmDeleteRoleEndpoint.DeleteRoleEndpointMock.callArgs, &mm_params)
+	mmDeleteRoleEndpoint.DeleteRoleEndpointMock.mutex.Unlock()
+
+	for _, e := range mmDeleteRoleEndpoint.DeleteRoleEndpointMock.expectations {
+		if minimock.Equal(*e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.err
+		}
+	}
+
+	if mmDeleteRoleEndpoint.DeleteRoleEndpointMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmDeleteRoleEndpoint.DeleteRoleEndpointMock.defaultExpectation.Counter, 1)
+		mm_want := mmDeleteRoleEndpoint.DeleteRoleEndpointMock.defaultExpectation.params
+		mm_want_ptrs := mmDeleteRoleEndpoint.DeleteRoleEndpointMock.defaultExpectation.paramPtrs
+
+		mm_got := AccessServiceMockDeleteRoleEndpointParams{ctx, endpoint}
+
+		if mm_want_ptrs != nil {
+
+			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
+				mmDeleteRoleEndpoint.t.Errorf("AccessServiceMock.DeleteRoleEndpoint got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmDeleteRoleEndpoint.DeleteRoleEndpointMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+			}
+
+			if mm_want_ptrs.endpoint != nil && !minimock.Equal(*mm_want_ptrs.endpoint, mm_got.endpoint) {
+				mmDeleteRoleEndpoint.t.Errorf("AccessServiceMock.DeleteRoleEndpoint got unexpected parameter endpoint, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmDeleteRoleEndpoint.DeleteRoleEndpointMock.defaultExpectation.expectationOrigins.originEndpoint, *mm_want_ptrs.endpoint, mm_got.endpoint, minimock.Diff(*mm_want_ptrs.endpoint, mm_got.endpoint))
+			}
+
+		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmDeleteRoleEndpoint.t.Errorf("AccessServiceMock.DeleteRoleEndpoint got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmDeleteRoleEndpoint.DeleteRoleEndpointMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmDeleteRoleEndpoint.DeleteRoleEndpointMock.defaultExpectation.results
+		if mm_results == nil {
+			mmDeleteRoleEndpoint.t.Fatal("No results are set for the AccessServiceMock.DeleteRoleEndpoint")
+		}
+		return (*mm_results).err
+	}
+	if mmDeleteRoleEndpoint.funcDeleteRoleEndpoint != nil {
+		return mmDeleteRoleEndpoint.funcDeleteRoleEndpoint(ctx, endpoint)
+	}
+	mmDeleteRoleEndpoint.t.Fatalf("Unexpected call to AccessServiceMock.DeleteRoleEndpoint. %v %v", ctx, endpoint)
+	return
+}
+
+// DeleteRoleEndpointAfterCounter returns a count of finished AccessServiceMock.DeleteRoleEndpoint invocations
+func (mmDeleteRoleEndpoint *AccessServiceMock) DeleteRoleEndpointAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmDeleteRoleEndpoint.afterDeleteRoleEndpointCounter)
+}
+
+// DeleteRoleEndpointBeforeCounter returns a count of AccessServiceMock.DeleteRoleEndpoint invocations
+func (mmDeleteRoleEndpoint *AccessServiceMock) DeleteRoleEndpointBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmDeleteRoleEndpoint.beforeDeleteRoleEndpointCounter)
+}
+
+// Calls returns a list of arguments used in each call to AccessServiceMock.DeleteRoleEndpoint.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmDeleteRoleEndpoint *mAccessServiceMockDeleteRoleEndpoint) Calls() []*AccessServiceMockDeleteRoleEndpointParams {
+	mmDeleteRoleEndpoint.mutex.RLock()
+
+	argCopy := make([]*AccessServiceMockDeleteRoleEndpointParams, len(mmDeleteRoleEndpoint.callArgs))
+	copy(argCopy, mmDeleteRoleEndpoint.callArgs)
+
+	mmDeleteRoleEndpoint.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockDeleteRoleEndpointDone returns true if the count of the DeleteRoleEndpoint invocations corresponds
+// the number of defined expectations
+func (m *AccessServiceMock) MinimockDeleteRoleEndpointDone() bool {
+	if m.DeleteRoleEndpointMock.optional {
+		// Optional methods provide '0 or more' call count restriction.
+		return true
+	}
+
+	for _, e := range m.DeleteRoleEndpointMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	return m.DeleteRoleEndpointMock.invocationsDone()
+}
+
+// MinimockDeleteRoleEndpointInspect logs each unmet expectation
+func (m *AccessServiceMock) MinimockDeleteRoleEndpointInspect() {
+	for _, e := range m.DeleteRoleEndpointMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to AccessServiceMock.DeleteRoleEndpoint at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+		}
+	}
+
+	afterDeleteRoleEndpointCounter := mm_atomic.LoadUint64(&m.afterDeleteRoleEndpointCounter)
+	// if default expectation was set then invocations count should be greater than zero
+	if m.DeleteRoleEndpointMock.defaultExpectation != nil && afterDeleteRoleEndpointCounter < 1 {
+		if m.DeleteRoleEndpointMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to AccessServiceMock.DeleteRoleEndpoint at\n%s", m.DeleteRoleEndpointMock.defaultExpectation.returnOrigin)
+		} else {
+			m.t.Errorf("Expected call to AccessServiceMock.DeleteRoleEndpoint at\n%s with params: %#v", m.DeleteRoleEndpointMock.defaultExpectation.expectationOrigins.origin, *m.DeleteRoleEndpointMock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcDeleteRoleEndpoint != nil && afterDeleteRoleEndpointCounter < 1 {
+		m.t.Errorf("Expected call to AccessServiceMock.DeleteRoleEndpoint at\n%s", m.funcDeleteRoleEndpointOrigin)
+	}
+
+	if !m.DeleteRoleEndpointMock.invocationsDone() && afterDeleteRoleEndpointCounter > 0 {
+		m.t.Errorf("Expected %d calls to AccessServiceMock.DeleteRoleEndpoint at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.DeleteRoleEndpointMock.expectedInvocations), m.DeleteRoleEndpointMock.expectedInvocationsOrigin, afterDeleteRoleEndpointCounter)
+	}
+}
+
+type mAccessServiceMockGetRoleEndpoints struct {
+	optional           bool
+	mock               *AccessServiceMock
+	defaultExpectation *AccessServiceMockGetRoleEndpointsExpectation
+	expectations       []*AccessServiceMockGetRoleEndpointsExpectation
+
+	callArgs []*AccessServiceMockGetRoleEndpointsParams
+	mutex    sync.RWMutex
+
+	expectedInvocations       uint64
+	expectedInvocationsOrigin string
+}
+
+// AccessServiceMockGetRoleEndpointsExpectation specifies expectation struct of the AccessService.GetRoleEndpoints
+type AccessServiceMockGetRoleEndpointsExpectation struct {
+	mock               *AccessServiceMock
+	params             *AccessServiceMockGetRoleEndpointsParams
+	paramPtrs          *AccessServiceMockGetRoleEndpointsParamPtrs
+	expectationOrigins AccessServiceMockGetRoleEndpointsExpectationOrigins
+	results            *AccessServiceMockGetRoleEndpointsResults
+	returnOrigin       string
+	Counter            uint64
+}
+
+// AccessServiceMockGetRoleEndpointsParams contains parameters of the AccessService.GetRoleEndpoints
+type AccessServiceMockGetRoleEndpointsParams struct {
+	ctx context.Context
+}
+
+// AccessServiceMockGetRoleEndpointsParamPtrs contains pointers to parameters of the AccessService.GetRoleEndpoints
+type AccessServiceMockGetRoleEndpointsParamPtrs struct {
+	ctx *context.Context
+}
+
+// AccessServiceMockGetRoleEndpointsResults contains results of the AccessService.GetRoleEndpoints
+type AccessServiceMockGetRoleEndpointsResults struct {
+	epa1 []*model.EndpointPermissions
+	err  error
+}
+
+// AccessServiceMockGetRoleEndpointsOrigins contains origins of expectations of the AccessService.GetRoleEndpoints
+type AccessServiceMockGetRoleEndpointsExpectationOrigins struct {
+	origin    string
+	originCtx string
+}
+
+// Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
+// the test will fail minimock's automatic final call check if the mocked method was not called at least once.
+// Optional() makes method check to work in '0 or more' mode.
+// It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
+// catch the problems when the expected method call is totally skipped during test run.
+func (mmGetRoleEndpoints *mAccessServiceMockGetRoleEndpoints) Optional() *mAccessServiceMockGetRoleEndpoints {
+	mmGetRoleEndpoints.optional = true
+	return mmGetRoleEndpoints
+}
+
+// Expect sets up expected params for AccessService.GetRoleEndpoints
+func (mmGetRoleEndpoints *mAccessServiceMockGetRoleEndpoints) Expect(ctx context.Context) *mAccessServiceMockGetRoleEndpoints {
+	if mmGetRoleEndpoints.mock.funcGetRoleEndpoints != nil {
+		mmGetRoleEndpoints.mock.t.Fatalf("AccessServiceMock.GetRoleEndpoints mock is already set by Set")
+	}
+
+	if mmGetRoleEndpoints.defaultExpectation == nil {
+		mmGetRoleEndpoints.defaultExpectation = &AccessServiceMockGetRoleEndpointsExpectation{}
+	}
+
+	if mmGetRoleEndpoints.defaultExpectation.paramPtrs != nil {
+		mmGetRoleEndpoints.mock.t.Fatalf("AccessServiceMock.GetRoleEndpoints mock is already set by ExpectParams functions")
+	}
+
+	mmGetRoleEndpoints.defaultExpectation.params = &AccessServiceMockGetRoleEndpointsParams{ctx}
+	mmGetRoleEndpoints.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmGetRoleEndpoints.expectations {
+		if minimock.Equal(e.params, mmGetRoleEndpoints.defaultExpectation.params) {
+			mmGetRoleEndpoints.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmGetRoleEndpoints.defaultExpectation.params)
+		}
+	}
+
+	return mmGetRoleEndpoints
+}
+
+// ExpectCtxParam1 sets up expected param ctx for AccessService.GetRoleEndpoints
+func (mmGetRoleEndpoints *mAccessServiceMockGetRoleEndpoints) ExpectCtxParam1(ctx context.Context) *mAccessServiceMockGetRoleEndpoints {
+	if mmGetRoleEndpoints.mock.funcGetRoleEndpoints != nil {
+		mmGetRoleEndpoints.mock.t.Fatalf("AccessServiceMock.GetRoleEndpoints mock is already set by Set")
+	}
+
+	if mmGetRoleEndpoints.defaultExpectation == nil {
+		mmGetRoleEndpoints.defaultExpectation = &AccessServiceMockGetRoleEndpointsExpectation{}
+	}
+
+	if mmGetRoleEndpoints.defaultExpectation.params != nil {
+		mmGetRoleEndpoints.mock.t.Fatalf("AccessServiceMock.GetRoleEndpoints mock is already set by Expect")
+	}
+
+	if mmGetRoleEndpoints.defaultExpectation.paramPtrs == nil {
+		mmGetRoleEndpoints.defaultExpectation.paramPtrs = &AccessServiceMockGetRoleEndpointsParamPtrs{}
+	}
+	mmGetRoleEndpoints.defaultExpectation.paramPtrs.ctx = &ctx
+	mmGetRoleEndpoints.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
+
+	return mmGetRoleEndpoints
+}
+
+// Inspect accepts an inspector function that has same arguments as the AccessService.GetRoleEndpoints
+func (mmGetRoleEndpoints *mAccessServiceMockGetRoleEndpoints) Inspect(f func(ctx context.Context)) *mAccessServiceMockGetRoleEndpoints {
+	if mmGetRoleEndpoints.mock.inspectFuncGetRoleEndpoints != nil {
+		mmGetRoleEndpoints.mock.t.Fatalf("Inspect function is already set for AccessServiceMock.GetRoleEndpoints")
+	}
+
+	mmGetRoleEndpoints.mock.inspectFuncGetRoleEndpoints = f
+
+	return mmGetRoleEndpoints
+}
+
+// Return sets up results that will be returned by AccessService.GetRoleEndpoints
+func (mmGetRoleEndpoints *mAccessServiceMockGetRoleEndpoints) Return(epa1 []*model.EndpointPermissions, err error) *AccessServiceMock {
+	if mmGetRoleEndpoints.mock.funcGetRoleEndpoints != nil {
+		mmGetRoleEndpoints.mock.t.Fatalf("AccessServiceMock.GetRoleEndpoints mock is already set by Set")
+	}
+
+	if mmGetRoleEndpoints.defaultExpectation == nil {
+		mmGetRoleEndpoints.defaultExpectation = &AccessServiceMockGetRoleEndpointsExpectation{mock: mmGetRoleEndpoints.mock}
+	}
+	mmGetRoleEndpoints.defaultExpectation.results = &AccessServiceMockGetRoleEndpointsResults{epa1, err}
+	mmGetRoleEndpoints.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmGetRoleEndpoints.mock
+}
+
+// Set uses given function f to mock the AccessService.GetRoleEndpoints method
+func (mmGetRoleEndpoints *mAccessServiceMockGetRoleEndpoints) Set(f func(ctx context.Context) (epa1 []*model.EndpointPermissions, err error)) *AccessServiceMock {
+	if mmGetRoleEndpoints.defaultExpectation != nil {
+		mmGetRoleEndpoints.mock.t.Fatalf("Default expectation is already set for the AccessService.GetRoleEndpoints method")
+	}
+
+	if len(mmGetRoleEndpoints.expectations) > 0 {
+		mmGetRoleEndpoints.mock.t.Fatalf("Some expectations are already set for the AccessService.GetRoleEndpoints method")
+	}
+
+	mmGetRoleEndpoints.mock.funcGetRoleEndpoints = f
+	mmGetRoleEndpoints.mock.funcGetRoleEndpointsOrigin = minimock.CallerInfo(1)
+	return mmGetRoleEndpoints.mock
+}
+
+// When sets expectation for the AccessService.GetRoleEndpoints which will trigger the result defined by the following
+// Then helper
+func (mmGetRoleEndpoints *mAccessServiceMockGetRoleEndpoints) When(ctx context.Context) *AccessServiceMockGetRoleEndpointsExpectation {
+	if mmGetRoleEndpoints.mock.funcGetRoleEndpoints != nil {
+		mmGetRoleEndpoints.mock.t.Fatalf("AccessServiceMock.GetRoleEndpoints mock is already set by Set")
+	}
+
+	expectation := &AccessServiceMockGetRoleEndpointsExpectation{
+		mock:               mmGetRoleEndpoints.mock,
+		params:             &AccessServiceMockGetRoleEndpointsParams{ctx},
+		expectationOrigins: AccessServiceMockGetRoleEndpointsExpectationOrigins{origin: minimock.CallerInfo(1)},
+	}
+	mmGetRoleEndpoints.expectations = append(mmGetRoleEndpoints.expectations, expectation)
+	return expectation
+}
+
+// Then sets up AccessService.GetRoleEndpoints return parameters for the expectation previously defined by the When method
+func (e *AccessServiceMockGetRoleEndpointsExpectation) Then(epa1 []*model.EndpointPermissions, err error) *AccessServiceMock {
+	e.results = &AccessServiceMockGetRoleEndpointsResults{epa1, err}
+	return e.mock
+}
+
+// Times sets number of times AccessService.GetRoleEndpoints should be invoked
+func (mmGetRoleEndpoints *mAccessServiceMockGetRoleEndpoints) Times(n uint64) *mAccessServiceMockGetRoleEndpoints {
+	if n == 0 {
+		mmGetRoleEndpoints.mock.t.Fatalf("Times of AccessServiceMock.GetRoleEndpoints mock can not be zero")
+	}
+	mm_atomic.StoreUint64(&mmGetRoleEndpoints.expectedInvocations, n)
+	mmGetRoleEndpoints.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmGetRoleEndpoints
+}
+
+func (mmGetRoleEndpoints *mAccessServiceMockGetRoleEndpoints) invocationsDone() bool {
+	if len(mmGetRoleEndpoints.expectations) == 0 && mmGetRoleEndpoints.defaultExpectation == nil && mmGetRoleEndpoints.mock.funcGetRoleEndpoints == nil {
+		return true
+	}
+
+	totalInvocations := mm_atomic.LoadUint64(&mmGetRoleEndpoints.mock.afterGetRoleEndpointsCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmGetRoleEndpoints.expectedInvocations)
+
+	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
+}
+
+// GetRoleEndpoints implements mm_service.AccessService
+func (mmGetRoleEndpoints *AccessServiceMock) GetRoleEndpoints(ctx context.Context) (epa1 []*model.EndpointPermissions, err error) {
+	mm_atomic.AddUint64(&mmGetRoleEndpoints.beforeGetRoleEndpointsCounter, 1)
+	defer mm_atomic.AddUint64(&mmGetRoleEndpoints.afterGetRoleEndpointsCounter, 1)
+
+	mmGetRoleEndpoints.t.Helper()
+
+	if mmGetRoleEndpoints.inspectFuncGetRoleEndpoints != nil {
+		mmGetRoleEndpoints.inspectFuncGetRoleEndpoints(ctx)
+	}
+
+	mm_params := AccessServiceMockGetRoleEndpointsParams{ctx}
+
+	// Record call args
+	mmGetRoleEndpoints.GetRoleEndpointsMock.mutex.Lock()
+	mmGetRoleEndpoints.GetRoleEndpointsMock.callArgs = append(mmGetRoleEndpoints.GetRoleEndpointsMock.callArgs, &mm_params)
+	mmGetRoleEndpoints.GetRoleEndpointsMock.mutex.Unlock()
+
+	for _, e := range mmGetRoleEndpoints.GetRoleEndpointsMock.expectations {
+		if minimock.Equal(*e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.epa1, e.results.err
+		}
+	}
+
+	if mmGetRoleEndpoints.GetRoleEndpointsMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmGetRoleEndpoints.GetRoleEndpointsMock.defaultExpectation.Counter, 1)
+		mm_want := mmGetRoleEndpoints.GetRoleEndpointsMock.defaultExpectation.params
+		mm_want_ptrs := mmGetRoleEndpoints.GetRoleEndpointsMock.defaultExpectation.paramPtrs
+
+		mm_got := AccessServiceMockGetRoleEndpointsParams{ctx}
+
+		if mm_want_ptrs != nil {
+
+			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
+				mmGetRoleEndpoints.t.Errorf("AccessServiceMock.GetRoleEndpoints got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGetRoleEndpoints.GetRoleEndpointsMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+			}
+
+		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmGetRoleEndpoints.t.Errorf("AccessServiceMock.GetRoleEndpoints got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmGetRoleEndpoints.GetRoleEndpointsMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmGetRoleEndpoints.GetRoleEndpointsMock.defaultExpectation.results
+		if mm_results == nil {
+			mmGetRoleEndpoints.t.Fatal("No results are set for the AccessServiceMock.GetRoleEndpoints")
+		}
+		return (*mm_results).epa1, (*mm_results).err
+	}
+	if mmGetRoleEndpoints.funcGetRoleEndpoints != nil {
+		return mmGetRoleEndpoints.funcGetRoleEndpoints(ctx)
+	}
+	mmGetRoleEndpoints.t.Fatalf("Unexpected call to AccessServiceMock.GetRoleEndpoints. %v", ctx)
+	return
+}
+
+// GetRoleEndpointsAfterCounter returns a count of finished AccessServiceMock.GetRoleEndpoints invocations
+func (mmGetRoleEndpoints *AccessServiceMock) GetRoleEndpointsAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmGetRoleEndpoints.afterGetRoleEndpointsCounter)
+}
+
+// GetRoleEndpointsBeforeCounter returns a count of AccessServiceMock.GetRoleEndpoints invocations
+func (mmGetRoleEndpoints *AccessServiceMock) GetRoleEndpointsBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmGetRoleEndpoints.beforeGetRoleEndpointsCounter)
+}
+
+// Calls returns a list of arguments used in each call to AccessServiceMock.GetRoleEndpoints.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmGetRoleEndpoints *mAccessServiceMockGetRoleEndpoints) Calls() []*AccessServiceMockGetRoleEndpointsParams {
+	mmGetRoleEndpoints.mutex.RLock()
+
+	argCopy := make([]*AccessServiceMockGetRoleEndpointsParams, len(mmGetRoleEndpoints.callArgs))
+	copy(argCopy, mmGetRoleEndpoints.callArgs)
+
+	mmGetRoleEndpoints.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockGetRoleEndpointsDone returns true if the count of the GetRoleEndpoints invocations corresponds
+// the number of defined expectations
+func (m *AccessServiceMock) MinimockGetRoleEndpointsDone() bool {
+	if m.GetRoleEndpointsMock.optional {
+		// Optional methods provide '0 or more' call count restriction.
+		return true
+	}
+
+	for _, e := range m.GetRoleEndpointsMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	return m.GetRoleEndpointsMock.invocationsDone()
+}
+
+// MinimockGetRoleEndpointsInspect logs each unmet expectation
+func (m *AccessServiceMock) MinimockGetRoleEndpointsInspect() {
+	for _, e := range m.GetRoleEndpointsMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to AccessServiceMock.GetRoleEndpoints at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+		}
+	}
+
+	afterGetRoleEndpointsCounter := mm_atomic.LoadUint64(&m.afterGetRoleEndpointsCounter)
+	// if default expectation was set then invocations count should be greater than zero
+	if m.GetRoleEndpointsMock.defaultExpectation != nil && afterGetRoleEndpointsCounter < 1 {
+		if m.GetRoleEndpointsMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to AccessServiceMock.GetRoleEndpoints at\n%s", m.GetRoleEndpointsMock.defaultExpectation.returnOrigin)
+		} else {
+			m.t.Errorf("Expected call to AccessServiceMock.GetRoleEndpoints at\n%s with params: %#v", m.GetRoleEndpointsMock.defaultExpectation.expectationOrigins.origin, *m.GetRoleEndpointsMock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcGetRoleEndpoints != nil && afterGetRoleEndpointsCounter < 1 {
+		m.t.Errorf("Expected call to AccessServiceMock.GetRoleEndpoints at\n%s", m.funcGetRoleEndpointsOrigin)
+	}
+
+	if !m.GetRoleEndpointsMock.invocationsDone() && afterGetRoleEndpointsCounter > 0 {
+		m.t.Errorf("Expected %d calls to AccessServiceMock.GetRoleEndpoints at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.GetRoleEndpointsMock.expectedInvocations), m.GetRoleEndpointsMock.expectedInvocationsOrigin, afterGetRoleEndpointsCounter)
+	}
+}
+
+type mAccessServiceMockUpdateRoleEndpoint struct {
+	optional           bool
+	mock               *AccessServiceMock
+	defaultExpectation *AccessServiceMockUpdateRoleEndpointExpectation
+	expectations       []*AccessServiceMockUpdateRoleEndpointExpectation
+
+	callArgs []*AccessServiceMockUpdateRoleEndpointParams
+	mutex    sync.RWMutex
+
+	expectedInvocations       uint64
+	expectedInvocationsOrigin string
+}
+
+// AccessServiceMockUpdateRoleEndpointExpectation specifies expectation struct of the AccessService.UpdateRoleEndpoint
+type AccessServiceMockUpdateRoleEndpointExpectation struct {
+	mock               *AccessServiceMock
+	params             *AccessServiceMockUpdateRoleEndpointParams
+	paramPtrs          *AccessServiceMockUpdateRoleEndpointParamPtrs
+	expectationOrigins AccessServiceMockUpdateRoleEndpointExpectationOrigins
+	results            *AccessServiceMockUpdateRoleEndpointResults
+	returnOrigin       string
+	Counter            uint64
+}
+
+// AccessServiceMockUpdateRoleEndpointParams contains parameters of the AccessService.UpdateRoleEndpoint
+type AccessServiceMockUpdateRoleEndpointParams struct {
+	ctx      context.Context
+	endpoint string
+	roles    []string
+}
+
+// AccessServiceMockUpdateRoleEndpointParamPtrs contains pointers to parameters of the AccessService.UpdateRoleEndpoint
+type AccessServiceMockUpdateRoleEndpointParamPtrs struct {
+	ctx      *context.Context
+	endpoint *string
+	roles    *[]string
+}
+
+// AccessServiceMockUpdateRoleEndpointResults contains results of the AccessService.UpdateRoleEndpoint
+type AccessServiceMockUpdateRoleEndpointResults struct {
+	err error
+}
+
+// AccessServiceMockUpdateRoleEndpointOrigins contains origins of expectations of the AccessService.UpdateRoleEndpoint
+type AccessServiceMockUpdateRoleEndpointExpectationOrigins struct {
+	origin         string
+	originCtx      string
+	originEndpoint string
+	originRoles    string
+}
+
+// Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
+// the test will fail minimock's automatic final call check if the mocked method was not called at least once.
+// Optional() makes method check to work in '0 or more' mode.
+// It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
+// catch the problems when the expected method call is totally skipped during test run.
+func (mmUpdateRoleEndpoint *mAccessServiceMockUpdateRoleEndpoint) Optional() *mAccessServiceMockUpdateRoleEndpoint {
+	mmUpdateRoleEndpoint.optional = true
+	return mmUpdateRoleEndpoint
+}
+
+// Expect sets up expected params for AccessService.UpdateRoleEndpoint
+func (mmUpdateRoleEndpoint *mAccessServiceMockUpdateRoleEndpoint) Expect(ctx context.Context, endpoint string, roles []string) *mAccessServiceMockUpdateRoleEndpoint {
+	if mmUpdateRoleEndpoint.mock.funcUpdateRoleEndpoint != nil {
+		mmUpdateRoleEndpoint.mock.t.Fatalf("AccessServiceMock.UpdateRoleEndpoint mock is already set by Set")
+	}
+
+	if mmUpdateRoleEndpoint.defaultExpectation == nil {
+		mmUpdateRoleEndpoint.defaultExpectation = &AccessServiceMockUpdateRoleEndpointExpectation{}
+	}
+
+	if mmUpdateRoleEndpoint.defaultExpectation.paramPtrs != nil {
+		mmUpdateRoleEndpoint.mock.t.Fatalf("AccessServiceMock.UpdateRoleEndpoint mock is already set by ExpectParams functions")
+	}
+
+	mmUpdateRoleEndpoint.defaultExpectation.params = &AccessServiceMockUpdateRoleEndpointParams{ctx, endpoint, roles}
+	mmUpdateRoleEndpoint.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmUpdateRoleEndpoint.expectations {
+		if minimock.Equal(e.params, mmUpdateRoleEndpoint.defaultExpectation.params) {
+			mmUpdateRoleEndpoint.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmUpdateRoleEndpoint.defaultExpectation.params)
+		}
+	}
+
+	return mmUpdateRoleEndpoint
+}
+
+// ExpectCtxParam1 sets up expected param ctx for AccessService.UpdateRoleEndpoint
+func (mmUpdateRoleEndpoint *mAccessServiceMockUpdateRoleEndpoint) ExpectCtxParam1(ctx context.Context) *mAccessServiceMockUpdateRoleEndpoint {
+	if mmUpdateRoleEndpoint.mock.funcUpdateRoleEndpoint != nil {
+		mmUpdateRoleEndpoint.mock.t.Fatalf("AccessServiceMock.UpdateRoleEndpoint mock is already set by Set")
+	}
+
+	if mmUpdateRoleEndpoint.defaultExpectation == nil {
+		mmUpdateRoleEndpoint.defaultExpectation = &AccessServiceMockUpdateRoleEndpointExpectation{}
+	}
+
+	if mmUpdateRoleEndpoint.defaultExpectation.params != nil {
+		mmUpdateRoleEndpoint.mock.t.Fatalf("AccessServiceMock.UpdateRoleEndpoint mock is already set by Expect")
+	}
+
+	if mmUpdateRoleEndpoint.defaultExpectation.paramPtrs == nil {
+		mmUpdateRoleEndpoint.defaultExpectation.paramPtrs = &AccessServiceMockUpdateRoleEndpointParamPtrs{}
+	}
+	mmUpdateRoleEndpoint.defaultExpectation.paramPtrs.ctx = &ctx
+	mmUpdateRoleEndpoint.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
+
+	return mmUpdateRoleEndpoint
+}
+
+// ExpectEndpointParam2 sets up expected param endpoint for AccessService.UpdateRoleEndpoint
+func (mmUpdateRoleEndpoint *mAccessServiceMockUpdateRoleEndpoint) ExpectEndpointParam2(endpoint string) *mAccessServiceMockUpdateRoleEndpoint {
+	if mmUpdateRoleEndpoint.mock.funcUpdateRoleEndpoint != nil {
+		mmUpdateRoleEndpoint.mock.t.Fatalf("AccessServiceMock.UpdateRoleEndpoint mock is already set by Set")
+	}
+
+	if mmUpdateRoleEndpoint.defaultExpectation == nil {
+		mmUpdateRoleEndpoint.defaultExpectation = &AccessServiceMockUpdateRoleEndpointExpectation{}
+	}
+
+	if mmUpdateRoleEndpoint.defaultExpectation.params != nil {
+		mmUpdateRoleEndpoint.mock.t.Fatalf("AccessServiceMock.UpdateRoleEndpoint mock is already set by Expect")
+	}
+
+	if mmUpdateRoleEndpoint.defaultExpectation.paramPtrs == nil {
+		mmUpdateRoleEndpoint.defaultExpectation.paramPtrs = &AccessServiceMockUpdateRoleEndpointParamPtrs{}
+	}
+	mmUpdateRoleEndpoint.defaultExpectation.paramPtrs.endpoint = &endpoint
+	mmUpdateRoleEndpoint.defaultExpectation.expectationOrigins.originEndpoint = minimock.CallerInfo(1)
+
+	return mmUpdateRoleEndpoint
+}
+
+// ExpectRolesParam3 sets up expected param roles for AccessService.UpdateRoleEndpoint
+func (mmUpdateRoleEndpoint *mAccessServiceMockUpdateRoleEndpoint) ExpectRolesParam3(roles []string) *mAccessServiceMockUpdateRoleEndpoint {
+	if mmUpdateRoleEndpoint.mock.funcUpdateRoleEndpoint != nil {
+		mmUpdateRoleEndpoint.mock.t.Fatalf("AccessServiceMock.UpdateRoleEndpoint mock is already set by Set")
+	}
+
+	if mmUpdateRoleEndpoint.defaultExpectation == nil {
+		mmUpdateRoleEndpoint.defaultExpectation = &AccessServiceMockUpdateRoleEndpointExpectation{}
+	}
+
+	if mmUpdateRoleEndpoint.defaultExpectation.params != nil {
+		mmUpdateRoleEndpoint.mock.t.Fatalf("AccessServiceMock.UpdateRoleEndpoint mock is already set by Expect")
+	}
+
+	if mmUpdateRoleEndpoint.defaultExpectation.paramPtrs == nil {
+		mmUpdateRoleEndpoint.defaultExpectation.paramPtrs = &AccessServiceMockUpdateRoleEndpointParamPtrs{}
+	}
+	mmUpdateRoleEndpoint.defaultExpectation.paramPtrs.roles = &roles
+	mmUpdateRoleEndpoint.defaultExpectation.expectationOrigins.originRoles = minimock.CallerInfo(1)
+
+	return mmUpdateRoleEndpoint
+}
+
+// Inspect accepts an inspector function that has same arguments as the AccessService.UpdateRoleEndpoint
+func (mmUpdateRoleEndpoint *mAccessServiceMockUpdateRoleEndpoint) Inspect(f func(ctx context.Context, endpoint string, roles []string)) *mAccessServiceMockUpdateRoleEndpoint {
+	if mmUpdateRoleEndpoint.mock.inspectFuncUpdateRoleEndpoint != nil {
+		mmUpdateRoleEndpoint.mock.t.Fatalf("Inspect function is already set for AccessServiceMock.UpdateRoleEndpoint")
+	}
+
+	mmUpdateRoleEndpoint.mock.inspectFuncUpdateRoleEndpoint = f
+
+	return mmUpdateRoleEndpoint
+}
+
+// Return sets up results that will be returned by AccessService.UpdateRoleEndpoint
+func (mmUpdateRoleEndpoint *mAccessServiceMockUpdateRoleEndpoint) Return(err error) *AccessServiceMock {
+	if mmUpdateRoleEndpoint.mock.funcUpdateRoleEndpoint != nil {
+		mmUpdateRoleEndpoint.mock.t.Fatalf("AccessServiceMock.UpdateRoleEndpoint mock is already set by Set")
+	}
+
+	if mmUpdateRoleEndpoint.defaultExpectation == nil {
+		mmUpdateRoleEndpoint.defaultExpectation = &AccessServiceMockUpdateRoleEndpointExpectation{mock: mmUpdateRoleEndpoint.mock}
+	}
+	mmUpdateRoleEndpoint.defaultExpectation.results = &AccessServiceMockUpdateRoleEndpointResults{err}
+	mmUpdateRoleEndpoint.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmUpdateRoleEndpoint.mock
+}
+
+// Set uses given function f to mock the AccessService.UpdateRoleEndpoint method
+func (mmUpdateRoleEndpoint *mAccessServiceMockUpdateRoleEndpoint) Set(f func(ctx context.Context, endpoint string, roles []string) (err error)) *AccessServiceMock {
+	if mmUpdateRoleEndpoint.defaultExpectation != nil {
+		mmUpdateRoleEndpoint.mock.t.Fatalf("Default expectation is already set for the AccessService.UpdateRoleEndpoint method")
+	}
+
+	if len(mmUpdateRoleEndpoint.expectations) > 0 {
+		mmUpdateRoleEndpoint.mock.t.Fatalf("Some expectations are already set for the AccessService.UpdateRoleEndpoint method")
+	}
+
+	mmUpdateRoleEndpoint.mock.funcUpdateRoleEndpoint = f
+	mmUpdateRoleEndpoint.mock.funcUpdateRoleEndpointOrigin = minimock.CallerInfo(1)
+	return mmUpdateRoleEndpoint.mock
+}
+
+// When sets expectation for the AccessService.UpdateRoleEndpoint which will trigger the result defined by the following
+// Then helper
+func (mmUpdateRoleEndpoint *mAccessServiceMockUpdateRoleEndpoint) When(ctx context.Context, endpoint string, roles []string) *AccessServiceMockUpdateRoleEndpointExpectation {
+	if mmUpdateRoleEndpoint.mock.funcUpdateRoleEndpoint != nil {
+		mmUpdateRoleEndpoint.mock.t.Fatalf("AccessServiceMock.UpdateRoleEndpoint mock is already set by Set")
+	}
+
+	expectation := &AccessServiceMockUpdateRoleEndpointExpectation{
+		mock:               mmUpdateRoleEndpoint.mock,
+		params:             &AccessServiceMockUpdateRoleEndpointParams{ctx, endpoint, roles},
+		expectationOrigins: AccessServiceMockUpdateRoleEndpointExpectationOrigins{origin: minimock.CallerInfo(1)},
+	}
+	mmUpdateRoleEndpoint.expectations = append(mmUpdateRoleEndpoint.expectations, expectation)
+	return expectation
+}
+
+// Then sets up AccessService.UpdateRoleEndpoint return parameters for the expectation previously defined by the When method
+func (e *AccessServiceMockUpdateRoleEndpointExpectation) Then(err error) *AccessServiceMock {
+	e.results = &AccessServiceMockUpdateRoleEndpointResults{err}
+	return e.mock
+}
+
+// Times sets number of times AccessService.UpdateRoleEndpoint should be invoked
+func (mmUpdateRoleEndpoint *mAccessServiceMockUpdateRoleEndpoint) Times(n uint64) *mAccessServiceMockUpdateRoleEndpoint {
+	if n == 0 {
+		mmUpdateRoleEndpoint.mock.t.Fatalf("Times of AccessServiceMock.UpdateRoleEndpoint mock can not be zero")
+	}
+	mm_atomic.StoreUint64(&mmUpdateRoleEndpoint.expectedInvocations, n)
+	mmUpdateRoleEndpoint.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmUpdateRoleEndpoint
+}
+
+func (mmUpdateRoleEndpoint *mAccessServiceMockUpdateRoleEndpoint) invocationsDone() bool {
+	if len(mmUpdateRoleEndpoint.expectations) == 0 && mmUpdateRoleEndpoint.defaultExpectation == nil && mmUpdateRoleEndpoint.mock.funcUpdateRoleEndpoint == nil {
+		return true
+	}
+
+	totalInvocations := mm_atomic.LoadUint64(&mmUpdateRoleEndpoint.mock.afterUpdateRoleEndpointCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmUpdateRoleEndpoint.expectedInvocations)
+
+	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
+}
+
+// UpdateRoleEndpoint implements mm_service.AccessService
+func (mmUpdateRoleEndpoint *AccessServiceMock) UpdateRoleEndpoint(ctx context.Context, endpoint string, roles []string) (err error) {
+	mm_atomic.AddUint64(&mmUpdateRoleEndpoint.beforeUpdateRoleEndpointCounter, 1)
+	defer mm_atomic.AddUint64(&mmUpdateRoleEndpoint.afterUpdateRoleEndpointCounter, 1)
+
+	mmUpdateRoleEndpoint.t.Helper()
+
+	if mmUpdateRoleEndpoint.inspectFuncUpdateRoleEndpoint != nil {
+		mmUpdateRoleEndpoint.inspectFuncUpdateRoleEndpoint(ctx, endpoint, roles)
+	}
+
+	mm_params := AccessServiceMockUpdateRoleEndpointParams{ctx, endpoint, roles}
+
+	// Record call args
+	mmUpdateRoleEndpoint.UpdateRoleEndpointMock.mutex.Lock()
+	mmUpdateRoleEndpoint.UpdateRoleEndpointMock.callArgs = append(mmUpdateRoleEndpoint.UpdateRoleEndpointMock.callArgs, &mm_params)
+	mmUpdateRoleEndpoint.UpdateRoleEndpointMock.mutex.Unlock()
+
+	for _, e := range mmUpdateRoleEndpoint.UpdateRoleEndpointMock.expectations {
+		if minimock.Equal(*e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.err
+		}
+	}
+
+	if mmUpdateRoleEndpoint.UpdateRoleEndpointMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmUpdateRoleEndpoint.UpdateRoleEndpointMock.defaultExpectation.Counter, 1)
+		mm_want := mmUpdateRoleEndpoint.UpdateRoleEndpointMock.defaultExpectation.params
+		mm_want_ptrs := mmUpdateRoleEndpoint.UpdateRoleEndpointMock.defaultExpectation.paramPtrs
+
+		mm_got := AccessServiceMockUpdateRoleEndpointParams{ctx, endpoint, roles}
+
+		if mm_want_ptrs != nil {
+
+			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
+				mmUpdateRoleEndpoint.t.Errorf("AccessServiceMock.UpdateRoleEndpoint got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmUpdateRoleEndpoint.UpdateRoleEndpointMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+			}
+
+			if mm_want_ptrs.endpoint != nil && !minimock.Equal(*mm_want_ptrs.endpoint, mm_got.endpoint) {
+				mmUpdateRoleEndpoint.t.Errorf("AccessServiceMock.UpdateRoleEndpoint got unexpected parameter endpoint, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmUpdateRoleEndpoint.UpdateRoleEndpointMock.defaultExpectation.expectationOrigins.originEndpoint, *mm_want_ptrs.endpoint, mm_got.endpoint, minimock.Diff(*mm_want_ptrs.endpoint, mm_got.endpoint))
+			}
+
+			if mm_want_ptrs.roles != nil && !minimock.Equal(*mm_want_ptrs.roles, mm_got.roles) {
+				mmUpdateRoleEndpoint.t.Errorf("AccessServiceMock.UpdateRoleEndpoint got unexpected parameter roles, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmUpdateRoleEndpoint.UpdateRoleEndpointMock.defaultExpectation.expectationOrigins.originRoles, *mm_want_ptrs.roles, mm_got.roles, minimock.Diff(*mm_want_ptrs.roles, mm_got.roles))
+			}
+
+		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmUpdateRoleEndpoint.t.Errorf("AccessServiceMock.UpdateRoleEndpoint got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmUpdateRoleEndpoint.UpdateRoleEndpointMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmUpdateRoleEndpoint.UpdateRoleEndpointMock.defaultExpectation.results
+		if mm_results == nil {
+			mmUpdateRoleEndpoint.t.Fatal("No results are set for the AccessServiceMock.UpdateRoleEndpoint")
+		}
+		return (*mm_results).err
+	}
+	if mmUpdateRoleEndpoint.funcUpdateRoleEndpoint != nil {
+		return mmUpdateRoleEndpoint.funcUpdateRoleEndpoint(ctx, endpoint, roles)
+	}
+	mmUpdateRoleEndpoint.t.Fatalf("Unexpected call to AccessServiceMock.UpdateRoleEndpoint. %v %v %v", ctx, endpoint, roles)
+	return
+}
+
+// UpdateRoleEndpointAfterCounter returns a count of finished AccessServiceMock.UpdateRoleEndpoint invocations
+func (mmUpdateRoleEndpoint *AccessServiceMock) UpdateRoleEndpointAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmUpdateRoleEndpoint.afterUpdateRoleEndpointCounter)
+}
+
+// UpdateRoleEndpointBeforeCounter returns a count of AccessServiceMock.UpdateRoleEndpoint invocations
+func (mmUpdateRoleEndpoint *AccessServiceMock) UpdateRoleEndpointBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmUpdateRoleEndpoint.beforeUpdateRoleEndpointCounter)
+}
+
+// Calls returns a list of arguments used in each call to AccessServiceMock.UpdateRoleEndpoint.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmUpdateRoleEndpoint *mAccessServiceMockUpdateRoleEndpoint) Calls() []*AccessServiceMockUpdateRoleEndpointParams {
+	mmUpdateRoleEndpoint.mutex.RLock()
+
+	argCopy := make([]*AccessServiceMockUpdateRoleEndpointParams, len(mmUpdateRoleEndpoint.callArgs))
+	copy(argCopy, mmUpdateRoleEndpoint.callArgs)
+
+	mmUpdateRoleEndpoint.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockUpdateRoleEndpointDone returns true if the count of the UpdateRoleEndpoint invocations corresponds
+// the number of defined expectations
+func (m *AccessServiceMock) MinimockUpdateRoleEndpointDone() bool {
+	if m.UpdateRoleEndpointMock.optional {
+		// Optional methods provide '0 or more' call count restriction.
+		return true
+	}
+
+	for _, e := range m.UpdateRoleEndpointMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	return m.UpdateRoleEndpointMock.invocationsDone()
+}
+
+// MinimockUpdateRoleEndpointInspect logs each unmet expectation
+func (m *AccessServiceMock) MinimockUpdateRoleEndpointInspect() {
+	for _, e := range m.UpdateRoleEndpointMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to AccessServiceMock.UpdateRoleEndpoint at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+		}
+	}
+
+	afterUpdateRoleEndpointCounter := mm_atomic.LoadUint64(&m.afterUpdateRoleEndpointCounter)
+	// if default expectation was set then invocations count should be greater than zero
+	if m.UpdateRoleEndpointMock.defaultExpectation != nil && afterUpdateRoleEndpointCounter < 1 {
+		if m.UpdateRoleEndpointMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to AccessServiceMock.UpdateRoleEndpoint at\n%s", m.UpdateRoleEndpointMock.defaultExpectation.returnOrigin)
+		} else {
+			m.t.Errorf("Expected call to AccessServiceMock.UpdateRoleEndpoint at\n%s with params: %#v", m.UpdateRoleEndpointMock.defaultExpectation.expectationOrigins.origin, *m.UpdateRoleEndpointMock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcUpdateRoleEndpoint != nil && afterUpdateRoleEndpointCounter < 1 {
+		m.t.Errorf("Expected call to AccessServiceMock.UpdateRoleEndpoint at\n%s", m.funcUpdateRoleEndpointOrigin)
+	}
+
+	if !m.UpdateRoleEndpointMock.invocationsDone() && afterUpdateRoleEndpointCounter > 0 {
+		m.t.Errorf("Expected %d calls to AccessServiceMock.UpdateRoleEndpoint at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.UpdateRoleEndpointMock.expectedInvocations), m.UpdateRoleEndpointMock.expectedInvocationsOrigin, afterUpdateRoleEndpointCounter)
+	}
+}
+
 // MinimockFinish checks that all mocked methods have been called the expected number of times
 func (m *AccessServiceMock) MinimockFinish() {
 	m.finishOnce.Do(func() {
 		if !m.minimockDone() {
+			m.MinimockAddRoleEndpointInspect()
+
 			m.MinimockCheckInspect()
+
+			m.MinimockDeleteRoleEndpointInspect()
+
+			m.MinimockGetRoleEndpointsInspect()
+
+			m.MinimockUpdateRoleEndpointInspect()
 		}
 	})
 }
@@ -410,5 +1859,9 @@ func (m *AccessServiceMock) MinimockWait(timeout mm_time.Duration) {
 func (m *AccessServiceMock) minimockDone() bool {
 	done := true
 	return done &&
-		m.MinimockCheckDone()
+		m.MinimockAddRoleEndpointDone() &&
+		m.MinimockCheckDone() &&
+		m.MinimockDeleteRoleEndpointDone() &&
+		m.MinimockGetRoleEndpointsDone() &&
+		m.MinimockUpdateRoleEndpointDone()
 }

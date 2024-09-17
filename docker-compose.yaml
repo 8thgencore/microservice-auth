@@ -53,7 +53,7 @@ services:
       ALLOW_EMPTY_PASSWORD: no
       REDIS_PASSWORD: "${REDIS_PASSWORD}"
     ports:
-      - "${REDIS_PORT}:${REDIS_PORT}"
+      - :${REDIS_PORT_LOCAL}:${REDIS_PORT}"
     networks:
       - service-network
     healthcheck:

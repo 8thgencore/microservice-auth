@@ -14,5 +14,6 @@ func ToEndpointPermissionsFromRepo(endpointPermissions []*dao.EndpointPermission
 			Roles:    e.Roles,
 		})
 	}
+
 	return res
 }

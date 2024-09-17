@@ -18,6 +18,9 @@ type UserRepository interface {
 // AccessRepository is the interface for access policies repository communication.
 type AccessRepository interface {
 	GetRoleEndpoints(ctx context.Context) ([]*model.EndpointPermissions, error)
+	AddRoleEndpoint(ctx context.Context, endpoint string, allowedRoles []string) error
+	UpdateRoleEndpoint(ctx context.Context, endpoint string, allowedRoles []string) error
+	DeleteRoleEndpoint(ctx context.Context, endpoint string) error
 }
 
 // LogRepository is the interface for transaction log repository communication.

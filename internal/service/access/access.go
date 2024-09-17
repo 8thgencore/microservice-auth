@@ -8,12 +8,18 @@ import (
 
 	"google.golang.org/grpc/metadata"
 
-	"github.com/8thgencore/microservice-auth/internal/converter"
+	"github.com/8thgencore/microservice-auth/internal/model"
 )
 
 const (
 	authMetadataHeader = "authorization"
 	authPrefix         = "Bearer "
+
+	// Constants for service endpoints
+	getRoleEndpointsEndpoint   = "/access_v1.AccessV1/GetRoleEndpoints"
+	addRoleEndpointEndpoint    = "/access_v1.AccessV1/AddRoleEndpoint"
+	updateRoleEndpointEndpoint = "/access_v1.AccessV1/UpdateRoleEndpoint"
+	deleteRoleEndpointEndpoint = "/access_v1.AccessV1/DeleteRoleEndpoint"
 )
 
 var (
@@ -33,39 +39,28 @@ var (
 	ErrAccessDenied = errors.New("access denied")
 )
 
-var accessibleRoles map[string][]string
+var (
+	// ErrEndpointAlreadyExists occurs when trying to add an endpoint that already exists.
+	ErrEndpointAlreadyExists = errors.New("endpoint already exists")
+	// ErrEndpointDoesNotExist occurs when trying to access or modify an endpoint that does not exist.
+	ErrEndpointDoesNotExist = errors.New("endpoint does not exist")
+)
 
-func (s *serv) Check(ctx context.Context, endpoint string) error {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return ErrMetadataNotProvided
+func (s *accessService) Check(ctx context.Context, endpoint string) error {
+	token, err := s.extractToken(ctx)
+	if err != nil {
+		return err
 	}
 
-	authHeader, ok := md[authMetadataHeader]
-	if !ok || len(authHeader) == 0 {
-		return ErrAuthHeaderNotProvided
-	}
+	s.rolesMutex.RLock()
+	roles, ok := s.accessibleRoles[endpoint]
+	s.rolesMutex.RUnlock()
 
-	if !strings.HasPrefix(authHeader[0], authPrefix) {
-		return ErrInvalidAuthHeaderFormat
-	}
-
-	accessToken := strings.TrimPrefix(authHeader[0], authPrefix)
-
-	if accessibleRoles == nil {
-		endpointPermissions, errRepo := s.accessRepository.GetRoleEndpoints(ctx)
-		if errRepo != nil {
-			return ErrFailedToReadAccessPolicy
-		}
-		accessibleRoles = converter.ToEndpointPermissionsMap(endpointPermissions)
-	}
-
-	roles, ok := accessibleRoles[endpoint]
 	if !ok {
 		return ErrEndpointNotFound
 	}
 
-	claims, err := s.tokenOperations.VerifyAccessToken(accessToken, []byte(s.jwtConfig.SecretKey))
+	claims, err := s.tokenOperations.VerifyAccessToken(token, []byte(s.jwtConfig.SecretKey))
 	if err != nil {
 		return ErrInvalidAccessToken
 	}
@@ -75,4 +70,97 @@ func (s *serv) Check(ctx context.Context, endpoint string) error {
 	}
 
 	return nil
+}
+
+// GetRoleEndpoints retrieves the list of resources after verifying access permissions.
+func (s *accessService) GetRoleEndpoints(ctx context.Context) ([]*model.EndpointPermissions, error) {
+	err := s.Check(ctx, getRoleEndpointsEndpoint)
+	if err != nil {
+		return nil, err
+	}
+
+	resources, err := s.accessRepository.GetRoleEndpoints(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return resources, nil
+}
+
+// AddRoleEndpoint adds a new resource after verifying access permissions.
+func (s *accessService) AddRoleEndpoint(ctx context.Context, endpoint string, roles []string) error {
+	err := s.Check(ctx, addRoleEndpointEndpoint)
+	if err != nil {
+		return err
+	}
+
+	err = s.accessRepository.AddRoleEndpoint(ctx, endpoint, roles)
+	if err != nil {
+		return err
+	}
+
+	s.rolesMutex.Lock()
+	defer s.rolesMutex.Unlock()
+
+	s.accessibleRoles[endpoint] = roles
+
+	return nil
+}
+
+// UpdateRoleEndpoint edits an existing resource after verifying access permissions.
+func (s *accessService) UpdateRoleEndpoint(ctx context.Context, endpoint string, roles []string) error {
+	err := s.Check(ctx, updateRoleEndpointEndpoint)
+	if err != nil {
+		return err
+	}
+
+	err = s.accessRepository.UpdateRoleEndpoint(ctx, endpoint, roles)
+	if err != nil {
+		return err
+	}
+
+	s.rolesMutex.Lock()
+	defer s.rolesMutex.Unlock()
+
+	s.accessibleRoles[endpoint] = roles
+
+	return nil
+}
+
+// DeleteRoleEndpoint deletes a resource after verifying access permissions.
+func (s *accessService) DeleteRoleEndpoint(ctx context.Context, endpoint string) error {
+	err := s.Check(ctx, deleteRoleEndpointEndpoint)
+	if err != nil {
+		return err
+	}
+
+	err = s.accessRepository.DeleteRoleEndpoint(ctx, endpoint)
+	if err != nil {
+		return err
+	}
+
+	s.rolesMutex.Lock()
+	defer s.rolesMutex.Unlock()
+
+	delete(s.accessibleRoles, endpoint)
+
+	return nil
+}
+
+func (s *accessService) extractToken(ctx context.Context) (string, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return "", ErrMetadataNotProvided
+	}
+
+	authHeader, ok := md[authMetadataHeader]
+	if !ok || len(authHeader) == 0 {
+		return "", ErrAuthHeaderNotProvided
+	}
+
+	if !strings.HasPrefix(authHeader[0], authPrefix) {
+		return "", ErrInvalidAuthHeaderFormat
+	}
+
+	return strings.TrimPrefix(authHeader[0], authPrefix), nil
 }

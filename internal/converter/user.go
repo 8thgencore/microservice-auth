@@ -72,3 +72,25 @@ func ToUserUpdateFromAPI(user *userv1.UserUpdate) *model.UserUpdate {
 		Role:  role,
 	}
 }
+
+// ToRoleStrings converts a list of Role enum values to a list of role strings.
+func ToRoleStrings(roles []userv1.Role) []string {
+	var roleStrings []string
+	for _, role := range roles {
+		roleStrings = append(roleStrings, userv1.Role_name[int32(role)])
+	}
+
+	return roleStrings
+}
+
+// ToRoleEnumsAPI converts a list of role strings to a list of Role enum values.
+func ToRoleEnumsAPI(roleStrings []string) []userv1.Role {
+	var roles []userv1.Role
+	for _, roleStr := range roleStrings {
+		if val, ok := userv1.Role_value[roleStr]; ok {
+			roles = append(roles, userv1.Role(val))
+		}
+	}
+
+	return roles
+}

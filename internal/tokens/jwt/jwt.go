@@ -22,11 +22,13 @@ func NewTokenOperations() tokens.TokenOperations {
 
 // GenerateAccessToken creates JWT access token for the user.
 func (t *tokenOperations) GenerateAccessToken(
-	user model.User, secretKey []byte,
+	user model.User,
+	secretKey []byte,
 	duration time.Duration,
 ) (string, error) {
 	claims := model.UserClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   fmt.Sprintf("%d", user.ID),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
 		},
 		Username: user.Name,
@@ -34,7 +36,12 @@ func (t *tokenOperations) GenerateAccessToken(
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(secretKey)
+	signedToken, err := token.SignedString(secretKey)
+	if err != nil {
+		return "", fmt.Errorf("could not sign access token: %w", err)
+	}
+
+	return signedToken, nil
 }
 
 // GenerateRefreshToken creates JWT refresh token with minimal claims.
@@ -45,13 +52,19 @@ func (t *tokenOperations) GenerateRefreshToken(
 ) (string, error) {
 	claims := model.RefreshClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   fmt.Sprintf("%d", userID),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
 		},
 		UserID: userID,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(secretKey)
+	signedToken, err := token.SignedString(secretKey)
+	if err != nil {
+		return "", fmt.Errorf("could not sign refresh token: %w", err)
+	}
+
+	return signedToken, nil
 }
 
 // VerifyAccessToken checks the validity of an access token.
@@ -60,19 +73,23 @@ func (t *tokenOperations) VerifyAccessToken(tokenStr string, secretKey []byte) (
 		tokenStr,
 		&model.UserClaims{},
 		func(token *jwt.Token) (interface{}, error) {
-			_, ok := token.Method.(*jwt.SigningMethodHMAC)
-			if !ok {
-				return nil, errors.New("unexpected token signing method")
+			if token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Method.Alg())
 			}
+
 			return secretKey, nil
 		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("invalid access token: %s", err.Error())
+		return nil, fmt.Errorf("invalid access token: %w", err)
+	}
+
+	if !token.Valid {
+		return nil, errors.New("invalid access token: token is not valid")
 	}
 
 	claims, ok := token.Claims.(*model.UserClaims)
-	if !ok || !token.Valid {
+	if !ok {
 		return nil, errors.New("invalid access token claims")
 	}
 
@@ -85,19 +102,23 @@ func (t *tokenOperations) VerifyRefreshToken(tokenStr string, secretKey []byte) 
 		tokenStr,
 		&model.RefreshClaims{},
 		func(token *jwt.Token) (interface{}, error) {
-			_, ok := token.Method.(*jwt.SigningMethodHMAC)
-			if !ok {
-				return nil, errors.New("unexpected token signing method")
+			if token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Method.Alg())
 			}
+
 			return secretKey, nil
 		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("invalid refresh token: %s", err.Error())
+		return nil, fmt.Errorf("invalid refresh token: %w", err)
+	}
+
+	if !token.Valid {
+		return nil, errors.New("invalid refresh token: token is not valid")
 	}
 
 	claims, ok := token.Claims.(*model.RefreshClaims)
-	if !ok || !token.Valid {
+	if !ok {
 		return nil, errors.New("invalid refresh token claims")
 	}
 

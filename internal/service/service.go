@@ -25,4 +25,8 @@ type AuthService interface {
 // AccessService is the interface for service communication.
 type AccessService interface {
 	Check(ctx context.Context, endpoint string) error
+	GetRoleEndpoints(ctx context.Context) ([]*model.EndpointPermissions, error)
+	AddRoleEndpoint(ctx context.Context, endpoint string, roles []string) error
+	UpdateRoleEndpoint(ctx context.Context, endpoint string, roles []string) error
+	DeleteRoleEndpoint(ctx context.Context, endpoint string) error
 }

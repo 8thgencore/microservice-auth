@@ -38,6 +38,7 @@ func (a *App) initDeps(ctx context.Context) error {
 			return err
 		}
 	}
+
 	return nil
 }
 

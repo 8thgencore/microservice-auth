@@ -48,19 +48,25 @@ func (s *ServiceProvider) TxManager(ctx context.Context) db.TxManager {
 }
 
 // CacheClient returns a cache client.
-func (s *ServiceProvider) CacheClient(_ context.Context) cache.Client {
+func (s *ServiceProvider) CacheClient(ctx context.Context) cache.Client {
 	cfg := s.Config.Redis
 	opt := &redis.Options{
 		Addr:        cfg.Address(),
-		Password:    "", // no password set
-		DB:          0,  // use default DB
+		Password:    cfg.Password,
+		DB:          0, // use default DB
 		DialTimeout: cfg.ConnectionTimeout,
 		ReadTimeout: cfg.IdleTimeout,
 		PoolSize:    cfg.MaxIdle,
 	}
 
 	if s.cache == nil {
-		s.cache = redisClient.NewClient(opt)
+		c := redisClient.NewClient(opt)
+
+		if err := c.Ping(ctx); err != nil {
+			logger.Fatal("failed to connect to redis: ", zap.Error(err))
+		}
+
+		s.cache = c
 	}
 
 	return s.cache
