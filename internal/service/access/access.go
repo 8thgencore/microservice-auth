@@ -44,6 +44,14 @@ var (
 	ErrEndpointAlreadyExists = errors.New("endpoint already exists")
 	// ErrEndpointDoesNotExist occurs when trying to access or modify an endpoint that does not exist.
 	ErrEndpointDoesNotExist = errors.New("endpoint does not exist")
+	// ErrFailedToGetEndpoint occurs when there is a problem retrieving an endpoint.
+	ErrFailedToGetEndpoint = errors.New("failed to get endpoint")
+	// ErrFailedToAddEndpoint occurs when there is a problem adding a new endpoint.
+	ErrFailedToAddEndpoint = errors.New("failed to add endpoint")
+	// ErrFailedToDeleteEndpoint occurs when there is a problem deleting an endpoint.
+	ErrFailedToDeleteEndpoint = errors.New("failed to delete endpoint")
+	// ErrFailedToUpdateEndpoint occurs when there is a problem updating an existing endpoint.
+	ErrFailedToUpdateEndpoint = errors.New("failed to update endpoint")
 )
 
 func (s *accessService) Check(ctx context.Context, endpoint string) error {
@@ -81,7 +89,7 @@ func (s *accessService) GetRoleEndpoints(ctx context.Context) ([]*model.Endpoint
 
 	resources, err := s.accessRepository.GetRoleEndpoints(ctx)
 	if err != nil {
-		return nil, err
+		return nil, ErrFailedToGetEndpoint
 	}
 
 	return resources, nil
@@ -96,7 +104,7 @@ func (s *accessService) AddRoleEndpoint(ctx context.Context, endpoint string, ro
 
 	err = s.accessRepository.AddRoleEndpoint(ctx, endpoint, roles)
 	if err != nil {
-		return err
+		return ErrFailedToAddEndpoint
 	}
 
 	s.rolesMutex.Lock()
@@ -116,7 +124,7 @@ func (s *accessService) UpdateRoleEndpoint(ctx context.Context, endpoint string,
 
 	err = s.accessRepository.UpdateRoleEndpoint(ctx, endpoint, roles)
 	if err != nil {
-		return err
+		return ErrFailedToUpdateEndpoint
 	}
 
 	s.rolesMutex.Lock()
@@ -136,7 +144,7 @@ func (s *accessService) DeleteRoleEndpoint(ctx context.Context, endpoint string)
 
 	err = s.accessRepository.DeleteRoleEndpoint(ctx, endpoint)
 	if err != nil {
-		return err
+		return ErrFailedToDeleteEndpoint
 	}
 
 	s.rolesMutex.Lock()

@@ -626,8 +626,8 @@ func (m *GetRoleEndpointsResponse) validate(all bool) error {
 }
 
 // GetRoleEndpointsResponseMultiError is an error wrapping multiple validation
-// errors returned by GetRoleEndpointsResponse.ValidateAll() if the
-// designated constraints aren't met.
+// errors returned by GetRoleEndpointsResponse.ValidateAll() if the designated
+// constraints aren't met.
 type GetRoleEndpointsResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
