@@ -52,8 +52,8 @@ services:
     environment:
       ALLOW_EMPTY_PASSWORD: no
       REDIS_PASSWORD: "${REDIS_PASSWORD}"
-    ports:
-      - :${REDIS_PORT_LOCAL}:${REDIS_PORT}"
+    expose:
+      - ${REDIS_PORT}
     networks:
       - service-network
     healthcheck:
