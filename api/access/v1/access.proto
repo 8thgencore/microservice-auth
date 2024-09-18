@@ -51,12 +51,12 @@ service AccessV1 {
 
 message CheckRequest {
     // Endpoint where user wants access to.
-    string endpoint = 1 [(validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/-]+$"}];
+    string endpoint = 1 [(validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$"}];
 }
 
 message AddRoleEndpointRequest {
     // Endpoint to which roles will be added.
-    string endpoint = 1 [(validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/-]+$"}];
+    string endpoint = 1 [(validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$"}];
     // Roles allowed to access this endpoint.
     repeated user_v1.Role allowed_roles = 2 [
         (validate.rules).enum.defined_only = true,
@@ -66,7 +66,7 @@ message AddRoleEndpointRequest {
 
 message UpdateRoleEndpointRequest {
     // Endpoint to be updated.
-    string endpoint = 1 [(validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/-]+$"}];
+    string endpoint = 1 [(validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$"}];
     // Updated roles for this endpoint.
     repeated user_v1.Role allowed_roles = 2 [
         (validate.rules).enum.defined_only = true,
@@ -77,7 +77,7 @@ message UpdateRoleEndpointRequest {
 
 message DeleteRoleEndpointRequest {
     // Endpoint to be deleted.
-    string endpoint = 1 [(validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/-]+$"}];
+    string endpoint = 1 [(validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$"}];
 }
 
 message GetRoleEndpointsResponse {
@@ -87,7 +87,7 @@ message GetRoleEndpointsResponse {
 
 // Represents endpoint permissions including the endpoint and the roles allowed to access it.
 message EndpointPermissions {
-    string endpoint = 1 [(validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/-]+$"}];
+    string endpoint = 1 [(validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$"}];
     repeated user_v1.Role allowed_roles = 2 [
         (validate.rules).enum.defined_only = true,
         (validate.rules).repeated = {min_items: 1}
