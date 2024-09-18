@@ -75,7 +75,7 @@ func (m *CheckRequest) validate(all bool) error {
 	if !_CheckRequest_Endpoint_Pattern.MatchString(m.GetEndpoint()) {
 		err := CheckRequestValidationError{
 			field:  "Endpoint",
-			reason: "value does not match regex pattern \"^[a-zA-Z0-9_/-]+$\"",
+			reason: "value does not match regex pattern \"^[a-zA-Z0-9_/.-]+$\"",
 		}
 		if !all {
 			return err
@@ -160,7 +160,7 @@ var _ interface {
 	ErrorName() string
 } = CheckRequestValidationError{}
 
-var _CheckRequest_Endpoint_Pattern = regexp.MustCompile("^[a-zA-Z0-9_/-]+$")
+var _CheckRequest_Endpoint_Pattern = regexp.MustCompile("^[a-zA-Z0-9_/.-]+$")
 
 // Validate checks the field values on AddRoleEndpointRequest with the rules
 // defined in the proto definition for this message. If any rules are
@@ -198,7 +198,7 @@ func (m *AddRoleEndpointRequest) validate(all bool) error {
 	if !_AddRoleEndpointRequest_Endpoint_Pattern.MatchString(m.GetEndpoint()) {
 		err := AddRoleEndpointRequestValidationError{
 			field:  "Endpoint",
-			reason: "value does not match regex pattern \"^[a-zA-Z0-9_/-]+$\"",
+			reason: "value does not match regex pattern \"^[a-zA-Z0-9_/.-]+$\"",
 		}
 		if !all {
 			return err
@@ -297,7 +297,7 @@ var _ interface {
 	ErrorName() string
 } = AddRoleEndpointRequestValidationError{}
 
-var _AddRoleEndpointRequest_Endpoint_Pattern = regexp.MustCompile("^[a-zA-Z0-9_/-]+$")
+var _AddRoleEndpointRequest_Endpoint_Pattern = regexp.MustCompile("^[a-zA-Z0-9_/.-]+$")
 
 // Validate checks the field values on UpdateRoleEndpointRequest with the rules
 // defined in the proto definition for this message. If any rules are
@@ -335,7 +335,7 @@ func (m *UpdateRoleEndpointRequest) validate(all bool) error {
 	if !_UpdateRoleEndpointRequest_Endpoint_Pattern.MatchString(m.GetEndpoint()) {
 		err := UpdateRoleEndpointRequestValidationError{
 			field:  "Endpoint",
-			reason: "value does not match regex pattern \"^[a-zA-Z0-9_/-]+$\"",
+			reason: "value does not match regex pattern \"^[a-zA-Z0-9_/.-]+$\"",
 		}
 		if !all {
 			return err
@@ -434,7 +434,7 @@ var _ interface {
 	ErrorName() string
 } = UpdateRoleEndpointRequestValidationError{}
 
-var _UpdateRoleEndpointRequest_Endpoint_Pattern = regexp.MustCompile("^[a-zA-Z0-9_/-]+$")
+var _UpdateRoleEndpointRequest_Endpoint_Pattern = regexp.MustCompile("^[a-zA-Z0-9_/.-]+$")
 
 // Validate checks the field values on DeleteRoleEndpointRequest with the rules
 // defined in the proto definition for this message. If any rules are
@@ -472,7 +472,7 @@ func (m *DeleteRoleEndpointRequest) validate(all bool) error {
 	if !_DeleteRoleEndpointRequest_Endpoint_Pattern.MatchString(m.GetEndpoint()) {
 		err := DeleteRoleEndpointRequestValidationError{
 			field:  "Endpoint",
-			reason: "value does not match regex pattern \"^[a-zA-Z0-9_/-]+$\"",
+			reason: "value does not match regex pattern \"^[a-zA-Z0-9_/.-]+$\"",
 		}
 		if !all {
 			return err
@@ -560,7 +560,7 @@ var _ interface {
 	ErrorName() string
 } = DeleteRoleEndpointRequestValidationError{}
 
-var _DeleteRoleEndpointRequest_Endpoint_Pattern = regexp.MustCompile("^[a-zA-Z0-9_/-]+$")
+var _DeleteRoleEndpointRequest_Endpoint_Pattern = regexp.MustCompile("^[a-zA-Z0-9_/.-]+$")
 
 // Validate checks the field values on GetRoleEndpointsResponse with the rules
 // defined in the proto definition for this message. If any rules are
@@ -626,8 +626,8 @@ func (m *GetRoleEndpointsResponse) validate(all bool) error {
 }
 
 // GetRoleEndpointsResponseMultiError is an error wrapping multiple validation
-// errors returned by GetRoleEndpointsResponse.ValidateAll() if the
-// designated constraints aren't met.
+// errors returned by GetRoleEndpointsResponse.ValidateAll() if the designated
+// constraints aren't met.
 type GetRoleEndpointsResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
@@ -734,7 +734,7 @@ func (m *EndpointPermissions) validate(all bool) error {
 	if !_EndpointPermissions_Endpoint_Pattern.MatchString(m.GetEndpoint()) {
 		err := EndpointPermissionsValidationError{
 			field:  "Endpoint",
-			reason: "value does not match regex pattern \"^[a-zA-Z0-9_/-]+$\"",
+			reason: "value does not match regex pattern \"^[a-zA-Z0-9_/.-]+$\"",
 		}
 		if !all {
 			return err
@@ -833,4 +833,4 @@ var _ interface {
 	ErrorName() string
 } = EndpointPermissionsValidationError{}
 
-var _EndpointPermissions_Endpoint_Pattern = regexp.MustCompile("^[a-zA-Z0-9_/-]+$")
+var _EndpointPermissions_Endpoint_Pattern = regexp.MustCompile("^[a-zA-Z0-9_/.-]+$")

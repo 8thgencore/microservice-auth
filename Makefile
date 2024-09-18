@@ -191,6 +191,10 @@ docker-build-migrator: check-env
 docker-deploy: check-env docker-build
 	docker compose --env-file=.env.$(ENV) up -d
 
+# ######### #
+# MIGRATION #
+# ######### #
+
 local-migration-status: check-env
 	$(LOCAL_BIN)/goose -dir ${LOCAL_MIGRATION_DIR} postgres ${LOCAL_MIGRATION_DSN} status -v
 
