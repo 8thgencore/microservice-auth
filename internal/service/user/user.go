@@ -159,14 +159,7 @@ func hashPassword(password string) (string, error) {
 
 // logUserAction is a helper function to log actions performed on a user.
 func (s *serv) logUserAction(ctx context.Context, action string, userID string) error {
-	// Generate a UUIDv7 for the user
-	uuidv7, err := uuid.NewV7()
-	if err != nil {
-		return err
-	}
-
 	return s.logRepository.Log(ctx, &model.Log{
-		ID:   uuidv7.String(),
 		Text: fmt.Sprintf("%s with id: %s", action, userID),
 	})
 }
