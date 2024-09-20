@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE policies (
-    id uuid primary key,
+    id uuid primary key DEFAULT gen_random_uuid(),
     endpoint text not null unique,
     allowed_roles role[]
 );

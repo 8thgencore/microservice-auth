@@ -45,8 +45,8 @@ func NewRepository(db db.Client) repository.UserRepository {
 func (r *repo) Create(ctx context.Context, user *model.UserCreate) (string, error) {
 	builderInsert := sq.Insert(tableName).
 		PlaceholderFormat(sq.Dollar).
-		Columns(nameColumn, roleColumn, emailColumn, passwordColumn).
-		Values(user.Name, user.Role, user.Email, user.Password).
+		Columns(idColumn, nameColumn, roleColumn, emailColumn, passwordColumn).
+		Values(user.ID, user.Name, user.Role, user.Email, user.Password).
 		Suffix(fmt.Sprintf("RETURNING %s", idColumn))
 
 	query, args, err := builderInsert.ToSql()

@@ -17,6 +17,7 @@ type User struct {
 
 // UserCreate type is the structure for creating user.
 type UserCreate struct {
+	ID              string
 	Name            string
 	Email           string
 	Password        string

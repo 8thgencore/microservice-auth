@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/8thgencore/microservice-auth/internal/model"
-	"github.com/8thgencore/microservice-common/pkg/logger"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -37,6 +37,13 @@ func (s *serv) Create(ctx context.Context, user *model.UserCreate) (string, erro
 	}
 	user.Password = hashedPassword
 
+	// Generate a UUIDv7 for the user
+	uuidv7, err := uuid.NewV7()
+	if err != nil {
+		return "", err
+	}
+	user.ID = uuidv7.String()
+
 	// Create the user
 	var id string
 	err = s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
@@ -55,7 +62,6 @@ func (s *serv) Create(ctx context.Context, user *model.UserCreate) (string, erro
 		if errors.Is(err, ErrUserEmailExists) {
 			return "", ErrUserEmailExists
 		}
-		logger.Error(err.Error())
 
 		return "", ErrUserCreate
 	}
@@ -153,7 +159,14 @@ func hashPassword(password string) (string, error) {
 
 // logUserAction is a helper function to log actions performed on a user.
 func (s *serv) logUserAction(ctx context.Context, action string, userID string) error {
+	// Generate a UUIDv7 for the user
+	uuidv7, err := uuid.NewV7()
+	if err != nil {
+		return err
+	}
+
 	return s.logRepository.Log(ctx, &model.Log{
+		ID:   uuidv7.String(),
 		Text: fmt.Sprintf("%s with id: %s", action, userID),
 	})
 }

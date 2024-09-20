@@ -30,8 +30,8 @@ func NewRepository(db db.Client) repository.LogRepository {
 func (r *repo) Log(ctx context.Context, text *model.Log) error {
 	builderInsert := sq.Insert(tableName).
 		PlaceholderFormat(sq.Dollar).
-		Columns(logColumn).
-		Values(text.Text).
+		Columns(idColumn, logColumn).
+		Values(text.ID, text.Text).
 		Suffix(fmt.Sprintf("RETURNING %s", idColumn))
 
 	query, args, err := builderInsert.ToSql()
@@ -44,7 +44,7 @@ func (r *repo) Log(ctx context.Context, text *model.Log) error {
 		QueryRaw: query,
 	}
 
-	var id int64
+	var id string
 	err = r.db.DB().QueryRowContext(ctx, q, args...).Scan(&id)
 	if err != nil {
 		return err
