@@ -24,9 +24,9 @@ type TokenOperationsMock struct {
 	beforeGenerateAccessTokenCounter uint64
 	GenerateAccessTokenMock          mTokenOperationsMockGenerateAccessToken
 
-	funcGenerateRefreshToken          func(userID int64, secretKey []byte, duration time.Duration) (s1 string, err error)
+	funcGenerateRefreshToken          func(userID string, secretKey []byte, duration time.Duration) (s1 string, err error)
 	funcGenerateRefreshTokenOrigin    string
-	inspectFuncGenerateRefreshToken   func(userID int64, secretKey []byte, duration time.Duration)
+	inspectFuncGenerateRefreshToken   func(userID string, secretKey []byte, duration time.Duration)
 	afterGenerateRefreshTokenCounter  uint64
 	beforeGenerateRefreshTokenCounter uint64
 	GenerateRefreshTokenMock          mTokenOperationsMockGenerateRefreshToken
@@ -471,14 +471,14 @@ type TokenOperationsMockGenerateRefreshTokenExpectation struct {
 
 // TokenOperationsMockGenerateRefreshTokenParams contains parameters of the TokenOperations.GenerateRefreshToken
 type TokenOperationsMockGenerateRefreshTokenParams struct {
-	userID    int64
+	userID    string
 	secretKey []byte
 	duration  time.Duration
 }
 
 // TokenOperationsMockGenerateRefreshTokenParamPtrs contains pointers to parameters of the TokenOperations.GenerateRefreshToken
 type TokenOperationsMockGenerateRefreshTokenParamPtrs struct {
-	userID    *int64
+	userID    *string
 	secretKey *[]byte
 	duration  *time.Duration
 }
@@ -508,7 +508,7 @@ func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) Optional
 }
 
 // Expect sets up expected params for TokenOperations.GenerateRefreshToken
-func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) Expect(userID int64, secretKey []byte, duration time.Duration) *mTokenOperationsMockGenerateRefreshToken {
+func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) Expect(userID string, secretKey []byte, duration time.Duration) *mTokenOperationsMockGenerateRefreshToken {
 	if mmGenerateRefreshToken.mock.funcGenerateRefreshToken != nil {
 		mmGenerateRefreshToken.mock.t.Fatalf("TokenOperationsMock.GenerateRefreshToken mock is already set by Set")
 	}
@@ -533,7 +533,7 @@ func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) Expect(u
 }
 
 // ExpectUserIDParam1 sets up expected param userID for TokenOperations.GenerateRefreshToken
-func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) ExpectUserIDParam1(userID int64) *mTokenOperationsMockGenerateRefreshToken {
+func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) ExpectUserIDParam1(userID string) *mTokenOperationsMockGenerateRefreshToken {
 	if mmGenerateRefreshToken.mock.funcGenerateRefreshToken != nil {
 		mmGenerateRefreshToken.mock.t.Fatalf("TokenOperationsMock.GenerateRefreshToken mock is already set by Set")
 	}
@@ -602,7 +602,7 @@ func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) ExpectDu
 }
 
 // Inspect accepts an inspector function that has same arguments as the TokenOperations.GenerateRefreshToken
-func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) Inspect(f func(userID int64, secretKey []byte, duration time.Duration)) *mTokenOperationsMockGenerateRefreshToken {
+func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) Inspect(f func(userID string, secretKey []byte, duration time.Duration)) *mTokenOperationsMockGenerateRefreshToken {
 	if mmGenerateRefreshToken.mock.inspectFuncGenerateRefreshToken != nil {
 		mmGenerateRefreshToken.mock.t.Fatalf("Inspect function is already set for TokenOperationsMock.GenerateRefreshToken")
 	}
@@ -627,7 +627,7 @@ func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) Return(s
 }
 
 // Set uses given function f to mock the TokenOperations.GenerateRefreshToken method
-func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) Set(f func(userID int64, secretKey []byte, duration time.Duration) (s1 string, err error)) *TokenOperationsMock {
+func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) Set(f func(userID string, secretKey []byte, duration time.Duration) (s1 string, err error)) *TokenOperationsMock {
 	if mmGenerateRefreshToken.defaultExpectation != nil {
 		mmGenerateRefreshToken.mock.t.Fatalf("Default expectation is already set for the TokenOperations.GenerateRefreshToken method")
 	}
@@ -643,7 +643,7 @@ func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) Set(f fu
 
 // When sets expectation for the TokenOperations.GenerateRefreshToken which will trigger the result defined by the following
 // Then helper
-func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) When(userID int64, secretKey []byte, duration time.Duration) *TokenOperationsMockGenerateRefreshTokenExpectation {
+func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) When(userID string, secretKey []byte, duration time.Duration) *TokenOperationsMockGenerateRefreshTokenExpectation {
 	if mmGenerateRefreshToken.mock.funcGenerateRefreshToken != nil {
 		mmGenerateRefreshToken.mock.t.Fatalf("TokenOperationsMock.GenerateRefreshToken mock is already set by Set")
 	}
@@ -685,7 +685,7 @@ func (mmGenerateRefreshToken *mTokenOperationsMockGenerateRefreshToken) invocati
 }
 
 // GenerateRefreshToken implements mm_tokens.TokenOperations
-func (mmGenerateRefreshToken *TokenOperationsMock) GenerateRefreshToken(userID int64, secretKey []byte, duration time.Duration) (s1 string, err error) {
+func (mmGenerateRefreshToken *TokenOperationsMock) GenerateRefreshToken(userID string, secretKey []byte, duration time.Duration) (s1 string, err error) {
 	mm_atomic.AddUint64(&mmGenerateRefreshToken.beforeGenerateRefreshTokenCounter, 1)
 	defer mm_atomic.AddUint64(&mmGenerateRefreshToken.afterGenerateRefreshTokenCounter, 1)
 

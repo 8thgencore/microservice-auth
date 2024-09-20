@@ -18,6 +18,18 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
+var (
+	id              = "uuid"
+	name            = "name"
+	email           = "email"
+	role            = userv1.Role_USER
+	roleName        = "USER"
+	password        = "password"
+	passwordConfirm = "passwordConfirm"
+	createdAt       = timestamppb.Now()
+	updatedAt       = timestamppb.Now()
+)
+
 func TestCreate(t *testing.T) {
 	t.Parallel()
 
@@ -31,14 +43,6 @@ func TestCreate(t *testing.T) {
 	var (
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
-
-		id              = int64(1)
-		name            = "name"
-		email           = "email"
-		password        = "password"
-		passwordConfirm = "passwordConfirm"
-		role            = userv1.Role_USER
-		roleName        = "USER"
 
 		serviceErr = fmt.Errorf("service error")
 
@@ -96,7 +100,7 @@ func TestCreate(t *testing.T) {
 			err:  serviceErr,
 			userServiceMock: func(mc *minimock.Controller) service.UserService {
 				mock := serviceMocks.NewUserServiceMock(mc)
-				mock.CreateMock.Expect(minimock.AnyContext, userCreate).Return(0, serviceErr)
+				mock.CreateMock.Expect(minimock.AnyContext, userCreate).Return("", serviceErr)
 				return mock
 			},
 		},
@@ -129,14 +133,6 @@ func TestGet(t *testing.T) {
 	var (
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
-
-		id        = int64(1)
-		name      = "name"
-		email     = "email"
-		role      = userv1.Role_USER
-		roleName  = "USER"
-		createdAt = timestamppb.Now()
-		updatedAt = timestamppb.Now()
 
 		serviceErr = fmt.Errorf("service error")
 
@@ -233,7 +229,7 @@ func TestUpdate(t *testing.T) {
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
 
-		id       = int64(1)
+		id       = "uuid"
 		name     = "name"
 		email    = "email"
 		role     = userv1.Role_USER
@@ -334,7 +330,7 @@ func TestDelete(t *testing.T) {
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
 
-		id = int64(1)
+		id = "uuid"
 
 		serviceErr = fmt.Errorf("service error")
 

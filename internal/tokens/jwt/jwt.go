@@ -28,7 +28,7 @@ func (t *tokenOperations) GenerateAccessToken(
 ) (string, error) {
 	claims := model.UserClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   fmt.Sprintf("%d", user.ID),
+			Subject:   fmt.Sprint(user.ID),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
 		},
 		Username: user.Name,
@@ -46,13 +46,13 @@ func (t *tokenOperations) GenerateAccessToken(
 
 // GenerateRefreshToken creates JWT refresh token with minimal claims.
 func (t *tokenOperations) GenerateRefreshToken(
-	userID int64,
+	userID string,
 	secretKey []byte,
 	duration time.Duration,
 ) (string, error) {
 	claims := model.RefreshClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   fmt.Sprintf("%d", userID),
+			Subject:   fmt.Sprint(userID),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
 		},
 		UserID: userID,

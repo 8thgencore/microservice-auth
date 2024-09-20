@@ -17,23 +17,23 @@ type UserRepositoryMock struct {
 	t          minimock.Tester
 	finishOnce sync.Once
 
-	funcCreate          func(ctx context.Context, user *model.UserCreate) (i1 int64, err error)
+	funcCreate          func(ctx context.Context, user *model.UserCreate) (s1 string, err error)
 	funcCreateOrigin    string
 	inspectFuncCreate   func(ctx context.Context, user *model.UserCreate)
 	afterCreateCounter  uint64
 	beforeCreateCounter uint64
 	CreateMock          mUserRepositoryMockCreate
 
-	funcDelete          func(ctx context.Context, id int64) (err error)
+	funcDelete          func(ctx context.Context, id string) (err error)
 	funcDeleteOrigin    string
-	inspectFuncDelete   func(ctx context.Context, id int64)
+	inspectFuncDelete   func(ctx context.Context, id string)
 	afterDeleteCounter  uint64
 	beforeDeleteCounter uint64
 	DeleteMock          mUserRepositoryMockDelete
 
-	funcGet          func(ctx context.Context, id int64) (up1 *model.User, err error)
+	funcGet          func(ctx context.Context, id string) (up1 *model.User, err error)
 	funcGetOrigin    string
-	inspectFuncGet   func(ctx context.Context, id int64)
+	inspectFuncGet   func(ctx context.Context, id string)
 	afterGetCounter  uint64
 	beforeGetCounter uint64
 	GetMock          mUserRepositoryMockGet
@@ -119,7 +119,7 @@ type UserRepositoryMockCreateParamPtrs struct {
 
 // UserRepositoryMockCreateResults contains results of the UserRepository.Create
 type UserRepositoryMockCreateResults struct {
-	i1  int64
+	s1  string
 	err error
 }
 
@@ -223,7 +223,7 @@ func (mmCreate *mUserRepositoryMockCreate) Inspect(f func(ctx context.Context, u
 }
 
 // Return sets up results that will be returned by UserRepository.Create
-func (mmCreate *mUserRepositoryMockCreate) Return(i1 int64, err error) *UserRepositoryMock {
+func (mmCreate *mUserRepositoryMockCreate) Return(s1 string, err error) *UserRepositoryMock {
 	if mmCreate.mock.funcCreate != nil {
 		mmCreate.mock.t.Fatalf("UserRepositoryMock.Create mock is already set by Set")
 	}
@@ -231,13 +231,13 @@ func (mmCreate *mUserRepositoryMockCreate) Return(i1 int64, err error) *UserRepo
 	if mmCreate.defaultExpectation == nil {
 		mmCreate.defaultExpectation = &UserRepositoryMockCreateExpectation{mock: mmCreate.mock}
 	}
-	mmCreate.defaultExpectation.results = &UserRepositoryMockCreateResults{i1, err}
+	mmCreate.defaultExpectation.results = &UserRepositoryMockCreateResults{s1, err}
 	mmCreate.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
 	return mmCreate.mock
 }
 
 // Set uses given function f to mock the UserRepository.Create method
-func (mmCreate *mUserRepositoryMockCreate) Set(f func(ctx context.Context, user *model.UserCreate) (i1 int64, err error)) *UserRepositoryMock {
+func (mmCreate *mUserRepositoryMockCreate) Set(f func(ctx context.Context, user *model.UserCreate) (s1 string, err error)) *UserRepositoryMock {
 	if mmCreate.defaultExpectation != nil {
 		mmCreate.mock.t.Fatalf("Default expectation is already set for the UserRepository.Create method")
 	}
@@ -268,8 +268,8 @@ func (mmCreate *mUserRepositoryMockCreate) When(ctx context.Context, user *model
 }
 
 // Then sets up UserRepository.Create return parameters for the expectation previously defined by the When method
-func (e *UserRepositoryMockCreateExpectation) Then(i1 int64, err error) *UserRepositoryMock {
-	e.results = &UserRepositoryMockCreateResults{i1, err}
+func (e *UserRepositoryMockCreateExpectation) Then(s1 string, err error) *UserRepositoryMock {
+	e.results = &UserRepositoryMockCreateResults{s1, err}
 	return e.mock
 }
 
@@ -295,7 +295,7 @@ func (mmCreate *mUserRepositoryMockCreate) invocationsDone() bool {
 }
 
 // Create implements mm_repository.UserRepository
-func (mmCreate *UserRepositoryMock) Create(ctx context.Context, user *model.UserCreate) (i1 int64, err error) {
+func (mmCreate *UserRepositoryMock) Create(ctx context.Context, user *model.UserCreate) (s1 string, err error) {
 	mm_atomic.AddUint64(&mmCreate.beforeCreateCounter, 1)
 	defer mm_atomic.AddUint64(&mmCreate.afterCreateCounter, 1)
 
@@ -315,7 +315,7 @@ func (mmCreate *UserRepositoryMock) Create(ctx context.Context, user *model.User
 	for _, e := range mmCreate.CreateMock.expectations {
 		if minimock.Equal(*e.params, mm_params) {
 			mm_atomic.AddUint64(&e.Counter, 1)
-			return e.results.i1, e.results.err
+			return e.results.s1, e.results.err
 		}
 	}
 
@@ -347,7 +347,7 @@ func (mmCreate *UserRepositoryMock) Create(ctx context.Context, user *model.User
 		if mm_results == nil {
 			mmCreate.t.Fatal("No results are set for the UserRepositoryMock.Create")
 		}
-		return (*mm_results).i1, (*mm_results).err
+		return (*mm_results).s1, (*mm_results).err
 	}
 	if mmCreate.funcCreate != nil {
 		return mmCreate.funcCreate(ctx, user)
@@ -451,13 +451,13 @@ type UserRepositoryMockDeleteExpectation struct {
 // UserRepositoryMockDeleteParams contains parameters of the UserRepository.Delete
 type UserRepositoryMockDeleteParams struct {
 	ctx context.Context
-	id  int64
+	id  string
 }
 
 // UserRepositoryMockDeleteParamPtrs contains pointers to parameters of the UserRepository.Delete
 type UserRepositoryMockDeleteParamPtrs struct {
 	ctx *context.Context
-	id  *int64
+	id  *string
 }
 
 // UserRepositoryMockDeleteResults contains results of the UserRepository.Delete
@@ -483,7 +483,7 @@ func (mmDelete *mUserRepositoryMockDelete) Optional() *mUserRepositoryMockDelete
 }
 
 // Expect sets up expected params for UserRepository.Delete
-func (mmDelete *mUserRepositoryMockDelete) Expect(ctx context.Context, id int64) *mUserRepositoryMockDelete {
+func (mmDelete *mUserRepositoryMockDelete) Expect(ctx context.Context, id string) *mUserRepositoryMockDelete {
 	if mmDelete.mock.funcDelete != nil {
 		mmDelete.mock.t.Fatalf("UserRepositoryMock.Delete mock is already set by Set")
 	}
@@ -531,7 +531,7 @@ func (mmDelete *mUserRepositoryMockDelete) ExpectCtxParam1(ctx context.Context) 
 }
 
 // ExpectIdParam2 sets up expected param id for UserRepository.Delete
-func (mmDelete *mUserRepositoryMockDelete) ExpectIdParam2(id int64) *mUserRepositoryMockDelete {
+func (mmDelete *mUserRepositoryMockDelete) ExpectIdParam2(id string) *mUserRepositoryMockDelete {
 	if mmDelete.mock.funcDelete != nil {
 		mmDelete.mock.t.Fatalf("UserRepositoryMock.Delete mock is already set by Set")
 	}
@@ -554,7 +554,7 @@ func (mmDelete *mUserRepositoryMockDelete) ExpectIdParam2(id int64) *mUserReposi
 }
 
 // Inspect accepts an inspector function that has same arguments as the UserRepository.Delete
-func (mmDelete *mUserRepositoryMockDelete) Inspect(f func(ctx context.Context, id int64)) *mUserRepositoryMockDelete {
+func (mmDelete *mUserRepositoryMockDelete) Inspect(f func(ctx context.Context, id string)) *mUserRepositoryMockDelete {
 	if mmDelete.mock.inspectFuncDelete != nil {
 		mmDelete.mock.t.Fatalf("Inspect function is already set for UserRepositoryMock.Delete")
 	}
@@ -579,7 +579,7 @@ func (mmDelete *mUserRepositoryMockDelete) Return(err error) *UserRepositoryMock
 }
 
 // Set uses given function f to mock the UserRepository.Delete method
-func (mmDelete *mUserRepositoryMockDelete) Set(f func(ctx context.Context, id int64) (err error)) *UserRepositoryMock {
+func (mmDelete *mUserRepositoryMockDelete) Set(f func(ctx context.Context, id string) (err error)) *UserRepositoryMock {
 	if mmDelete.defaultExpectation != nil {
 		mmDelete.mock.t.Fatalf("Default expectation is already set for the UserRepository.Delete method")
 	}
@@ -595,7 +595,7 @@ func (mmDelete *mUserRepositoryMockDelete) Set(f func(ctx context.Context, id in
 
 // When sets expectation for the UserRepository.Delete which will trigger the result defined by the following
 // Then helper
-func (mmDelete *mUserRepositoryMockDelete) When(ctx context.Context, id int64) *UserRepositoryMockDeleteExpectation {
+func (mmDelete *mUserRepositoryMockDelete) When(ctx context.Context, id string) *UserRepositoryMockDeleteExpectation {
 	if mmDelete.mock.funcDelete != nil {
 		mmDelete.mock.t.Fatalf("UserRepositoryMock.Delete mock is already set by Set")
 	}
@@ -637,7 +637,7 @@ func (mmDelete *mUserRepositoryMockDelete) invocationsDone() bool {
 }
 
 // Delete implements mm_repository.UserRepository
-func (mmDelete *UserRepositoryMock) Delete(ctx context.Context, id int64) (err error) {
+func (mmDelete *UserRepositoryMock) Delete(ctx context.Context, id string) (err error) {
 	mm_atomic.AddUint64(&mmDelete.beforeDeleteCounter, 1)
 	defer mm_atomic.AddUint64(&mmDelete.afterDeleteCounter, 1)
 
@@ -793,13 +793,13 @@ type UserRepositoryMockGetExpectation struct {
 // UserRepositoryMockGetParams contains parameters of the UserRepository.Get
 type UserRepositoryMockGetParams struct {
 	ctx context.Context
-	id  int64
+	id  string
 }
 
 // UserRepositoryMockGetParamPtrs contains pointers to parameters of the UserRepository.Get
 type UserRepositoryMockGetParamPtrs struct {
 	ctx *context.Context
-	id  *int64
+	id  *string
 }
 
 // UserRepositoryMockGetResults contains results of the UserRepository.Get
@@ -826,7 +826,7 @@ func (mmGet *mUserRepositoryMockGet) Optional() *mUserRepositoryMockGet {
 }
 
 // Expect sets up expected params for UserRepository.Get
-func (mmGet *mUserRepositoryMockGet) Expect(ctx context.Context, id int64) *mUserRepositoryMockGet {
+func (mmGet *mUserRepositoryMockGet) Expect(ctx context.Context, id string) *mUserRepositoryMockGet {
 	if mmGet.mock.funcGet != nil {
 		mmGet.mock.t.Fatalf("UserRepositoryMock.Get mock is already set by Set")
 	}
@@ -874,7 +874,7 @@ func (mmGet *mUserRepositoryMockGet) ExpectCtxParam1(ctx context.Context) *mUser
 }
 
 // ExpectIdParam2 sets up expected param id for UserRepository.Get
-func (mmGet *mUserRepositoryMockGet) ExpectIdParam2(id int64) *mUserRepositoryMockGet {
+func (mmGet *mUserRepositoryMockGet) ExpectIdParam2(id string) *mUserRepositoryMockGet {
 	if mmGet.mock.funcGet != nil {
 		mmGet.mock.t.Fatalf("UserRepositoryMock.Get mock is already set by Set")
 	}
@@ -897,7 +897,7 @@ func (mmGet *mUserRepositoryMockGet) ExpectIdParam2(id int64) *mUserRepositoryMo
 }
 
 // Inspect accepts an inspector function that has same arguments as the UserRepository.Get
-func (mmGet *mUserRepositoryMockGet) Inspect(f func(ctx context.Context, id int64)) *mUserRepositoryMockGet {
+func (mmGet *mUserRepositoryMockGet) Inspect(f func(ctx context.Context, id string)) *mUserRepositoryMockGet {
 	if mmGet.mock.inspectFuncGet != nil {
 		mmGet.mock.t.Fatalf("Inspect function is already set for UserRepositoryMock.Get")
 	}
@@ -922,7 +922,7 @@ func (mmGet *mUserRepositoryMockGet) Return(up1 *model.User, err error) *UserRep
 }
 
 // Set uses given function f to mock the UserRepository.Get method
-func (mmGet *mUserRepositoryMockGet) Set(f func(ctx context.Context, id int64) (up1 *model.User, err error)) *UserRepositoryMock {
+func (mmGet *mUserRepositoryMockGet) Set(f func(ctx context.Context, id string) (up1 *model.User, err error)) *UserRepositoryMock {
 	if mmGet.defaultExpectation != nil {
 		mmGet.mock.t.Fatalf("Default expectation is already set for the UserRepository.Get method")
 	}
@@ -938,7 +938,7 @@ func (mmGet *mUserRepositoryMockGet) Set(f func(ctx context.Context, id int64) (
 
 // When sets expectation for the UserRepository.Get which will trigger the result defined by the following
 // Then helper
-func (mmGet *mUserRepositoryMockGet) When(ctx context.Context, id int64) *UserRepositoryMockGetExpectation {
+func (mmGet *mUserRepositoryMockGet) When(ctx context.Context, id string) *UserRepositoryMockGetExpectation {
 	if mmGet.mock.funcGet != nil {
 		mmGet.mock.t.Fatalf("UserRepositoryMock.Get mock is already set by Set")
 	}
@@ -980,7 +980,7 @@ func (mmGet *mUserRepositoryMockGet) invocationsDone() bool {
 }
 
 // Get implements mm_repository.UserRepository
-func (mmGet *UserRepositoryMock) Get(ctx context.Context, id int64) (up1 *model.User, err error) {
+func (mmGet *UserRepositoryMock) Get(ctx context.Context, id string) (up1 *model.User, err error) {
 	mm_atomic.AddUint64(&mmGet.beforeGetCounter, 1)
 	defer mm_atomic.AddUint64(&mmGet.afterGetCounter, 1)
 

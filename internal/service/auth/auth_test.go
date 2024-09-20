@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	userID          = int64(1)
+	userID          = "uuid"
 	username        = "username"
 	password        = "password"
 	passwordWrong   = "passwordWrong"

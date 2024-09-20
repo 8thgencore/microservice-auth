@@ -67,7 +67,7 @@ enum Role {
 
 message User {
 	// ID of the user.
-	int64 id = 1;
+	string id = 1 [(validate.rules).string = {uuid: true}];
 	// Name of the user.
 	string name = 2;
 	// Email of the user.
@@ -79,7 +79,6 @@ message User {
 	// Timestamp when user info was updated last time.
 	google.protobuf.Timestamp updated_at = 6;
 }
-
 
 message UserCreate {
 	// Name of the user to create.
@@ -96,7 +95,7 @@ message UserCreate {
 
 message UserUpdate {
 	// ID of the user to update.
-	int64 id = 1 [(validate.rules).int64.gte = 1];
+	string id = 1 [(validate.rules).string = {uuid: true}];
 	// [optional] Name of the user to update.
 	google.protobuf.StringValue name = 2 [(validate.rules).string = {ignore_empty: true, min_len: 1, max_len: 50}];
 	// [optional] Email of the user to update.
@@ -111,12 +110,12 @@ message CreateRequest {
 
 message CreateResponse {
 	// ID of the created user.
-	int64 id = 1;
+	string id = 1;
 }
 
 message GetRequest {
 	// ID of the user to read info about.
-	int64 id = 1 [(validate.rules).int64.gte = 1];
+	string id = 1 [(validate.rules).string = {uuid: true}];
 }
 
 message GetResponse {
@@ -129,5 +128,5 @@ message UpdateRequest {
 
 message DeleteRequest {
 	// ID of the user to delete.
-	int64 id = 1 [(validate.rules).int64.gte = 1];
+	string id = 1 [(validate.rules).string = {uuid: true}];
 }

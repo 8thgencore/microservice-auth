@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE
     transaction_log (
-        id serial primary key,
+        id uuid primary key,
         timestamp timestamp not null default now (),
         log text not null
     );
