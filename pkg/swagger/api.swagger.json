@@ -48,8 +48,7 @@
             "description": "ID of the user to read info about.",
             "in": "query",
             "required": false,
-            "type": "string",
-            "format": "int64"
+            "type": "string"
           }
         ],
         "tags": [
@@ -80,8 +79,7 @@
             "description": "ID of the user to delete.",
             "in": "query",
             "required": false,
-            "type": "string",
-            "format": "int64"
+            "type": "string"
           }
         ],
         "tags": [
@@ -195,7 +193,6 @@
       "properties": {
         "id": {
           "type": "string",
-          "format": "int64",
           "description": "ID of the created user."
         }
       }
@@ -230,7 +227,6 @@
       "properties": {
         "id": {
           "type": "string",
-          "format": "int64",
           "description": "ID of the user."
         },
         "name": {
@@ -287,7 +283,6 @@
       "properties": {
         "id": {
           "type": "string",
-          "format": "int64",
           "description": "ID of the user to update."
         },
         "name": {

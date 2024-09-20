@@ -5,6 +5,9 @@
         },
         {
             "path": "../../../microservice-common"
+        },
+        {
+            "path": "../../../microservice-chat"
         }
     ],
     "settings": {
