@@ -42,16 +42,16 @@ func NewRepository(db db.Client) repository.UserRepository {
 	return &repo{db: db}
 }
 
-func (r *repo) Create(ctx context.Context, user *model.UserCreate) (int64, error) {
+func (r *repo) Create(ctx context.Context, user *model.UserCreate) (string, error) {
 	builderInsert := sq.Insert(tableName).
 		PlaceholderFormat(sq.Dollar).
-		Columns(nameColumn, roleColumn, emailColumn, passwordColumn).
-		Values(user.Name, user.Role, user.Email, user.Password).
+		Columns(idColumn, nameColumn, roleColumn, emailColumn, passwordColumn).
+		Values(user.ID, user.Name, user.Role, user.Email, user.Password).
 		Suffix(fmt.Sprintf("RETURNING %s", idColumn))
 
 	query, args, err := builderInsert.ToSql()
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	q := db.Query{
@@ -59,26 +59,26 @@ func (r *repo) Create(ctx context.Context, user *model.UserCreate) (int64, error
 		QueryRaw: query,
 	}
 
-	var id int64
+	var id string
 	err = r.db.DB().QueryRowContext(ctx, q, args...).Scan(&id)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
 			switch pgErr.ConstraintName {
 			case userNameKey:
-				return 0, userService.ErrUserNameExists
+				return "", userService.ErrUserNameExists
 			case userEmailKey:
-				return 0, userService.ErrUserEmailExists
+				return "", userService.ErrUserEmailExists
 			}
 		}
 
-		return 0, err
+		return "", err
 	}
 
 	return id, nil
 }
 
-func (r *repo) Get(ctx context.Context, id int64) (*model.User, error) {
+func (r *repo) Get(ctx context.Context, id string) (*model.User, error) {
 	builderSelect := sq.Select(idColumn, nameColumn, emailColumn, roleColumn, createdAtColumn, updatedAtColumn).
 		From(tableName).
 		PlaceholderFormat(sq.Dollar).
@@ -152,7 +152,7 @@ func (r *repo) Update(ctx context.Context, user *model.UserUpdate) error {
 	return nil
 }
 
-func (r *repo) Delete(ctx context.Context, id int64) error {
+func (r *repo) Delete(ctx context.Context, id string) error {
 	builderDelete := sq.Delete(tableName).
 		PlaceholderFormat(sq.Dollar).
 		Where(sq.Eq{idColumn: id})

@@ -7,7 +7,7 @@ import (
 
 // User type is the main structure for user.
 type User struct {
-	ID        int64
+	ID        string
 	Name      string
 	Email     string
 	Role      string
@@ -17,6 +17,7 @@ type User struct {
 
 // UserCreate type is the structure for creating user.
 type UserCreate struct {
+	ID              string
 	Name            string
 	Email           string
 	Password        string
@@ -26,7 +27,7 @@ type UserCreate struct {
 
 // UserUpdate type is the structure for updating user info.
 type UserUpdate struct {
-	ID    int64
+	ID    string
 	Name  sql.NullString
 	Email sql.NullString
 	Role  sql.NullString

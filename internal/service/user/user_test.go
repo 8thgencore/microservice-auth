@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	id              = int64(1)
+	id              = "uuid"
 	name            = "name"
 	email           = "email"
 	password        = "password"
@@ -96,14 +96,14 @@ func TestCreate(t *testing.T) {
 		}
 
 		reqLog = &model.Log{
-			Text: fmt.Sprintf("Created user with id: %d", id),
+			Text: fmt.Sprintf("Created user with id: %s", id),
 		}
 	)
 
 	tests := []struct {
 		name               string
 		args               args
-		want               int64
+		want               string
 		err                error
 		userRepositoryMock userRepositoryMockFunc
 		logRepositoryMock  logRepositoryMockFunc
@@ -135,7 +135,7 @@ func TestCreate(t *testing.T) {
 				ctx: ctx,
 				req: reqPassNotMatch,
 			},
-			want: 0,
+			want: "",
 			err:  ErrPasswordsMismatch,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
@@ -156,11 +156,11 @@ func TestCreate(t *testing.T) {
 				ctx: ctx,
 				req: req,
 			},
-			want: 0,
+			want: "",
 			err:  ErrUserCreate,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
-				mock.CreateMock.Expect(minimock.AnyContext, req).Return(0, ErrUserCreate)
+				mock.CreateMock.Expect(minimock.AnyContext, req).Return("", ErrUserCreate)
 				return mock
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
@@ -175,7 +175,7 @@ func TestCreate(t *testing.T) {
 				ctx: ctx,
 				req: req,
 			},
-			want: 0,
+			want: "",
 			err:  ErrUserCreate,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
@@ -216,7 +216,7 @@ func TestGet(t *testing.T) {
 
 	type args struct {
 		ctx context.Context
-		req int64
+		req string
 	}
 
 	var (
@@ -224,7 +224,7 @@ func TestGet(t *testing.T) {
 		mc  = minimock.NewController(t)
 
 		reqLog = &model.Log{
-			Text: fmt.Sprintf("Read user info with id: %d", id),
+			Text: fmt.Sprintf("Read user info with id: %s", id),
 		}
 	)
 
@@ -366,7 +366,7 @@ func TestUpdate(t *testing.T) {
 		}
 
 		reqLog = &model.Log{
-			Text: fmt.Sprintf("Updated user with id: %d", id),
+			Text: fmt.Sprintf("Updated user with id: %s", id),
 		}
 	)
 
@@ -481,17 +481,15 @@ func TestDelete(t *testing.T) {
 
 	type args struct {
 		ctx context.Context
-		req int64
+		req string
 	}
 
 	var (
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
 
-		id = int64(1)
-
 		reqLog = &model.Log{
-			Text: fmt.Sprintf("Deleted user with id: %d", id),
+			Text: fmt.Sprintf("Deleted user with id: %s", id),
 		}
 	)
 

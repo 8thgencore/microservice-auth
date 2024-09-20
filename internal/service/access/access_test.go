@@ -342,12 +342,12 @@ func TestGetRoleEndpoints(t *testing.T) {
 		},
 		{
 			name:           "get role endpoint error case",
-			expectedErr:    ErrEndpointNotFound,
+			expectedErr:    ErrFailedToGetEndpoint,
 			expectedResult: nil,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
 				mock.GetRoleEndpointsMock.When(ctx).Then(endpointPermissions, nil)
-				mock.GetRoleEndpointsMock.When(ctxSecond).Then(nil, ErrEndpointNotFound)
+				mock.GetRoleEndpointsMock.When(ctxSecond).Then(nil, ErrFailedToGetEndpoint)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
@@ -428,12 +428,27 @@ func TestAddRoleEndpoint(t *testing.T) {
 			},
 		},
 		{
-			name: "add role endpoint error case",
+			name: "add role exists endpoint error case",
 			err:  ErrEndpointAlreadyExists,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
 				mock.GetRoleEndpointsMock.Expect(ctx).Return(endpointPermissions, nil)
 				mock.AddRoleEndpointMock.Expect(ctx, endpoint, roles).Return(ErrEndpointAlreadyExists)
+				return mock
+			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
+				mock.VerifyAccessTokenMock.Expect(token, secretKeyBytes).Return(claimsAdmin, nil)
+				return mock
+			},
+		},
+		{
+			name: "add role endpoint error case",
+			err:  ErrFailedToAddEndpoint,
+			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
+				mock := repositoryMocks.NewAccessRepositoryMock(mc)
+				mock.GetRoleEndpointsMock.Expect(ctx).Return(endpointPermissions, nil)
+				mock.AddRoleEndpointMock.Expect(ctx, endpoint, roles).Return(ErrFailedToAddEndpoint)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
@@ -508,11 +523,11 @@ func TestUpdateRoleEndpoint(t *testing.T) {
 		},
 		{
 			name: "update role endpoint error case",
-			err:  ErrEndpointNotFound,
+			err:  ErrFailedToUpdateEndpoint,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
 				mock.GetRoleEndpointsMock.Expect(ctx).Return(endpointPermissions, nil)
-				mock.UpdateRoleEndpointMock.Expect(ctx, endpoint, roles).Return(ErrEndpointNotFound)
+				mock.UpdateRoleEndpointMock.Expect(ctx, endpoint, roles).Return(ErrFailedToUpdateEndpoint)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
@@ -585,11 +600,11 @@ func TestDeleteRoleEndpoint(t *testing.T) {
 		},
 		{
 			name: "delete role endpoint error case",
-			err:  ErrEndpointNotFound,
+			err:  ErrFailedToDeleteEndpoint,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
 				mock.GetRoleEndpointsMock.Expect(ctx).Return(endpointPermissions, nil)
-				mock.DeleteRoleEndpointMock.Expect(ctx, endpoint).Return(ErrEndpointNotFound)
+				mock.DeleteRoleEndpointMock.Expect(ctx, endpoint).Return(ErrFailedToDeleteEndpoint)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {

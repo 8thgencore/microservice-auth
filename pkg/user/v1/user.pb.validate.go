@@ -35,6 +35,9 @@ var (
 	_ = sort.Sort
 )
 
+// define the regex for a UUID once up-front
+var _user_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on User with the rules defined in the proto
 // definition for this message. If any rules are violated, the first error
 // encountered is returned, or nil if there are no violations.
@@ -56,7 +59,17 @@ func (m *User) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Id
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = UserValidationError{
+			field:  "Id",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for Name
 
@@ -124,6 +137,14 @@ func (m *User) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return UserMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *User) _validateUuid(uuid string) error {
+	if matched := _user_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -426,10 +447,11 @@ func (m *UserUpdate) validate(all bool) error {
 
 	var errors []error
 
-	if m.GetId() < 1 {
-		err := UserUpdateValidationError{
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = UserUpdateValidationError{
 			field:  "Id",
-			reason: "value must be greater than or equal to 1",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
 		if !all {
 			return err
@@ -542,6 +564,14 @@ func (m *UserUpdate) _validateEmail(addr string) error {
 	}
 
 	return m._validateHostname(parts[1])
+}
+
+func (m *UserUpdate) _validateUuid(uuid string) error {
+	if matched := _user_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
 }
 
 // UserUpdateMultiError is an error wrapping multiple validation errors
@@ -867,10 +897,11 @@ func (m *GetRequest) validate(all bool) error {
 
 	var errors []error
 
-	if m.GetId() < 1 {
-		err := GetRequestValidationError{
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = GetRequestValidationError{
 			field:  "Id",
-			reason: "value must be greater than or equal to 1",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
 		if !all {
 			return err
@@ -880,6 +911,14 @@ func (m *GetRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return GetRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *GetRequest) _validateUuid(uuid string) error {
+	if matched := _user_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -1234,10 +1273,11 @@ func (m *DeleteRequest) validate(all bool) error {
 
 	var errors []error
 
-	if m.GetId() < 1 {
-		err := DeleteRequestValidationError{
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = DeleteRequestValidationError{
 			field:  "Id",
-			reason: "value must be greater than or equal to 1",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
 		if !all {
 			return err
@@ -1247,6 +1287,14 @@ func (m *DeleteRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return DeleteRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *DeleteRequest) _validateUuid(uuid string) error {
+	if matched := _user_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil

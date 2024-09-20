@@ -23,6 +23,8 @@ services:
     restart: unless-stopped
     env_file:
       - .env.${ENV}
+    # expose:
+    #   - ${POSTGRES_PORT}
     ports:
       - "${POSTGRES_PORT_LOCAL}:${POSTGRES_PORT}"
     networks:
@@ -52,8 +54,10 @@ services:
     environment:
       ALLOW_EMPTY_PASSWORD: no
       REDIS_PASSWORD: "${REDIS_PASSWORD}"
-    expose:
-      - ${REDIS_PORT}
+    # expose:
+    #   - ${REDIS_PORT}
+    ports:
+      - "${REDIS_PORT_LOCAL}:${REDIS_PORT}"
     networks:
       - service-network
     healthcheck:

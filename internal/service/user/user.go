@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/8thgencore/microservice-auth/internal/model"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -23,21 +24,28 @@ var (
 )
 
 // Create handles the creation of a new user.
-func (s *serv) Create(ctx context.Context, user *model.UserCreate) (int64, error) {
+func (s *serv) Create(ctx context.Context, user *model.UserCreate) (string, error) {
 	// Check if passwords match
 	if user.Password != user.PasswordConfirm {
-		return 0, ErrPasswordsMismatch
+		return "", ErrPasswordsMismatch
 	}
 
 	// Hash the password
 	hashedPassword, err := hashPassword(user.Password)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	user.Password = hashedPassword
 
+	// Generate a UUIDv7 for the user
+	uuidv7, err := uuid.NewV7()
+	if err != nil {
+		return "", err
+	}
+	user.ID = uuidv7.String()
+
 	// Create the user
-	var id int64
+	var id string
 	err = s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
 		var errTx error
 		id, errTx = s.userRepository.Create(ctx, user)
@@ -49,20 +57,20 @@ func (s *serv) Create(ctx context.Context, user *model.UserCreate) (int64, error
 	})
 	if err != nil {
 		if errors.Is(err, ErrUserNameExists) {
-			return 0, ErrUserNameExists
+			return "", ErrUserNameExists
 		}
 		if errors.Is(err, ErrUserEmailExists) {
-			return 0, ErrUserEmailExists
+			return "", ErrUserEmailExists
 		}
 
-		return 0, ErrUserCreate
+		return "", ErrUserCreate
 	}
 
 	return id, nil
 }
 
 // Get retrieves a user by their ID.
-func (s *serv) Get(ctx context.Context, id int64) (*model.User, error) {
+func (s *serv) Get(ctx context.Context, id string) (*model.User, error) {
 	var user *model.User
 	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
 		var errTx error
@@ -116,7 +124,7 @@ func (s *serv) Update(ctx context.Context, user *model.UserUpdate) error {
 }
 
 // Delete handles the deletion of a user.
-func (s *serv) Delete(ctx context.Context, id int64) error {
+func (s *serv) Delete(ctx context.Context, id string) error {
 	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
 		_, errTx := s.userRepository.Get(ctx, id)
 		if errTx != nil {
@@ -150,8 +158,8 @@ func hashPassword(password string) (string, error) {
 }
 
 // logUserAction is a helper function to log actions performed on a user.
-func (s *serv) logUserAction(ctx context.Context, action string, userID int64) error {
+func (s *serv) logUserAction(ctx context.Context, action string, userID string) error {
 	return s.logRepository.Log(ctx, &model.Log{
-		Text: fmt.Sprintf("%s with id: %d", action, userID),
+		Text: fmt.Sprintf("%s with id: %s", action, userID),
 	})
 }

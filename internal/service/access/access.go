@@ -104,6 +104,9 @@ func (s *accessService) AddRoleEndpoint(ctx context.Context, endpoint string, ro
 
 	err = s.accessRepository.AddRoleEndpoint(ctx, endpoint, roles)
 	if err != nil {
+		if errors.Is(err, ErrEndpointAlreadyExists) {
+			return ErrEndpointAlreadyExists
+		}
 		return ErrFailedToAddEndpoint
 	}
 

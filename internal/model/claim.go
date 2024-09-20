@@ -12,5 +12,5 @@ type UserClaims struct {
 // RefreshClaims - a data structure containing the minimum data for the refresh token.
 type RefreshClaims struct {
 	jwt.RegisteredClaims
-	UserID int64 `json:"user_id"`
+	UserID string `json:"user_id"`
 }
