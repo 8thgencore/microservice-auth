@@ -2,73 +2,79 @@ syntax = "proto3";
 
 package access_v1;
 
-import "user.proto";
-import "google/protobuf/empty.proto";
-import "validate/validate.proto";
 import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "user.proto";
+import "validate/validate.proto";
 
 option go_package = "github.com/8thgencore/microservice-auth/pkg/access/v1;access_v1";
 
 service AccessV1 {
-    // Check executes user authorization for endpoint.
-    rpc Check (CheckRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
+  // Check executes user authorization for endpoint.
+  rpc Check (CheckRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
             post: "/v1/access/check"
             body: "*"
         };
-    }
+  }
 
-    // Add a new endpoint permission.
-    rpc AddRoleEndpoint (AddRoleEndpointRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
+  // Add a new endpoint permission.
+  rpc AddRoleEndpoint (AddRoleEndpointRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
             post: "/v1/access/role-endpoint"
             body: "*"
         };
-    }
+  }
 
-    // Update an existing endpoint permission.
-    rpc UpdateRoleEndpoint (UpdateRoleEndpointRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
+  // Update an existing endpoint permission.
+  rpc UpdateRoleEndpoint (UpdateRoleEndpointRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
             put: "/v1/access/role-endpoint"
             body: "*"
         };
-    }
+  }
 
-    // Delete an existing endpoint permission.
-    rpc DeleteRoleEndpoint (DeleteRoleEndpointRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
+  // Delete an existing endpoint permission.
+  rpc DeleteRoleEndpoint (DeleteRoleEndpointRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
             delete: "/v1/access/role-endpoint/{endpoint}"
         };
-    }
+  }
 
-    // List all endpoints and their allowed roles.
-    rpc GetRoleEndpoints (google.protobuf.Empty) returns (GetRoleEndpointsResponse) {
-        option (google.api.http) = {
+  // List all endpoints and their allowed roles.
+  rpc GetRoleEndpoints (google.protobuf.Empty) returns (GetRoleEndpointsResponse) {
+    option (google.api.http) = {
             get: "/v1/access/role-endpoints"
         };
-    }
+  }
 }
 
 message CheckRequest {
-    // Endpoint where user wants access to.
-    string endpoint = 1 [(validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$"}];
+  // Endpoint where user wants access to.
+  string endpoint = 1 [
+    (validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$"}
+    ];
 }
 
 message AddRoleEndpointRequest {
-    // Endpoint to which roles will be added.
-    string endpoint = 1 [(validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$"}];
-    // Roles allowed to access this endpoint.
-    repeated user_v1.Role allowed_roles = 2 [
+  // Endpoint to which roles will be added.
+  string endpoint = 1 [
+    (validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$"}
+    ];
+  // Roles allowed to access this endpoint.
+  repeated user_v1.Role allowed_roles = 2 [
         (validate.rules).enum.defined_only = true,
         (validate.rules).repeated = {min_items: 1}
     ];
 }
 
 message UpdateRoleEndpointRequest {
-    // Endpoint to be updated.
-    string endpoint = 1 [(validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$"}];
-    // Updated roles for this endpoint.
-    repeated user_v1.Role allowed_roles = 2 [
+  // Endpoint to be updated.
+  string endpoint = 1 [
+    (validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$"}
+    ];
+  // Updated roles for this endpoint.
+  repeated user_v1.Role allowed_roles = 2 [
         (validate.rules).enum.defined_only = true,
         (validate.rules).repeated = {min_items: 1}
     ];
@@ -76,19 +82,23 @@ message UpdateRoleEndpointRequest {
 
 
 message DeleteRoleEndpointRequest {
-    // Endpoint to be deleted.
-    string endpoint = 1 [(validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$"}];
+  // Endpoint to be deleted.
+  string endpoint = 1 [
+    (validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$"}
+    ];
 }
 
 message GetRoleEndpointsResponse {
-    // List of endpoint permissions.
-    repeated EndpointPermissions endpoint_permissions = 1;
+  // List of endpoint permissions.
+  repeated EndpointPermissions endpoint_permissions = 1;
 }
 
 // Represents endpoint permissions including the endpoint and the roles allowed to access it.
 message EndpointPermissions {
-    string endpoint = 1 [(validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$"}];
-    repeated user_v1.Role allowed_roles = 2 [
+  string endpoint = 1 [
+    (validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$"}
+    ];
+  repeated user_v1.Role allowed_roles = 2 [
         (validate.rules).enum.defined_only = true,
         (validate.rules).repeated = {min_items: 1}
     ];
