@@ -1,11 +1,15 @@
+// auth.proto
+// This file defines the Auth API v1 for handling authentication operations 
+// such as login, refresh tokens, and logout.
+
 syntax = "proto3";
 
 package auth_v1;
 
-import "google/protobuf/empty.proto";
-import "validate/validate.proto";
 import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
+import "validate/validate.proto";
 
 option go_package = "github.com/8thgencore/microservice-auth/pkg/auth/v1;auth_v1";
 
@@ -25,79 +29,92 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 	produces: "application/json",
 };
 
+// AuthV1 defines the Authentication service 
+// which provides methods to log in, refresh tokens, and log out users.
 service AuthV1 {
-    // Login gives refresh token and access token based on user credentials.
-    rpc Login (LoginRequest) returns (LoginResponse) {
-        option (google.api.http) = {
+  // Login gives refresh token and access token based on user credentials.
+  rpc Login (LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
             post: "/v1/auth/login"
             body: "*"
         };
-    }
+  }
 
-    // GetRefreshToken updates refresh token.
-    rpc GetRefreshToken (GetRefreshTokenRequest) returns (GetRefreshTokenResponse) {
-        option (google.api.http) = {
+  // GetRefreshToken updates the refresh token.
+  rpc GetRefreshToken (GetRefreshTokenRequest) returns (GetRefreshTokenResponse) {
+    option (google.api.http) = {
             post: "/v1/auth/refresh"
             body: "*"
         };
-    }
+  }
 
-    // GetAccessToken gives access token based on refresh token for operating with service.
-    rpc GetAccessToken (GetAccessTokenRequest) returns (GetAccessTokenResponse) {
-        option (google.api.http) = {
+  // GetAccessToken gives access token based on refresh token for service operations.
+  rpc GetAccessToken (GetAccessTokenRequest) returns (GetAccessTokenResponse) {
+    option (google.api.http) = {
             post: "/v1/auth/access-token"
             body: "*"
         };
-    }
+  }
 
-    // Logout invalidates the refresh token.
-    rpc Logout (LogoutRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
+  // Logout invalidates the refresh token.
+  rpc Logout (LogoutRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
             post: "/v1/auth/logout"
             body: "*"
         };
-    }
+  }
 }
 
+// LoginRequest represents the request to log in a user.
 message LoginRequest {
-    Creds creds = 1 [(validate.rules).message.required = true];
+  // User credentials for logging in.
+  Creds creds = 1 [(validate.rules).message.required = true];
 }
 
+// Creds represents user credentials required for login.
 message Creds {
-    // Name of the user.
-    string username = 1 [(validate.rules).string = {min_len: 4, max_len: 50, pattern: "^[a-zA-Z0-9_]+$"}];
-    // Password of the user.
-    string password = 2 [(validate.rules).string = {min_len: 8, max_len: 100}];
+  // Username of the user.
+  string username = 1 [
+    (validate.rules).string = {min_len: 4, max_len: 50, pattern: "^[a-zA-Z0-9_]+$"}
+    ];
+  // Password of the user.
+  string password = 2 [(validate.rules).string = {min_len: 8, max_len: 100}];
 }
 
+// LoginResponse represents the response after a successful login.
 message LoginResponse {
-    // User's refresh token used to obtain access token.
-    string refresh_token = 1 [(validate.rules).string = {min_len: 10}];
-    // User's access token for immediate use.
-    string access_token = 2 [(validate.rules).string = {min_len: 10}];
+  // User's refresh token used to obtain an access token.
+  string refresh_token = 1 [(validate.rules).string = {min_len: 10}];
+  // User's access token for immediate use.
+  string access_token = 2 [(validate.rules).string = {min_len: 10}];
 }
 
+// GetRefreshTokenRequest represents the request to obtain a new refresh token.
 message GetRefreshTokenRequest {
-    // User's refresh token to obtain new refresh token.
-    string old_refresh_token = 1 [(validate.rules).string = {min_len: 10}];
+  // User's current refresh token to obtain a new one.
+  string old_refresh_token = 1 [(validate.rules).string = {min_len: 10}];
 }
 
+// GetRefreshTokenResponse represents the response with a new refresh token.
 message GetRefreshTokenResponse {
-    // User's new refresh token.
-    string refresh_token = 1 [(validate.rules).string = {min_len: 10}];
+  // User's new refresh token.
+  string refresh_token = 1 [(validate.rules).string = {min_len: 10}];
 }
 
+// GetAccessTokenRequest represents the request to obtain an access token.
 message GetAccessTokenRequest {
-    // User's refresh token used to obtain access token.
-    string refresh_token = 1 [(validate.rules).string = {min_len: 10}];
+  // User's refresh token used to obtain an access token.
+  string refresh_token = 1 [(validate.rules).string = {min_len: 10}];
 }
 
+// GetAccessTokenResponse represents the response with an access token.
 message GetAccessTokenResponse {
-    // User's access token for operating with service.
-    string access_token = 1 [(validate.rules).string = {min_len: 10}];
+  // User's access token for service operations.
+  string access_token = 1 [(validate.rules).string = {min_len: 10}];
 }
 
+// LogoutRequest represents the request to log out a user by invalidating their refresh token.
 message LogoutRequest {
-    // The refresh token to invalidate.
-    string refresh_token = 1 [(validate.rules).string = {min_len: 10}];
+  // The refresh token to invalidate.
+  string refresh_token = 1 [(validate.rules).string = {min_len: 10}];
 }

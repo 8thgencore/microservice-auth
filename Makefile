@@ -11,7 +11,12 @@ LOCAL_BIN:=$(CURDIR)/bin
 
 # Migration settings
 LOCAL_MIGRATION_DIR=$(MIGRATION_DIR)
-LOCAL_MIGRATION_DSN="host=localhost port=$(POSTGRES_PORT_LOCAL) dbname=$(POSTGRES_DB) user=$(POSTGRES_USER) password=$(POSTGRES_PASSWORD) sslmode=disable"
+LOCAL_MIGRATION_DSN="host=localhost \
+	port=$(POSTGRES_PORT_LOCAL) \
+	dbname=$(POSTGRES_DB) \
+	user=$(POSTGRES_USER) \
+	password=$(POSTGRES_PASSWORD) \
+	sslmode=disable"
 
 # Tests settings
 TESTS_PATH=./internal/service/...,./internal/api/...
@@ -39,12 +44,14 @@ install-deps:
 	GOBIN=$(LOCAL_BIN) go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.34.2
 	GOBIN=$(LOCAL_BIN) go install -mod=mod google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1
 	GOBIN=$(LOCAL_BIN) go install github.com/envoyproxy/protoc-gen-validate@v1.1.0
-	GOBIN=$(LOCAL_BIN) go install github.com/pressly/goose/v3/cmd/goose@v3.21.1
-	GOBIN=$(LOCAL_BIN) go install github.com/gojuno/minimock/v3/cmd/minimock@v3.4.0
-	GOBIN=$(LOCAL_BIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.3
-	GOBIN=$(LOCAL_BIN) go install mvdan.cc/gofumpt@latest
 	GOBIN=$(LOCAL_BIN) go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.22.0
 	GOBIN=$(LOCAL_BIN) go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.22.0
+	GOBIN=$(LOCAL_BIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.3
+	GOBIN=$(LOCAL_BIN) go install mvdan.cc/gofumpt@latest
+	GOBIN=$(LOCAL_BIN) go install github.com/yoheimuta/protolint/cmd/protolint@latest
+	GOBIN=$(LOCAL_BIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.3
+	GOBIN=$(LOCAL_BIN) go install mvdan.cc/gofumpt@latest
+	GOBIN=$(LOCAL_BIN) go install github.com/yoheimuta/protolint/cmd/protolint@latest
 
 # Fetch Go dependencies
 get-deps:
@@ -59,10 +66,14 @@ lint:
 format:
 	GOBIN=$(LOCAL_BIN) bin/gofumpt -l -w .
 
+# Protolint
+protolint:
+	GOBIN=$(LOCAL_BIN) bin/protolint lint api/*   
+
 # ############### #
 # CODE GENERATION #
 # ############### #
-generate-api: check-env
+generate-api:
 	make generate-user-api
 	make generate-auth-api
 	make generate-access-api
@@ -81,8 +92,6 @@ generate-user-api:
 	--validate_out lang=go:pkg/user/v1 --validate_opt=paths=source_relative \
 	--plugin=protoc-gen-validate=$(LOCAL_BIN)/protoc-gen-validate \
 	api/user/v1/user.proto
-	sed -i -e 's/{HTTP_HOST}/$(HTTP_HOST)/g' pkg/swagger/api.swagger.json
-	sed -i -e 's/{HTTP_PORT}/$(HTTP_PORT)/g' pkg/swagger/api.swagger.json
 
 generate-auth-api:
 	mkdir -p pkg/auth/v1
@@ -109,6 +118,11 @@ generate-access-api:
 	--validate_out lang=go:pkg/access/v1 --validate_opt=paths=source_relative \
 	--plugin=protoc-gen-validate=$(LOCAL_BIN)/protoc-gen-validate \
 	api/access/v1/access.proto
+
+# Update swagger environment variables
+update-swagger: check-env
+	sed -i -e 's/{HTTP_HOST}/$(HTTP_HOST)/g' pkg/swagger/api.swagger.json
+	sed -i -e 's/{HTTP_PORT}/$(HTTP_PORT)/g' pkg/swagger/api.swagger.json
 
 vendor-proto:
 		@if [ ! -d vendor.protogen/validate ]; then \

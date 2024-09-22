@@ -17,12 +17,12 @@ func ToUserFromService(user *model.User) *userv1.User {
 	}
 
 	return &userv1.User{
-		Id:        user.ID,
-		Name:      user.Name,
-		Email:     user.Email,
-		Role:      userv1.Role(userv1.Role_value[user.Role]),
-		CreatedAt: timestamppb.New(user.CreatedAt),
-		UpdatedAt: updatedAt,
+		Id:      user.ID,
+		Name:    user.Name,
+		Email:   user.Email,
+		Role:    userv1.Role(userv1.Role_value[user.Role]),
+		Created: timestamppb.New(user.CreatedAt),
+		Updated: updatedAt,
 	}
 }
 

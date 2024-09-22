@@ -1,0 +1,14 @@
+lint:
+  rules:
+    all_default: true
+    remove:
+      - FIELDS_HAVE_COMMENT
+      - ENUM_FIELDS_HAVE_COMMENT
+  rules_option:
+    max_line_length:
+      max_chars: 100
+    indent:
+      not_insert_newline: true
+    field_names_exclude_prepositions:
+      excludes:
+        - by

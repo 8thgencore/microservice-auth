@@ -26,7 +26,7 @@
   "paths": {
     "/v1/user": {
       "get": {
-        "summary": "Get is used to obtain user info.",
+        "summary": "Get is used to obtain user info by ID.",
         "operationId": "UserV1_Get",
         "responses": {
           "200": {
@@ -45,7 +45,7 @@
         "parameters": [
           {
             "name": "id",
-            "description": "ID of the user to read info about.",
+            "description": "ID of the user to retrieve.",
             "in": "query",
             "required": false,
             "type": "string"
@@ -56,7 +56,7 @@
         ]
       },
       "delete": {
-        "summary": "Delete is used for deleting user.",
+        "summary": "Delete is used for deleting a user by ID.",
         "operationId": "UserV1_Delete",
         "responses": {
           "200": {
@@ -87,7 +87,7 @@
         ]
       },
       "post": {
-        "summary": "Create is used for creating new user.",
+        "summary": "Create is used for creating a new user.",
         "operationId": "UserV1_Create",
         "responses": {
           "200": {
@@ -106,6 +106,7 @@
         "parameters": [
           {
             "name": "body",
+            "description": "CreateRequest represents the request to create a user.",
             "in": "body",
             "required": true,
             "schema": {
@@ -118,7 +119,7 @@
         ]
       },
       "patch": {
-        "summary": "Update is used for updating user info.",
+        "summary": "Update is used for updating existing user info.",
         "operationId": "UserV1_Update",
         "responses": {
           "200": {
@@ -138,6 +139,7 @@
         "parameters": [
           {
             "name": "body",
+            "description": "UpdateRequest represents the request to update a user.",
             "in": "body",
             "required": true,
             "schema": {
@@ -186,7 +188,8 @@
         "user": {
           "$ref": "#/definitions/user_v1UserCreate"
         }
-      }
+      },
+      "description": "CreateRequest represents the request to create a user."
     },
     "user_v1CreateResponse": {
       "type": "object",
@@ -195,7 +198,8 @@
           "type": "string",
           "description": "ID of the created user."
         }
-      }
+      },
+      "description": "CreateResponse represents the response after a user is created."
     },
     "user_v1GetResponse": {
       "type": "object",
@@ -203,16 +207,18 @@
         "user": {
           "$ref": "#/definitions/user_v1User"
         }
-      }
+      },
+      "description": "GetResponse represents the response containing the user info."
     },
     "user_v1Role": {
       "type": "string",
       "enum": [
-        "UNKNOWN",
-        "USER",
-        "ADMIN"
+        "ROLE_UNKNOWN_UNSPECIFIED",
+        "ROLE_USER",
+        "ROLE_ADMIN"
       ],
-      "default": "UNKNOWN"
+      "default": "ROLE_UNKNOWN_UNSPECIFIED",
+      "description": "Role defines the various roles a user can have in the system.\n\n - ROLE_UNKNOWN_UNSPECIFIED: Unknown or unspecified role.\n - ROLE_USER: Regular user role.\n - ROLE_ADMIN: Admin user role."
     },
     "user_v1UpdateRequest": {
       "type": "object",
@@ -220,7 +226,8 @@
         "user": {
           "$ref": "#/definitions/user_v1UserUpdate"
         }
-      }
+      },
+      "description": "UpdateRequest represents the request to update a user."
     },
     "user_v1User": {
       "type": "object",
@@ -241,17 +248,18 @@
           "$ref": "#/definitions/user_v1Role",
           "description": "Role of the user."
         },
-        "createdAt": {
+        "created": {
           "type": "string",
           "format": "date-time",
-          "description": "Timestamp when user was created."
+          "description": "Timestamp when the user was created."
         },
-        "updatedAt": {
+        "updated": {
           "type": "string",
           "format": "date-time",
-          "description": "Timestamp when user info was updated last time."
+          "description": "Timestamp when the user info was last updated."
         }
-      }
+      },
+      "description": "User represents a user in the system."
     },
     "user_v1UserCreate": {
       "type": "object",
@@ -276,7 +284,8 @@
           "$ref": "#/definitions/user_v1Role",
           "description": "Role of the user to create."
         }
-      }
+      },
+      "description": "UserCreate represents the data required to create a new user."
     },
     "user_v1UserUpdate": {
       "type": "object",
@@ -297,7 +306,8 @@
           "$ref": "#/definitions/user_v1Role",
           "description": "Role of the user to update."
         }
-      }
+      },
+      "description": "UserUpdate represents the data required to update an existing user."
     }
   }
 }
