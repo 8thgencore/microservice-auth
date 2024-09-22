@@ -73,7 +73,7 @@ protolint:
 # ############### #
 # CODE GENERATION #
 # ############### #
-generate-api: check-env
+generate-api:
 	make generate-user-api
 	make generate-auth-api
 	make generate-access-api
@@ -120,7 +120,7 @@ generate-access-api:
 	api/access/v1/access.proto
 
 # Update swagger environment variables
-update-swagger-env-vars:
+update-swagger: check-env
 	sed -i -e 's/{HTTP_HOST}/$(HTTP_HOST)/g' pkg/swagger/api.swagger.json
 	sed -i -e 's/{HTTP_PORT}/$(HTTP_PORT)/g' pkg/swagger/api.swagger.json
 

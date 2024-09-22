@@ -22,7 +22,7 @@ var (
 	id              = "uuid"
 	name            = "name"
 	email           = "email"
-	role            = userv1.Role_USER
+	role            = userv1.Role_ROLE_USER
 	roleName        = "USER"
 	password        = "password"
 	passwordConfirm = "passwordConfirm"
@@ -154,12 +154,12 @@ func TestGet(t *testing.T) {
 
 		res = &userv1.GetResponse{
 			User: &userv1.User{
-				Id:        id,
-				Name:      name,
-				Email:     email,
-				Role:      role,
-				CreatedAt: createdAt,
-				UpdatedAt: updatedAt,
+				Id:      id,
+				Name:    name,
+				Email:   email,
+				Role:    role,
+				Created: createdAt,
+				Updated: updatedAt,
 			},
 		}
 	)
@@ -232,7 +232,7 @@ func TestUpdate(t *testing.T) {
 		id       = "uuid"
 		name     = "name"
 		email    = "email"
-		role     = userv1.Role_USER
+		role     = userv1.Role_ROLE_USER
 		roleName = "USER"
 
 		serviceErr = fmt.Errorf("service error")

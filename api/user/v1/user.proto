@@ -1,3 +1,7 @@
+// user.proto
+// This file defines the User API v1 for managing user operations
+// such as create, get, update, and delete.
+
 syntax = "proto3";
 
 package user_v1;
@@ -21,50 +25,57 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 	};
 
 	host: "{HTTP_HOST}:{HTTP_PORT}"
-	schemes: HTTP,
+	schemes: HTTP, 
 	schemes: HTTPS,
 	consumes: "application/json",
 	produces: "application/json",
 };
 
+// UserV1 defines the User service 
+// which provides methods to create, get, update, and delete users.
 service UserV1 {
-  // Create is used for creating new user.
-  rpc Create(CreateRequest) returns (CreateResponse){
+  // Create is used for creating a new user.
+  rpc Create(CreateRequest) returns (CreateResponse) {
     option (google.api.http) = {
 			post: "/v1/user"
 			body: "*"
-    	};
+		};
   }
 
-  // Get is used to obtain user info.
-  rpc Get(GetRequest) returns (GetResponse){
+  // Get is used to obtain user info by ID.
+  rpc Get(GetRequest) returns (GetResponse) {
     option (google.api.http) = {
 			get: "/v1/user"
 		};
   }
 
-  // Update is used for updating user info.
-  rpc Update(UpdateRequest) returns (google.protobuf.Empty){
+  // Update is used for updating existing user info.
+  rpc Update(UpdateRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
 			patch: "/v1/user"
 			body: "*"
 		};
   }
 
-  // Delete is used for deleting user.
-  rpc Delete(DeleteRequest) returns (google.protobuf.Empty){
+  // Delete is used for deleting a user by ID.
+  rpc Delete(DeleteRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
 			delete: "/v1/user"
 		};
   }
 }
 
+// Role defines the various roles a user can have in the system.
 enum Role {
+  // Unknown or unspecified role.
   ROLE_UNKNOWN_UNSPECIFIED = 0;
+  // Regular user role.
   ROLE_USER = 1;
+  // Admin user role.
   ROLE_ADMIN = 2;
 }
 
+// User represents a user in the system.
 message User {
   // ID of the user.
   string id = 1 [(validate.rules).string = {uuid: true}];
@@ -74,12 +85,13 @@ message User {
   string email = 3;
   // Role of the user.
   Role role = 4;
-  // Timestamp when user was created.
-  google.protobuf.Timestamp created_at = 5;
-  // Timestamp when user info was updated last time.
-  google.protobuf.Timestamp updated_at = 6;
+  // Timestamp when the user was created.
+  google.protobuf.Timestamp created = 5;
+  // Timestamp when the user info was last updated.
+  google.protobuf.Timestamp updated = 6;
 }
 
+// UserCreate represents the data required to create a new user.
 message UserCreate {
   // Name of the user to create.
   string name = 1 [(validate.rules).string = {min_len: 1, max_len: 50}];
@@ -93,6 +105,7 @@ message UserCreate {
   Role role = 5 [(validate.rules).enum.defined_only = true];
 }
 
+// UserUpdate represents the data required to update an existing user.
 message UserUpdate {
   // ID of the user to update.
   string id = 1 [(validate.rules).string = {uuid: true}];
@@ -108,28 +121,34 @@ message UserUpdate {
   Role role = 4 [(validate.rules).enum.defined_only = true];
 }
 
+// CreateRequest represents the request to create a user.
 message CreateRequest {
   UserCreate user = 1;
 }
 
+// CreateResponse represents the response after a user is created.
 message CreateResponse {
   // ID of the created user.
   string id = 1;
 }
 
+// GetRequest represents the request to get a user by ID.
 message GetRequest {
-  // ID of the user to read info about.
+  // ID of the user to retrieve.
   string id = 1 [(validate.rules).string = {uuid: true}];
 }
 
+// GetResponse represents the response containing the user info.
 message GetResponse {
   User user = 1;
 }
 
+// UpdateRequest represents the request to update a user.
 message UpdateRequest {
   UserUpdate user = 1;
 }
 
+// DeleteRequest represents the request to delete a user by ID.
 message DeleteRequest {
   // ID of the user to delete.
   string id = 1 [(validate.rules).string = {uuid: true}];
