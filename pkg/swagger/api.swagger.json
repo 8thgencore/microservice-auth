@@ -12,7 +12,7 @@
       "name": "UserV1"
     }
   ],
-  "host": "0.0.0.0:8480",
+  "host": "{HTTP_HOST}:{HTTP_PORT}",
   "schemes": [
     "http",
     "https"
@@ -213,12 +213,12 @@
     "user_v1Role": {
       "type": "string",
       "enum": [
-        "ROLE_UNKNOWN_UNSPECIFIED",
-        "ROLE_USER",
-        "ROLE_ADMIN"
+        "UNKNOWN_UNSPECIFIED",
+        "USER",
+        "ADMIN"
       ],
-      "default": "ROLE_UNKNOWN_UNSPECIFIED",
-      "description": "Role defines the various roles a user can have in the system.\n\n - ROLE_UNKNOWN_UNSPECIFIED: Unknown or unspecified role.\n - ROLE_USER: Regular user role.\n - ROLE_ADMIN: Admin user role."
+      "default": "UNKNOWN_UNSPECIFIED",
+      "description": "Role defines the various roles a user can have in the system.\n\n - UNKNOWN_UNSPECIFIED: Unknown or unspecified role.\n - USER: Regular user role.\n - ADMIN: Admin user role."
     },
     "user_v1UpdateRequest": {
       "type": "object",

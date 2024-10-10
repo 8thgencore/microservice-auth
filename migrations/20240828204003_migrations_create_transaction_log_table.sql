@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE
     transaction_log (
-        id uuid primary key DEFAULT gen_random_uuid(),
+        id uuid primary key,
         timestamp timestamp not null default now (),
         log text not null
     );
