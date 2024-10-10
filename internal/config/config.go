@@ -27,14 +27,16 @@ const (
 
 // Config represents the configuration for the application.
 type Config struct {
-	Env      Env `env:"ENV" env-default:"local"`
-	GRPC     GRPC
-	HTTP     HTTPConfig
-	JWT      JWTConfig
-	TLS      TLSConfig
-	Swagger  SwaggerConfig
-	Database DatabaseConfig
-	Redis    RedisConfig
+	Env        Env `env:"ENV" env-default:"local"`
+	GRPC       GRPC
+	HTTP       HTTPConfig
+	JWT        JWTConfig
+	TLS        TLSConfig
+	Swagger    SwaggerConfig
+	Database   DatabaseConfig
+	Redis      RedisConfig
+	Prometheus PrometheusConfig
+	Tracing    TracingConfig
 }
 
 // GRPC represents the configuration for the GRPC server.
@@ -99,6 +101,29 @@ type RedisConfig struct {
 
 // Address returns the data source name (Address) for the database.
 func (c *RedisConfig) Address() string {
+	return net.JoinHostPort(c.Host, strconv.Itoa(c.Port))
+}
+
+// PrometheusConfig represents the configuration for the Prometheus.
+type PrometheusConfig struct {
+	Host string `env:"PROMETHEUS_HTTP_HOST" env-default:"0.0.0.0"`
+	Port int    `env:"PROMETHEUS_HTTP_PORT" env-default:"9090"`
+}
+
+// Address returns the address of the Prometheus server in the format "host:port".
+func (c *PrometheusConfig) Address() string {
+	return net.JoinHostPort(c.Host, strconv.Itoa(c.Port))
+}
+
+// TracingConfig represents the configuration for the Jaeger.
+type TracingConfig struct {
+	Host        string `env:"JAEGER_GRPC_EXPORTER_HOST" env-default:"jaeger"`
+	Port        int    `env:"JAEGER_GRPC_EXPORTER_PORT" env-default:"6831"`
+	ServiceName string `env:"JAEGER_SERVICE_NAME" env-default:"auth-service"`
+}
+
+// Address returns the address of the Tracing server in the format "host:port".
+func (c *TracingConfig) Address() string {
 	return net.JoinHostPort(c.Host, strconv.Itoa(c.Port))
 }
 

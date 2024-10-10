@@ -10,13 +10,23 @@ import (
 	"github.com/8thgencore/microservice-auth/internal/app/provider"
 	"github.com/8thgencore/microservice-auth/internal/config"
 	"github.com/8thgencore/microservice-auth/internal/interceptor"
+	"github.com/8thgencore/microservice-auth/internal/metrics"
+	"github.com/8thgencore/microservice-auth/internal/tracing"
 	accessv1 "github.com/8thgencore/microservice-auth/pkg/access/v1"
 	authv1 "github.com/8thgencore/microservice-auth/pkg/auth/v1"
 	"github.com/8thgencore/microservice-auth/pkg/swagger"
 	userv1 "github.com/8thgencore/microservice-auth/pkg/user/v1"
 	"github.com/8thgencore/microservice-common/pkg/logger"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/polshe-v/microservices_common/pkg/closer"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -31,6 +41,8 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initGRPCServer,
 		a.initHTTPServer,
 		a.initSwaggerServer,
+		a.initPrometheusServer,
+		a.initTracing,
 	}
 
 	for _, f := range inits {
@@ -175,6 +187,77 @@ func (a *App) initSwaggerServer(_ context.Context) error {
 		Addr:              a.serviceProvider.Config.Swagger.Address(),
 		Handler:           mux,
 		ReadHeaderTimeout: 15 * time.Second,
+	}
+
+	return nil
+}
+
+func (a *App) initPrometheusServer(ctx context.Context) error {
+	err := metrics.Init(ctx)
+	if err != nil {
+		return err
+	}
+
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
+
+	a.prometheusServer = &http.Server{
+		Addr:              a.serviceProvider.Config.Prometheus.Address(),
+		Handler:           mux,
+		ReadHeaderTimeout: 15 * time.Second,
+	}
+
+	return nil
+}
+
+func (a *App) initTracing(ctx context.Context) error {
+	cfg := a.serviceProvider.Config.Tracing
+
+	res, err := resource.New(ctx,
+		resource.WithAttributes(
+			// the service name used to display traces in backends
+			semconv.ServiceName(cfg.ServiceName),
+		),
+	)
+	if err != nil {
+		return err
+	}
+
+	conn, err := grpc.NewClient(
+		cfg.Address(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		return err
+	}
+
+	// Set up a trace exporter
+	traceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithGRPCConn(conn))
+	if err != nil {
+		return err
+	}
+
+	// Register the trace exporter with a TracerProvider, using a batch
+	// span processor to aggregate spans before export.
+	bsp := sdktrace.NewBatchSpanProcessor(traceExporter)
+	tracerProvider := sdktrace.NewTracerProvider(
+		sdktrace.WithSampler(sdktrace.AlwaysSample()),
+		sdktrace.WithResource(res),
+		sdktrace.WithSpanProcessor(bsp),
+	)
+	otel.SetTracerProvider(tracerProvider)
+
+	// Set global propagator to tracecontext (the default is no-op).
+	otel.SetTextMapPropagator(propagation.TraceContext{})
+
+	// Shutdown will flush any remaining spans and shut down the exporter.
+	closer.Add(func() error {
+		return tracerProvider.Shutdown(ctx)
+	})
+
+	err = tracing.InitGlobalTracer(cfg.ServiceName)
+	if err != nil {
+		return err
 	}
 
 	return nil

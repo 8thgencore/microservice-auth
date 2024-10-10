@@ -19,10 +19,11 @@ import (
 type App struct {
 	cfg *config.Config
 
-	serviceProvider *provider.ServiceProvider
-	grpcServer      *grpc.Server
-	httpServer      *http.Server
-	swaggerServer   *http.Server
+	serviceProvider  *provider.ServiceProvider
+	grpcServer       *grpc.Server
+	httpServer       *http.Server
+	swaggerServer    *http.Server
+	prometheusServer *http.Server
 }
 
 // NewApp creates new App object.
@@ -68,6 +69,15 @@ func (a *App) Run() error {
 		}
 	}()
 
+	go func() {
+		defer wg.Done()
+
+		err := a.runPrometheusServer()
+		if err != nil {
+			logger.Fatal("failed to run Prometheus server: ", zap.Error(err))
+		}
+	}()
+
 	wg.Wait()
 
 	return nil
@@ -104,6 +114,17 @@ func (a *App) runSwaggerServer() error {
 	logger.Info("Swagger server running on ", zap.String("address", a.serviceProvider.Config.Swagger.Address()+"/docs"))
 
 	if err := a.swaggerServer.ListenAndServe(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *App) runPrometheusServer() error {
+	logger.Info("Prometheus server running on ", zap.String("address", a.serviceProvider.Config.Prometheus.Address()))
+
+	err := a.prometheusServer.ListenAndServe()
+	if err != nil {
 		return err
 	}
 

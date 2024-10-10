@@ -24,15 +24,15 @@ services:
     env_file:
       - .env.${ENV}
     # expose:
-    #   - ${POSTGRES_PORT}
+    #   - 5432
     ports:
-      - "${POSTGRES_PORT_LOCAL}:${POSTGRES_PORT}"
+      - "${POSTGRES_PORT}:5432"
     networks:
       - service-network
     volumes:
       - postgres_volume:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 1s
       timeout: 5s
       retries: 5
@@ -55,9 +55,9 @@ services:
       ALLOW_EMPTY_PASSWORD: no
       REDIS_PASSWORD: "${REDIS_PASSWORD}"
     # expose:
-    #   - ${REDIS_PORT}
+    #   - 6379
     ports:
-      - "${REDIS_PORT_LOCAL}:${REDIS_PORT}"
+      - "${REDIS_PORT}:6379"
     networks:
       - service-network
     healthcheck:
@@ -78,8 +78,45 @@ services:
       db-auth:
         condition: service_healthy
 
+  prometheus:
+    image: prom/prometheus:${PROMETHEUS_IMAGE_TAG}
+    container_name: prometheus
+    env_file:
+      - .env.${ENV}
+    ports:
+      - "9090:9090"
+    networks:
+      - service-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./metrics/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./metrics/alerts.yml:/etc/prometheus/alerts.yml
+      - prometheus_volume:/prometheus
+
+  grafana:
+    image: grafana/grafana-oss:${GRAFANA_IMAGE_TAG}
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - service-network
+    volumes:
+      - grafana_volume:/var/lib/grafana
+
+  jaeger:
+    image: jaegertracing/all-in-one:${JAEGER_IMAGE_TAG}
+    container_name: jaeger
+    ports:
+      - "16686:16686" # web
+      - "4317:4317" # OTLP over gRPC
+    networks:
+      - service-network
+
 volumes:
   postgres_volume:
+  prometheus_volume:
+  grafana_volume:
 
 networks:
   service-network:
