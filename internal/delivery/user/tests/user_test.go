@@ -22,7 +22,7 @@ var (
 	id              = "uuid"
 	name            = "name"
 	email           = "email"
-	role            = userv1.Role_ROLE_USER
+	role            = userv1.Role_USER
 	roleName        = "USER"
 	password        = "password"
 	passwordConfirm = "passwordConfirm"
@@ -232,7 +232,7 @@ func TestUpdate(t *testing.T) {
 		id       = "uuid"
 		name     = "name"
 		email    = "email"
-		role     = userv1.Role_ROLE_USER
+		role     = userv1.Role_USER
 		roleName = "USER"
 
 		serviceErr = fmt.Errorf("service error")
