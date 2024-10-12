@@ -94,6 +94,8 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 		grpc.ChainUnaryInterceptor(
 			interceptor.LogInterceptor,
 			interceptor.ValidateInterceptor,
+			interceptor.MetricsInterceptor,
+			interceptor.TracingInterceptor,
 		),
 	)
 

@@ -154,15 +154,15 @@ generate-mocks:
 generate-cert-ca: 
 	mkdir -p tls
 	openssl genpkey -algorithm ed25519 -out $(TLS_PATH)/ca.key
-	openssl req -new -x509 -key $(TLS_PATH)/ca.key -out $(TLS_PATH)/ca.pem -days 365 -sha256 -subj "/CN=My CA"
+	openssl req -new -x509 -key $(TLS_PATH)/ca.key -out $(TLS_PATH)/ca.crt -days 365 -sha256 -subj "/CN=My CA"
 
 # Generating a CA-signed certificate
-generate-cert-auth: $(TLS_PATH)/ca.key $(TLS_PATH)/ca.pem
+generate-cert-auth: $(TLS_PATH)/ca.key $(TLS_PATH)/ca.crt
 	openssl genpkey -algorithm ed25519 -out $(TLS_PATH)/auth.key
 	openssl req -new -key $(TLS_PATH)/auth.key -config openssl.cnf -out $(TLS_PATH)/auth.csr
-	openssl x509 -req -in $(TLS_PATH)/auth.csr -CA $(TLS_PATH)/ca.pem -CAkey $(TLS_PATH)/ca.key \
+	openssl x509 -req -in $(TLS_PATH)/auth.csr -CA $(TLS_PATH)/ca.crt -CAkey $(TLS_PATH)/ca.key \
 	-extfile openssl.cnf -extensions req_ext \
-	-out $(TLS_PATH)/auth.pem -days 365 -sha256
+	-out $(TLS_PATH)/auth.crt -days 365 -sha256
 	rm -rf $(TLS_PATH)/auth.csr
 
 # ##### #
@@ -185,7 +185,7 @@ load-test: check-env
 	$(LOCAL_BIN)/ghz \
 		--proto api/user/v1/user.proto \
 		--import-paths=vendor.protogen/ \
-		--cacert=tls/ca.pem \
+		--cacert=tls/ca.crt \
 		--call user_v1.UserV1.Get \
 		--data '{"id": "9f80dfbf-2ae2-4a9c-a490-3921ca7f2b65"}' \
 		--rps 100 \
@@ -196,7 +196,7 @@ load-test-error: check-env
 	$(LOCAL_BIN)/ghz \
 		--proto api/user_v1/user.proto \
 		--import-paths=vendor.protogen/ \
-		--cacert=tls/ca.pem \
+		--cacert=tls/ca.crt \
 		--call user_v1.UserV1.Get \
 		--data '{"id": "9f80dfbf-2ae2-4a9c-a490-3921ca7f2b65"}' \
 		--rps 100 \
