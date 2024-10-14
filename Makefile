@@ -169,6 +169,7 @@ generate-cert-auth: $(TLS_PATH)/ca.key $(TLS_PATH)/ca.crt
 # TESTS #
 # ##### #
 
+# Unit tests
 test:
 	go clean -testcache
 	-go test ./... -v -covermode count -coverpkg=$(TESTS_PATH) -count $(TESTS_ATTEMPTS)
@@ -181,20 +182,21 @@ test-coverage:
 	go tool cover -html=$(TESTS_COVERAGE_FILE) -o coverage.html
 	go tool cover -func=$(TESTS_COVERAGE_FILE) | grep "total"
 
+# Load Testing
 load-test: check-env
 	$(LOCAL_BIN)/ghz \
 		--proto api/user/v1/user.proto \
 		--import-paths=vendor.protogen/ \
 		--cacert=tls/ca.crt \
 		--call user_v1.UserV1.Get \
-		--data '{"id": "9f80dfbf-2ae2-4a9c-a490-3921ca7f2b65"}' \
+		--data '{"id": "01928c0f-f799-71fb-84f4-89197ae522b0"}' \
 		--rps 100 \
 		--total 3000 \
 		${GRPC_HOST}:${GRPC_PORT}
 
 load-test-error: check-env
 	$(LOCAL_BIN)/ghz \
-		--proto api/user_v1/user.proto \
+		--proto api/user/v1/user.proto \
 		--import-paths=vendor.protogen/ \
 		--cacert=tls/ca.crt \
 		--call user_v1.UserV1.Get \
