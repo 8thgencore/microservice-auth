@@ -6,25 +6,11 @@ run:
   tests: true
 
 output:
-  formats: colored-line-number
-  print-issued-lines: true
-  print-linter-name: true
-
-linters-settings:
-  govet:
-    shadow: true
-  dupl:
-    threshold: 100
-  goconst:
-    min-len:         2
-    min-occurrences: 2
-  lll:
-    line-length: 120 
-  nlreturn:
-    # Size of the block (including return statement that is still "OK")
-    # so no return split required.
-    # Default: 1
-    block-size: 5
+  formats:
+  - format: colored-line-number
+    path: stdout
+  - format: html
+    path: tmp/linter-report-backend.html
 
 linters:
   disable-all: true
@@ -45,6 +31,22 @@ linters:
     - typecheck
     - unused
 
+linters-settings:
+  govet:
+    shadow: true
+  dupl:
+    threshold: 100
+  goconst:
+    min-len:         2
+    min-occurrences: 2
+  lll:
+    line-length: 120 
+  nlreturn:
+    # Size of the block (including return statement that is still "OK")
+    # so no return split required.
+    # Default: 1
+    block-size: 5
+
 issues:
   exclude-use-default: false
   exclude:
@@ -58,6 +60,7 @@ issues:
     - vendor
     - var
     - tmp
+    - mocks
     - \.cache
   exclude-files:
     - \.pb\.go$
