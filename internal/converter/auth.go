@@ -2,7 +2,7 @@ package converter
 
 import (
 	"github.com/8thgencore/microservice-auth/internal/model"
-	authv1 "github.com/8thgencore/microservice-auth/pkg/auth/v1"
+	authv1 "github.com/8thgencore/microservice-auth/pkg/pb/auth/v1"
 )
 
 // ToUserLoginFromAPI converts structure of API layer to service layer model.

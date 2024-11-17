@@ -18,7 +18,7 @@ import (
 
 	"google.golang.org/protobuf/types/known/anypb"
 
-	user_v1 "github.com/8thgencore/microservice-auth/pkg/user/v1"
+	user_v1 "github.com/8thgencore/microservice-auth/pkg/pb/user/v1"
 )
 
 // ensure the imports are used

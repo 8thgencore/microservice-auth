@@ -10,7 +10,7 @@ import (
 	"github.com/8thgencore/microservice-auth/internal/model"
 	"github.com/8thgencore/microservice-auth/internal/service"
 	serviceMocks "github.com/8thgencore/microservice-auth/internal/service/mocks"
-	userv1 "github.com/8thgencore/microservice-auth/pkg/user/v1"
+	userv1 "github.com/8thgencore/microservice-auth/pkg/pb/user/v1"
 	"github.com/gojuno/minimock/v3"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/stretchr/testify/require"

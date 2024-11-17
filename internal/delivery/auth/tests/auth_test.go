@@ -12,7 +12,7 @@ import (
 	"github.com/8thgencore/microservice-auth/internal/model"
 	"github.com/8thgencore/microservice-auth/internal/service"
 	serviceMocks "github.com/8thgencore/microservice-auth/internal/service/mocks"
-	auth_v1 "github.com/8thgencore/microservice-auth/pkg/auth/v1"
+	auth_v1 "github.com/8thgencore/microservice-auth/pkg/pb/auth/v1"
 )
 
 var (

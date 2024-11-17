@@ -2,7 +2,7 @@ package auth
 
 import (
 	"github.com/8thgencore/microservice-auth/internal/service"
-	authv1 "github.com/8thgencore/microservice-auth/pkg/auth/v1"
+	authv1 "github.com/8thgencore/microservice-auth/pkg/pb/auth/v1"
 )
 
 // Implementation structure describes API layer.

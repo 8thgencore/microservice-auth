@@ -2,7 +2,7 @@ package converter
 
 import (
 	"github.com/8thgencore/microservice-auth/internal/model"
-	accessv1 "github.com/8thgencore/microservice-auth/pkg/access/v1"
+	accessv1 "github.com/8thgencore/microservice-auth/pkg/pb/access/v1"
 )
 
 // ToEndpointPermissionsMap converts slice of service layer structures to map.

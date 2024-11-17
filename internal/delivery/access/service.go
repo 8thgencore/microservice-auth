@@ -2,7 +2,7 @@ package access
 
 import (
 	"github.com/8thgencore/microservice-auth/internal/service"
-	desc "github.com/8thgencore/microservice-auth/pkg/access/v1"
+	desc "github.com/8thgencore/microservice-auth/pkg/pb/access/v1"
 )
 
 // Implementation structure describes API layer.

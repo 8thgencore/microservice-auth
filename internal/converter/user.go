@@ -6,7 +6,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/8thgencore/microservice-auth/internal/model"
-	userv1 "github.com/8thgencore/microservice-auth/pkg/user/v1"
+	userv1 "github.com/8thgencore/microservice-auth/pkg/pb/user/v1"
 )
 
 // ToUserFromService converts service layer model to structure of API layer.

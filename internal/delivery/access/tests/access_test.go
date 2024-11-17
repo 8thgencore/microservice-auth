@@ -12,7 +12,7 @@ import (
 	accessAPI "github.com/8thgencore/microservice-auth/internal/delivery/access"
 	"github.com/8thgencore/microservice-auth/internal/service"
 	serviceMocks "github.com/8thgencore/microservice-auth/internal/service/mocks"
-	accessv1 "github.com/8thgencore/microservice-auth/pkg/access/v1"
+	accessv1 "github.com/8thgencore/microservice-auth/pkg/pb/access/v1"
 )
 
 func TestCheck(t *testing.T) {

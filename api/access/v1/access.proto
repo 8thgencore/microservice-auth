@@ -11,7 +11,7 @@ import "google/protobuf/empty.proto";
 import "user.proto";
 import "validate/validate.proto";
 
-option go_package = "github.com/8thgencore/microservice-auth/pkg/access/v1;access_v1";
+option go_package = "github.com/8thgencore/microservice-auth/pkg/pb/access/v1;access_v1";
 
 // AccessV1 defines the service for managing access permissions for endpoints based on user roles.
 service AccessV1 {

@@ -6,7 +6,7 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 
 	"github.com/8thgencore/microservice-auth/internal/converter"
-	accessv1 "github.com/8thgencore/microservice-auth/pkg/access/v1"
+	accessv1 "github.com/8thgencore/microservice-auth/pkg/pb/access/v1"
 )
 
 // Check performs user authorization.

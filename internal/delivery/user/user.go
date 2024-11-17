@@ -7,7 +7,7 @@ import (
 	"github.com/8thgencore/microservice-auth/internal/converter"
 	"github.com/golang/protobuf/ptypes/empty"
 
-	userv1 "github.com/8thgencore/microservice-auth/pkg/user/v1"
+	userv1 "github.com/8thgencore/microservice-auth/pkg/pb/user/v1"
 )
 
 // Create is used for creating new user.
