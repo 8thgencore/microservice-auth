@@ -24,7 +24,9 @@ linters:
     - govet
     - ineffassign
     - lll
+    - misspell
     - nlreturn
+    - perfsprint
     - revive
     - staticcheck
     - stylecheck
@@ -33,14 +35,33 @@ linters:
 
 linters-settings:
   govet:
-    shadow: true
+    enable-all: true
+    disable:
+      # There is rarely performance differences due to padding,
+      # the most noticable impact is memory usage. However,
+      # the main trace data is Protobuf-generated and we ignore
+      # those files from linting, so this linter is not useful.
+      - fieldalignment
+      # Disable shadow
+      - shadow
   dupl:
     threshold: 100
   goconst:
     min-len:         2
     min-occurrences: 2
   lll:
-    line-length: 120 
+    line-length: 120
+  perfsprint:
+    # Optimizes even if it requires an int or uint type cast.
+    int-conversion: true
+    # Optimizes into `err.Error()` even if it is only equivalent for non-nil errors.
+    err-error: true
+    # Optimizes `fmt.Errorf`.
+    errorf: true
+    # Optimizes `fmt.Sprintf` with only one argument.
+    sprintf1: true
+    # Optimizes into strings concatenation.
+    strconcat: true
   nlreturn:
     # Size of the block (including return statement that is still "OK")
     # so no return split required.

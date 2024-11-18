@@ -2,7 +2,7 @@ package tests
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/gojuno/minimock/v3"
@@ -36,7 +36,7 @@ func TestLogin(t *testing.T) {
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
 
-		serviceErr = fmt.Errorf("service error")
+		serviceErr = errors.New("service error")
 
 		req = &auth_v1.LoginRequest{
 			Creds: &auth_v1.Creds{
@@ -123,7 +123,7 @@ func TestGetAccessToken(t *testing.T) {
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
 
-		serviceErr = fmt.Errorf("service error")
+		serviceErr = errors.New("service error")
 
 		req = &auth_v1.GetAccessTokenRequest{
 			RefreshToken: refreshToken,
@@ -202,7 +202,7 @@ func TestGetRefreshToken(t *testing.T) {
 		oldRefreshToken = "old_refresh_token"
 		refreshToken    = "refresh_token"
 
-		serviceErr = fmt.Errorf("service error")
+		serviceErr = errors.New("service error")
 
 		req = &auth_v1.GetRefreshTokenRequest{
 			OldRefreshToken: oldRefreshToken,

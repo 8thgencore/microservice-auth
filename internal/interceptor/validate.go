@@ -13,7 +13,7 @@ type validator interface {
 // ValidateInterceptor is used to validate requests for gRPC server.
 func ValidateInterceptor(
 	ctx context.Context,
-	req interface{},
+	req any,
 	_ *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler,
 ) (interface{}, error) {

@@ -59,7 +59,7 @@ install-deps:
 
 # Linting
 lint:
-	GOBIN=$(LOCAL_BIN) bin/golangci-lint run ./... --config .golangci.yaml
+	GOBIN=$(LOCAL_BIN) bin/golangci-lint run ./internal/... ./cmd/... ./pkg/... -c .golangci.yaml --fix
 
 # Formating
 format:

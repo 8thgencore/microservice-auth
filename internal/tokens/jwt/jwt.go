@@ -28,7 +28,7 @@ func (t *tokenOperations) GenerateAccessToken(
 ) (string, error) {
 	claims := model.UserClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   fmt.Sprint(user.ID),
+			Subject:   user.ID,
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
 		},
 		Username: user.Name,
@@ -52,7 +52,7 @@ func (t *tokenOperations) GenerateRefreshToken(
 ) (string, error) {
 	claims := model.RefreshClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   fmt.Sprint(userID),
+			Subject:   userID,
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
 		},
 		UserID: userID,
@@ -72,7 +72,7 @@ func (t *tokenOperations) VerifyAccessToken(tokenStr string, secretKey []byte) (
 	token, err := jwt.ParseWithClaims(
 		tokenStr,
 		&model.UserClaims{},
-		func(token *jwt.Token) (interface{}, error) {
+		func(token *jwt.Token) (any, error) {
 			if token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Method.Alg())
 			}
@@ -101,7 +101,7 @@ func (t *tokenOperations) VerifyRefreshToken(tokenStr string, secretKey []byte) 
 	token, err := jwt.ParseWithClaims(
 		tokenStr,
 		&model.RefreshClaims{},
-		func(token *jwt.Token) (interface{}, error) {
+		func(token *jwt.Token) (any, error) {
 			if token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Method.Alg())
 			}

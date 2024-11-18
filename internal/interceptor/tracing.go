@@ -11,7 +11,7 @@ import (
 
 const traceIDKey = "x-trace-id"
 
-// TracingInterceptor creates traces for fucntion calls.
+// TracingInterceptor creates traces for function calls.
 func TracingInterceptor(
 	ctx context.Context,
 	req interface{},

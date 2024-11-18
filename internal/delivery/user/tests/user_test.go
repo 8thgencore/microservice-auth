@@ -3,7 +3,7 @@ package tests
 import (
 	"context"
 	"database/sql"
-	"fmt"
+	"errors"
 	"testing"
 
 	userAPI "github.com/8thgencore/microservice-auth/internal/delivery/user"
@@ -44,7 +44,7 @@ func TestCreate(t *testing.T) {
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
 
-		serviceErr = fmt.Errorf("service error")
+		serviceErr = errors.New("service error")
 
 		req = &userv1.CreateRequest{
 			User: &userv1.UserCreate{
@@ -134,7 +134,7 @@ func TestGet(t *testing.T) {
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
 
-		serviceErr = fmt.Errorf("service error")
+		serviceErr = errors.New("service error")
 
 		req = &userv1.GetRequest{
 			Id: id,
@@ -235,7 +235,7 @@ func TestUpdate(t *testing.T) {
 		role     = userv1.Role_USER
 		roleName = "USER"
 
-		serviceErr = fmt.Errorf("service error")
+		serviceErr = errors.New("service error")
 
 		req = &userv1.UpdateRequest{
 			User: &userv1.UserUpdate{
@@ -332,7 +332,7 @@ func TestDelete(t *testing.T) {
 
 		id = "uuid"
 
-		serviceErr = fmt.Errorf("service error")
+		serviceErr = errors.New("service error")
 
 		req = &userv1.DeleteRequest{
 			Id: id,

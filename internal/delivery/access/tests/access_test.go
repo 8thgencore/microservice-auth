@@ -2,7 +2,7 @@ package tests
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/gojuno/minimock/v3"
@@ -31,7 +31,7 @@ func TestCheck(t *testing.T) {
 
 		endpoint = "/chat_v1.ChatV1/Create"
 
-		serviceErr = fmt.Errorf("service error")
+		serviceErr = errors.New("service error")
 
 		req = &accessv1.CheckRequest{
 			Endpoint: endpoint,

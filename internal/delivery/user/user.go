@@ -2,7 +2,7 @@ package user
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	"github.com/8thgencore/microservice-auth/internal/converter"
 	"github.com/golang/protobuf/ptypes/empty"
@@ -13,7 +13,7 @@ import (
 // Create is used for creating new user.
 func (impl *Implementation) Create(ctx context.Context, req *userv1.CreateRequest) (*userv1.CreateResponse, error) {
 	if req == nil || req.GetUser() == nil {
-		return nil, fmt.Errorf("invalid request: user data is nil")
+		return nil, errors.New("invalid request: user data is nil")
 	}
 
 	id, err := impl.userService.Create(ctx, converter.ToUserCreateFromAPI(req.GetUser()))
@@ -41,7 +41,7 @@ func (impl *Implementation) Get(ctx context.Context, req *userv1.GetRequest) (*u
 // Update is used for updating user info.
 func (impl *Implementation) Update(ctx context.Context, req *userv1.UpdateRequest) (*empty.Empty, error) {
 	if req == nil || req.GetUser() == nil {
-		return nil, fmt.Errorf("invalid request: user data is nil")
+		return nil, errors.New("invalid request: user data is nil")
 	}
 
 	err := impl.userService.Update(ctx, converter.ToUserUpdateFromAPI(req.GetUser()))

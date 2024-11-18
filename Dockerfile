@@ -1,5 +1,5 @@
 # Use the official Golang image as the base for building the application
-FROM golang:1.23.0-alpine3.20 AS builder
+FROM golang:1.23.3-alpine3.20 AS builder
 
 # Argument for the environment to be passed during the build
 ARG ENV

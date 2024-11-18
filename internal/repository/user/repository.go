@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/8thgencore/microservice-auth/internal/model"
 	"github.com/8thgencore/microservice-auth/internal/repository"
@@ -47,7 +46,7 @@ func (r *repo) Create(ctx context.Context, user *model.UserCreate) (string, erro
 		PlaceholderFormat(sq.Dollar).
 		Columns(idColumn, nameColumn, roleColumn, emailColumn, passwordColumn).
 		Values(user.ID, user.Name, user.Role, user.Email, user.Password).
-		Suffix(fmt.Sprintf("RETURNING %s", idColumn))
+		Suffix("RETURNING " + idColumn)
 
 	query, args, err := builderInsert.ToSql()
 	if err != nil {

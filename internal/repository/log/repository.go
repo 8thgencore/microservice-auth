@@ -2,7 +2,6 @@ package log
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/8thgencore/microservice-auth/internal/model"
 	"github.com/8thgencore/microservice-auth/internal/repository"
@@ -32,7 +31,7 @@ func (r *repo) Log(ctx context.Context, text *model.Log) error {
 		PlaceholderFormat(sq.Dollar).
 		Columns(idColumn, logColumn).
 		Values(text.ID, text.Text).
-		Suffix(fmt.Sprintf("RETURNING %s", idColumn))
+		Suffix("RETURNING " + idColumn)
 
 	query, args, err := builderInsert.ToSql()
 	if err != nil {
