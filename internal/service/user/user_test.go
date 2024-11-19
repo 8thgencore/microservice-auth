@@ -11,6 +11,7 @@ import (
 	"github.com/8thgencore/microservice-common/pkg/db/transaction"
 	"github.com/gojuno/minimock/v3"
 	"github.com/jackc/pgx/v5"
+	"github.com/jinzhu/copier"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -134,7 +135,7 @@ func TestCreate(t *testing.T) {
 			err:  ErrUserCreate,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
-				mock.CreateMock.Expect(minimock.AnyContext, req).Return("", ErrUserCreate)
+				mock.CreateMock.Optional().Return("", ErrUserCreate)
 				return mock
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
@@ -143,6 +144,7 @@ func TestCreate(t *testing.T) {
 			},
 			transactorMock: transactorRollbackMock,
 		},
+
 		{
 			name: "log repository error case",
 			args: args{
@@ -153,7 +155,7 @@ func TestCreate(t *testing.T) {
 			err:  ErrUserCreate,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
-				mock.CreateMock.Expect(minimock.AnyContext, req).Return(id, nil)
+				mock.CreateMock.Optional().Return(user.ID, nil)
 				return mock
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
@@ -163,6 +165,47 @@ func TestCreate(t *testing.T) {
 			},
 			transactorMock: transactorRollbackMock,
 		},
+
+		{
+			name: "user with existing name",
+			args: args{
+				ctx: ctx,
+				req: req,
+			},
+			want: "",
+			err:  ErrUserNameExists,
+			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
+				mock := repositoryMocks.NewUserRepositoryMock(mc)
+				mock.CreateMock.Optional().Return("", ErrUserNameExists)
+				return mock
+			},
+			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
+				mock := repositoryMocks.NewLogRepositoryMock(mc)
+				return mock
+			},
+			transactorMock: transactorRollbackMock,
+		},
+
+		{
+			name: "user with existing email",
+			args: args{
+				ctx: ctx,
+				req: req,
+			},
+			want: "",
+			err:  ErrUserEmailExists,
+			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
+				mock := repositoryMocks.NewUserRepositoryMock(mc)
+				mock.CreateMock.Optional().Return("", ErrUserEmailExists)
+				return mock
+			},
+			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
+				mock := repositoryMocks.NewLogRepositoryMock(mc)
+				return mock
+			},
+			transactorMock: transactorRollbackMock,
+		},
+
 		{
 			name: "success case",
 			args: args{
@@ -173,7 +216,7 @@ func TestCreate(t *testing.T) {
 			err:  nil,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
-				mock.CreateMock.Expect(minimock.AnyContext, req).Return(id, nil)
+				mock.CreateMock.Optional().Return(id, nil)
 				return mock
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
@@ -196,7 +239,10 @@ func TestCreate(t *testing.T) {
 			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
 			srv := NewService(userRepositoryMock, logRepositoryMock, txManagerMock)
 
-			res, err := srv.Create(tt.args.ctx, tt.args.req)
+			user := &model.UserCreate{}
+			copier.Copy(&user, &tt.args.req)
+
+			res, err := srv.Create(tt.args.ctx, user)
 			require.Equal(t, tt.err, err)
 			require.Equal(t, tt.want, res)
 		})

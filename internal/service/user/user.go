@@ -6,9 +6,7 @@ import (
 	"fmt"
 
 	"github.com/8thgencore/microservice-auth/internal/model"
-	"github.com/8thgencore/microservice-common/pkg/logger"
 	"github.com/google/uuid"
-	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -64,7 +62,7 @@ func (s *serv) Create(ctx context.Context, user *model.UserCreate) (string, erro
 		if errors.Is(err, ErrUserEmailExists) {
 			return "", ErrUserEmailExists
 		}
-		logger.Error("failed to create user", zap.Error(err))
+		// logger.Error("failed to create user", zap.Error(err))
 
 		return "", ErrUserCreate
 	}
