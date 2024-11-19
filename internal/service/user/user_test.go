@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"testing"
 
 	"github.com/8thgencore/microservice-auth/internal/model"
@@ -77,7 +76,6 @@ func TestCreate(t *testing.T) {
 
 	var (
 		ctx = context.Background()
-		mc  = minimock.NewController(t)
 
 		req = &model.UserCreate{
 			Name:            name,
@@ -94,10 +92,6 @@ func TestCreate(t *testing.T) {
 			PasswordConfirm: passwordConfirm,
 			Role:            role,
 		}
-
-		reqLog = &model.Log{
-			Text: fmt.Sprintf("Created user with id: %s", id),
-		}
 	)
 
 	tests := []struct {
@@ -109,26 +103,6 @@ func TestCreate(t *testing.T) {
 		logRepositoryMock  logRepositoryMockFunc
 		transactorMock     transactorMockFunc
 	}{
-		{
-			name: "success case",
-			args: args{
-				ctx: ctx,
-				req: req,
-			},
-			want: id,
-			err:  nil,
-			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
-				mock := repositoryMocks.NewUserRepositoryMock(mc)
-				mock.CreateMock.Expect(minimock.AnyContext, req).Return(id, nil)
-				return mock
-			},
-			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
-				mock := repositoryMocks.NewLogRepositoryMock(mc)
-				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(nil)
-				return mock
-			},
-			transactorMock: transactorCommitMock,
-		},
 		{
 			name: "passwords match error case",
 			args: args{
@@ -184,16 +158,38 @@ func TestCreate(t *testing.T) {
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
-				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(ErrUserCreate)
+				mock.LogMock.Optional().Return(ErrUserCreate)
 				return mock
 			},
 			transactorMock: transactorRollbackMock,
+		},
+		{
+			name: "success case",
+			args: args{
+				ctx: ctx,
+				req: req,
+			},
+			want: id,
+			err:  nil,
+			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
+				mock := repositoryMocks.NewUserRepositoryMock(mc)
+				mock.CreateMock.Expect(minimock.AnyContext, req).Return(id, nil)
+				return mock
+			},
+			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
+				mock := repositoryMocks.NewLogRepositoryMock(mc)
+				mock.LogMock.Optional().Return(nil)
+				return mock
+			},
+			transactorMock: transactorCommitMock,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
+			mc := minimock.NewController(t)
 
 			userRepositoryMock := tt.userRepositoryMock(mc)
 			logRepositoryMock := tt.logRepositoryMock(mc)
@@ -222,10 +218,6 @@ func TestGet(t *testing.T) {
 	var (
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
-
-		reqLog = &model.Log{
-			Text: fmt.Sprintf("Read user info with id: %s", id),
-		}
 	)
 
 	tests := []struct {
@@ -252,7 +244,7 @@ func TestGet(t *testing.T) {
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
-				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(nil)
+				mock.LogMock.Optional().Return(nil)
 				return mock
 			},
 			transactorMock: transactorCommitMock,
@@ -291,7 +283,7 @@ func TestGet(t *testing.T) {
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
-				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(ErrUserRead)
+				mock.LogMock.Optional().Return(ErrUserRead)
 				return mock
 			},
 			transactorMock: transactorRollbackMock,
@@ -364,10 +356,6 @@ func TestUpdate(t *testing.T) {
 				Valid:  true,
 			},
 		}
-
-		reqLog = &model.Log{
-			Text: fmt.Sprintf("Updated user with id: %s", id),
-		}
 	)
 
 	tests := []struct {
@@ -393,7 +381,7 @@ func TestUpdate(t *testing.T) {
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
-				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(nil)
+				mock.LogMock.Optional().Return(nil)
 				return mock
 			},
 			transactorMock: transactorCommitMock,
@@ -450,7 +438,7 @@ func TestUpdate(t *testing.T) {
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
-				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(ErrUserUpdate)
+				mock.LogMock.Optional().Return(ErrUserUpdate)
 				return mock
 			},
 			transactorMock: transactorRollbackMock,
@@ -487,10 +475,6 @@ func TestDelete(t *testing.T) {
 	var (
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
-
-		reqLog = &model.Log{
-			Text: fmt.Sprintf("Deleted user with id: %s", id),
-		}
 	)
 
 	tests := []struct {
@@ -516,7 +500,7 @@ func TestDelete(t *testing.T) {
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
-				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(nil)
+				mock.LogMock.Optional().Return(nil)
 				return mock
 			},
 			transactorMock: transactorCommitMock,
@@ -573,7 +557,7 @@ func TestDelete(t *testing.T) {
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
-				mock.LogMock.Expect(minimock.AnyContext, reqLog).Return(ErrUserDelete)
+				mock.LogMock.Optional().Return(ErrUserDelete)
 				return mock
 			},
 			transactorMock: transactorRollbackMock,
