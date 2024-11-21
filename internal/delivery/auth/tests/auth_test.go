@@ -160,6 +160,7 @@ func TestRefreshTokens(t *testing.T) {
 					Return(accessToken, nil)
 				mock.GetRefreshTokenMock.Expect(minimock.AnyContext, oldRefreshToken).
 					Return(refreshToken, nil)
+
 				return mock
 			},
 		},
@@ -192,6 +193,7 @@ func TestRefreshTokens(t *testing.T) {
 					Return(accessToken, nil)
 				mock.GetRefreshTokenMock.Expect(minimock.AnyContext, oldRefreshToken).
 					Return("", serviceErr)
+
 				return mock
 			},
 		},
