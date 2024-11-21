@@ -21,32 +21,23 @@ func (i *Implementation) Login(ctx context.Context, req *authv1.LoginRequest) (*
 	}, nil
 }
 
-// GetAccessToken returns access token for later operations.
-func (i *Implementation) GetAccessToken(
+// RefreshTokens returns access token for later operations.
+func (i *Implementation) RefreshTokens(
 	ctx context.Context,
-	req *authv1.GetAccessTokenRequest,
-) (*authv1.GetAccessTokenResponse, error) {
+	req *authv1.RefreshTokensRequest,
+) (*authv1.RefreshTokensResponse, error) {
 	accessToken, err := i.authService.GetAccessToken(ctx, req.GetRefreshToken())
 	if err != nil {
 		return nil, err
 	}
 
-	return &authv1.GetAccessTokenResponse{
-		AccessToken: accessToken,
-	}, nil
-}
-
-// GetRefreshToken updates refresh token.
-func (i *Implementation) GetRefreshToken(
-	ctx context.Context,
-	req *authv1.GetRefreshTokenRequest,
-) (*authv1.GetRefreshTokenResponse, error) {
-	refreshToken, err := i.authService.GetRefreshToken(ctx, req.GetOldRefreshToken())
+	refreshToken, err := i.authService.GetRefreshToken(ctx, req.GetRefreshToken())
 	if err != nil {
 		return nil, err
 	}
 
-	return &authv1.GetRefreshTokenResponse{
+	return &authv1.RefreshTokensResponse{
+		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil
 }

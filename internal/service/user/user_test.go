@@ -7,6 +7,7 @@ import (
 
 	"github.com/8thgencore/microservice-auth/internal/model"
 	"github.com/8thgencore/microservice-auth/internal/repository"
+	"github.com/8thgencore/microservice-auth/internal/tokens"
 	"github.com/8thgencore/microservice-common/pkg/db"
 	"github.com/8thgencore/microservice-common/pkg/db/transaction"
 	"github.com/gojuno/minimock/v3"
@@ -16,6 +17,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	repositoryMocks "github.com/8thgencore/microservice-auth/internal/repository/mocks"
+	tokenMocks "github.com/8thgencore/microservice-auth/internal/tokens/mocks"
 	dbMocks "github.com/8thgencore/microservice-common/pkg/db/mocks"
 )
 
@@ -68,6 +70,7 @@ func TestCreate(t *testing.T) {
 
 	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
 	type logRepositoryMockFunc func(mc *minimock.Controller) repository.LogRepository
+	type tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
 	type transactorMockFunc func(mc *minimock.Controller) db.Transactor
 
 	type args struct {
@@ -96,13 +99,14 @@ func TestCreate(t *testing.T) {
 	)
 
 	tests := []struct {
-		name               string
-		args               args
-		want               string
-		err                error
-		userRepositoryMock userRepositoryMockFunc
-		logRepositoryMock  logRepositoryMockFunc
-		transactorMock     transactorMockFunc
+		name                string
+		args                args
+		want                string
+		err                 error
+		userRepositoryMock  userRepositoryMockFunc
+		logRepositoryMock   logRepositoryMockFunc
+		tokenOperationsMock tokenOperationsMockFunc
+		transactorMock      transactorMockFunc
 	}{
 		{
 			name: "passwords match error case",
@@ -118,6 +122,10 @@ func TestCreate(t *testing.T) {
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
+				return mock
+			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
 				return mock
 			},
 			transactorMock: func(mc *minimock.Controller) db.Transactor {
@@ -142,6 +150,10 @@ func TestCreate(t *testing.T) {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				return mock
 			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
+				return mock
+			},
 			transactorMock: transactorRollbackMock,
 		},
 
@@ -161,6 +173,10 @@ func TestCreate(t *testing.T) {
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				mock.LogMock.Optional().Return(ErrUserCreate)
+				return mock
+			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
 				return mock
 			},
 			transactorMock: transactorRollbackMock,
@@ -183,6 +199,10 @@ func TestCreate(t *testing.T) {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				return mock
 			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
+				return mock
+			},
 			transactorMock: transactorRollbackMock,
 		},
 
@@ -201,6 +221,10 @@ func TestCreate(t *testing.T) {
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
+				return mock
+			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
 				return mock
 			},
 			transactorMock: transactorRollbackMock,
@@ -224,6 +248,10 @@ func TestCreate(t *testing.T) {
 				mock.LogMock.Optional().Return(nil)
 				return mock
 			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
+				return mock
+			},
 			transactorMock: transactorCommitMock,
 		},
 	}
@@ -236,11 +264,15 @@ func TestCreate(t *testing.T) {
 
 			userRepositoryMock := tt.userRepositoryMock(mc)
 			logRepositoryMock := tt.logRepositoryMock(mc)
+			tokenOperationsMock := tt.tokenOperationsMock(mc)
+
 			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
-			srv := NewService(userRepositoryMock, logRepositoryMock, txManagerMock)
+			srv := NewService(userRepositoryMock, logRepositoryMock, tokenOperationsMock, txManagerMock)
 
 			user := &model.UserCreate{}
-			copier.Copy(&user, &tt.args.req)
+			if err := copier.Copy(&user, &tt.args.req); err != nil {
+				return
+			}
 
 			res, err := srv.Create(tt.args.ctx, user)
 			require.Equal(t, tt.err, err)
@@ -254,6 +286,7 @@ func TestGet(t *testing.T) {
 	t.Parallel()
 	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
 	type logRepositoryMockFunc func(mc *minimock.Controller) repository.LogRepository
+	type tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
 	type transactorMockFunc func(mc *minimock.Controller) db.Transactor
 
 	type args struct {
@@ -267,13 +300,14 @@ func TestGet(t *testing.T) {
 	)
 
 	tests := []struct {
-		name               string
-		args               args
-		want               *model.User
-		err                error
-		userRepositoryMock userRepositoryMockFunc
-		logRepositoryMock  logRepositoryMockFunc
-		transactorMock     transactorMockFunc
+		name                string
+		args                args
+		want                *model.User
+		err                 error
+		userRepositoryMock  userRepositoryMockFunc
+		logRepositoryMock   logRepositoryMockFunc
+		tokenOperationsMock tokenOperationsMockFunc
+		transactorMock      transactorMockFunc
 	}{
 		{
 			name: "success case",
@@ -293,6 +327,10 @@ func TestGet(t *testing.T) {
 				mock.LogMock.Optional().Return(nil)
 				return mock
 			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
+				return mock
+			},
 			transactorMock: transactorCommitMock,
 		},
 		{
@@ -310,6 +348,10 @@ func TestGet(t *testing.T) {
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
+				return mock
+			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
 				return mock
 			},
 			transactorMock: transactorRollbackMock,
@@ -332,6 +374,10 @@ func TestGet(t *testing.T) {
 				mock.LogMock.Optional().Return(ErrUserRead)
 				return mock
 			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
+				return mock
+			},
 			transactorMock: transactorRollbackMock,
 		},
 		{
@@ -351,6 +397,10 @@ func TestGet(t *testing.T) {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				return mock
 			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
+				return mock
+			},
 			transactorMock: transactorRollbackMock,
 		},
 	}
@@ -361,8 +411,10 @@ func TestGet(t *testing.T) {
 
 			userRepositoryMock := tt.userRepositoryMock(mc)
 			logRepositoryMock := tt.logRepositoryMock(mc)
+			tokenOperationsMock := tt.tokenOperationsMock(mc)
+
 			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
-			srv := NewService(userRepositoryMock, logRepositoryMock, txManagerMock)
+			srv := NewService(userRepositoryMock, logRepositoryMock, tokenOperationsMock, txManagerMock)
 
 			res, err := srv.Get(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)
@@ -376,6 +428,7 @@ func TestUpdate(t *testing.T) {
 	t.Parallel()
 	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
 	type logRepositoryMockFunc func(mc *minimock.Controller) repository.LogRepository
+	type tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
 	type transactorMockFunc func(mc *minimock.Controller) db.Transactor
 
 	type args struct {
@@ -405,12 +458,13 @@ func TestUpdate(t *testing.T) {
 	)
 
 	tests := []struct {
-		name               string
-		args               args
-		err                error
-		userRepositoryMock userRepositoryMockFunc
-		logRepositoryMock  logRepositoryMockFunc
-		transactorMock     transactorMockFunc
+		name                string
+		args                args
+		err                 error
+		userRepositoryMock  userRepositoryMockFunc
+		logRepositoryMock   logRepositoryMockFunc
+		tokenOperationsMock tokenOperationsMockFunc
+		transactorMock      transactorMockFunc
 	}{
 		{
 			name: "success case",
@@ -428,6 +482,10 @@ func TestUpdate(t *testing.T) {
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				mock.LogMock.Optional().Return(nil)
+				return mock
+			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
 				return mock
 			},
 			transactorMock: transactorCommitMock,
@@ -448,6 +506,10 @@ func TestUpdate(t *testing.T) {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				return mock
 			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
+				return mock
+			},
 			transactorMock: transactorRollbackMock,
 		},
 		{
@@ -465,6 +527,10 @@ func TestUpdate(t *testing.T) {
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
+				return mock
+			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
 				return mock
 			},
 			transactorMock: transactorRollbackMock,
@@ -487,6 +553,10 @@ func TestUpdate(t *testing.T) {
 				mock.LogMock.Optional().Return(ErrUserUpdate)
 				return mock
 			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
+				return mock
+			},
 			transactorMock: transactorRollbackMock,
 		},
 	}
@@ -497,8 +567,10 @@ func TestUpdate(t *testing.T) {
 
 			userRepositoryMock := tt.userRepositoryMock(mc)
 			logRepositoryMock := tt.logRepositoryMock(mc)
+			tokenOperationsMock := tt.tokenOperationsMock(mc)
+
 			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
-			srv := NewService(userRepositoryMock, logRepositoryMock, txManagerMock)
+			srv := NewService(userRepositoryMock, logRepositoryMock, tokenOperationsMock, txManagerMock)
 
 			err := srv.Update(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)
@@ -511,6 +583,7 @@ func TestDelete(t *testing.T) {
 	t.Parallel()
 	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
 	type logRepositoryMockFunc func(mc *minimock.Controller) repository.LogRepository
+	type tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
 	type transactorMockFunc func(mc *minimock.Controller) db.Transactor
 
 	type args struct {
@@ -524,12 +597,13 @@ func TestDelete(t *testing.T) {
 	)
 
 	tests := []struct {
-		name               string
-		args               args
-		err                error
-		userRepositoryMock userRepositoryMockFunc
-		logRepositoryMock  logRepositoryMockFunc
-		transactorMock     transactorMockFunc
+		name                string
+		args                args
+		err                 error
+		userRepositoryMock  userRepositoryMockFunc
+		logRepositoryMock   logRepositoryMockFunc
+		tokenOperationsMock tokenOperationsMockFunc
+		transactorMock      transactorMockFunc
 	}{
 		{
 			name: "success case",
@@ -547,6 +621,10 @@ func TestDelete(t *testing.T) {
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				mock.LogMock.Optional().Return(nil)
+				return mock
+			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
 				return mock
 			},
 			transactorMock: transactorCommitMock,
@@ -567,6 +645,10 @@ func TestDelete(t *testing.T) {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				return mock
 			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
+				return mock
+			},
 			transactorMock: transactorRollbackMock,
 		},
 		{
@@ -584,6 +666,10 @@ func TestDelete(t *testing.T) {
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
+				return mock
+			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
 				return mock
 			},
 			transactorMock: transactorRollbackMock,
@@ -606,6 +692,10 @@ func TestDelete(t *testing.T) {
 				mock.LogMock.Optional().Return(ErrUserDelete)
 				return mock
 			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
+				return mock
+			},
 			transactorMock: transactorRollbackMock,
 		},
 		{
@@ -624,6 +714,10 @@ func TestDelete(t *testing.T) {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				return mock
 			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				mock := tokenMocks.NewTokenOperationsMock(mc)
+				return mock
+			},
 			transactorMock: transactorRollbackMock,
 		},
 	}
@@ -634,8 +728,10 @@ func TestDelete(t *testing.T) {
 
 			userRepositoryMock := tt.userRepositoryMock(mc)
 			logRepositoryMock := tt.logRepositoryMock(mc)
+			tokenOperationsMock := tt.tokenOperationsMock(mc)
 			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
-			srv := NewService(userRepositoryMock, logRepositoryMock, txManagerMock)
+
+			srv := NewService(userRepositoryMock, logRepositoryMock, tokenOperationsMock, txManagerMock)
 
 			err := srv.Delete(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)

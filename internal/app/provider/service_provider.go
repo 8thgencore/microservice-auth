@@ -92,8 +92,14 @@ func (s *ServiceProvider) TokenRepository(ctx context.Context) repository.TokenR
 // UserService returns a user service.
 func (s *ServiceProvider) UserService(ctx context.Context) service.UserService {
 	if s.userService == nil {
-		s.userService = userService.NewService(s.UserRepository(ctx), s.LogRepository(ctx), s.TxManager(ctx))
+		s.userService = userService.NewService(
+			s.UserRepository(ctx),
+			s.LogRepository(ctx),
+			s.TokenOperations(ctx),
+			s.TxManager(ctx),
+		)
 	}
+
 	return s.userService
 }
 

@@ -109,114 +109,40 @@ func TestLogin(t *testing.T) {
 	}
 }
 
-func TestGetAccessToken(t *testing.T) {
+func TestRefreshTokens(t *testing.T) {
 	t.Parallel()
 
 	type authServiceMockFunc func(mc *minimock.Controller) service.AuthService
 
 	type args struct {
 		ctx context.Context
-		req *auth_v1.GetAccessTokenRequest
+		req *auth_v1.RefreshTokensRequest
 	}
 
 	var (
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
 
-		serviceErr = errors.New("service error")
-
-		req = &auth_v1.GetAccessTokenRequest{
-			RefreshToken: refreshToken,
-		}
-
-		res = &auth_v1.GetAccessTokenResponse{
-			AccessToken: accessToken,
-		}
-	)
-
-	tests := []struct {
-		name            string
-		args            args
-		want            *auth_v1.GetAccessTokenResponse
-		err             error
-		authServiceMock authServiceMockFunc
-	}{
-		{
-			name: "success case",
-			args: args{
-				ctx: ctx,
-				req: req,
-			},
-			want: res,
-			err:  nil,
-			authServiceMock: func(mc *minimock.Controller) service.AuthService {
-				mock := serviceMocks.NewAuthServiceMock(mc)
-				mock.GetAccessTokenMock.Expect(minimock.AnyContext, refreshToken).Return(accessToken, nil)
-				return mock
-			},
-		},
-		{
-			name: "service error case",
-			args: args{
-				ctx: ctx,
-				req: req,
-			},
-			want: nil,
-			err:  serviceErr,
-			authServiceMock: func(mc *minimock.Controller) service.AuthService {
-				mock := serviceMocks.NewAuthServiceMock(mc)
-				mock.GetAccessTokenMock.Expect(minimock.AnyContext, refreshToken).Return("", serviceErr)
-				return mock
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			authServiceMock := tt.authServiceMock(mc)
-			api := authAPI.NewImplementation(authServiceMock)
-
-			res, err := api.GetAccessToken(tt.args.ctx, tt.args.req)
-			require.Equal(t, tt.err, err)
-			require.Equal(t, tt.want, res)
-		})
-	}
-}
-
-func TestGetRefreshToken(t *testing.T) {
-	t.Parallel()
-
-	type authServiceMockFunc func(mc *minimock.Controller) service.AuthService
-
-	type args struct {
-		ctx context.Context
-		req *auth_v1.GetRefreshTokenRequest
-	}
-
-	var (
-		ctx = context.Background()
-		mc  = minimock.NewController(t)
-
-		oldRefreshToken = "old_refresh_token"
 		refreshToken    = "refresh_token"
+		accessToken     = "access_token"
+		oldRefreshToken = "old_refresh_token"
 
 		serviceErr = errors.New("service error")
 
-		req = &auth_v1.GetRefreshTokenRequest{
-			OldRefreshToken: oldRefreshToken,
+		req = &auth_v1.RefreshTokensRequest{
+			RefreshToken: oldRefreshToken,
 		}
 
-		res = &auth_v1.GetRefreshTokenResponse{
+		res = &auth_v1.RefreshTokensResponse{
 			RefreshToken: refreshToken,
+			AccessToken:  accessToken,
 		}
 	)
 
 	tests := []struct {
 		name            string
 		args            args
-		want            *auth_v1.GetRefreshTokenResponse
+		want            *auth_v1.RefreshTokensResponse
 		err             error
 		authServiceMock authServiceMockFunc
 	}{
@@ -230,12 +156,15 @@ func TestGetRefreshToken(t *testing.T) {
 			err:  nil,
 			authServiceMock: func(mc *minimock.Controller) service.AuthService {
 				mock := serviceMocks.NewAuthServiceMock(mc)
-				mock.GetRefreshTokenMock.Expect(minimock.AnyContext, oldRefreshToken).Return(refreshToken, nil)
+				mock.GetAccessTokenMock.Expect(minimock.AnyContext, oldRefreshToken).
+					Return(accessToken, nil)
+				mock.GetRefreshTokenMock.Expect(minimock.AnyContext, oldRefreshToken).
+					Return(refreshToken, nil)
 				return mock
 			},
 		},
 		{
-			name: "service error case",
+			name: "access token error case",
 			args: args{
 				ctx: ctx,
 				req: req,
@@ -244,7 +173,25 @@ func TestGetRefreshToken(t *testing.T) {
 			err:  serviceErr,
 			authServiceMock: func(mc *minimock.Controller) service.AuthService {
 				mock := serviceMocks.NewAuthServiceMock(mc)
-				mock.GetRefreshTokenMock.Expect(minimock.AnyContext, oldRefreshToken).Return("", serviceErr)
+				mock.GetAccessTokenMock.Expect(minimock.AnyContext, oldRefreshToken).
+					Return("", serviceErr)
+				return mock
+			},
+		},
+		{
+			name: "refresh token error case",
+			args: args{
+				ctx: ctx,
+				req: req,
+			},
+			want: nil,
+			err:  serviceErr,
+			authServiceMock: func(mc *minimock.Controller) service.AuthService {
+				mock := serviceMocks.NewAuthServiceMock(mc)
+				mock.GetAccessTokenMock.Expect(minimock.AnyContext, oldRefreshToken).
+					Return(accessToken, nil)
+				mock.GetRefreshTokenMock.Expect(minimock.AnyContext, oldRefreshToken).
+					Return("", serviceErr)
 				return mock
 			},
 		},
@@ -257,7 +204,7 @@ func TestGetRefreshToken(t *testing.T) {
 			authServiceMock := tt.authServiceMock(mc)
 			api := authAPI.NewImplementation(authServiceMock)
 
-			res, err := api.GetRefreshToken(tt.args.ctx, tt.args.req)
+			res, err := api.RefreshTokens(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)
 			require.Equal(t, tt.want, res)
 		})
