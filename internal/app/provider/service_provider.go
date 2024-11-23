@@ -110,7 +110,6 @@ func (s *ServiceProvider) AuthService(ctx context.Context) service.AuthService {
 			s.UserRepository(ctx),
 			s.TokenRepository(ctx),
 			s.TokenOperations(ctx),
-			s.Config.JWT,
 		)
 	}
 
@@ -125,7 +124,6 @@ func (s *ServiceProvider) AccessService(ctx context.Context) service.AccessServi
 			ctx,
 			s.AccessRepository(ctx),
 			s.TokenOperations(ctx),
-			s.Config.JWT,
 		)
 		if err != nil {
 			logger.Fatal("failed to run access service: ", zap.Error(err))
@@ -162,7 +160,12 @@ func (s *ServiceProvider) AccessImpl(ctx context.Context) *access.Implementation
 // TokenOperations returns a token operation service.
 func (s *ServiceProvider) TokenOperations(_ context.Context) tokens.TokenOperations {
 	if s.tokenOperations == nil {
-		s.tokenOperations = jwt.NewTokenOperations()
+		s.tokenOperations = jwt.NewTokenOperations(
+			[]byte(s.Config.JWT.SecretKey),
+			s.Config.JWT.AccessTokenTTL,
+			s.Config.JWT.RefreshTokenTTL,
+		)
 	}
+
 	return s.tokenOperations
 }

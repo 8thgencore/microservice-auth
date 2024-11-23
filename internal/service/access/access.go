@@ -68,7 +68,7 @@ func (s *accessService) Check(ctx context.Context, endpoint string) error {
 		return ErrEndpointNotFound
 	}
 
-	claims, err := s.tokenOperations.VerifyAccessToken(token, []byte(s.jwtConfig.SecretKey))
+	claims, err := s.tokenOperations.VerifyAccessToken(token)
 	if err != nil {
 		return ErrInvalidAccessToken
 	}

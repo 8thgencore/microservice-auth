@@ -4,13 +4,11 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"time"
 
 	"github.com/gojuno/minimock/v3"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/8thgencore/microservice-auth/internal/config"
 	"github.com/8thgencore/microservice-auth/internal/model"
 	"github.com/8thgencore/microservice-auth/internal/repository"
 	repositoryMocks "github.com/8thgencore/microservice-auth/internal/repository/mocks"
@@ -32,15 +30,7 @@ var (
 	roleUser  = "USER"
 	roleAdmin = "ADMIN"
 
-	jwtConfig = config.JWTConfig{
-		SecretKey:       "secret",
-		AccessTokenTTL:  time.Duration(30 * time.Minute),
-		RefreshTokenTTL: time.Duration(360 * time.Minute),
-	}
-
 	token = "access_token"
-
-	secretKeyBytes = []byte(jwtConfig.SecretKey)
 
 	claimsAdmin = &model.UserClaims{
 		Username: username,
@@ -108,7 +98,7 @@ func TestNewService(t *testing.T) {
 			accessRepositoryMock := tt.accessRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
 
-			srv, err := NewService(ctx, accessRepositoryMock, tokenOperationsMock, jwtConfig)
+			srv, err := NewService(ctx, accessRepositoryMock, tokenOperationsMock)
 			if tt.expectedErr != nil {
 				require.Error(t, err)
 				require.Equal(t, tt.expectedErr, err)
@@ -244,7 +234,7 @@ func TestCheck(t *testing.T) {
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				mock.VerifyAccessTokenMock.
-					Expect(token, secretKeyBytes).
+					Expect(token).
 					Return(nil, ErrInvalidAccessToken)
 				return mock
 			},
@@ -263,7 +253,7 @@ func TestCheck(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyAccessTokenMock.Expect(token, secretKeyBytes).Return(claimsUser, nil)
+				mock.VerifyAccessTokenMock.Expect(token).Return(claimsUser, nil)
 				return mock
 			},
 		},
@@ -281,7 +271,7 @@ func TestCheck(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyAccessTokenMock.Expect(token, secretKeyBytes).Return(claimsAdmin, nil)
+				mock.VerifyAccessTokenMock.Expect(token).Return(claimsAdmin, nil)
 				return mock
 			},
 		},
@@ -292,7 +282,7 @@ func TestCheck(t *testing.T) {
 			accessRepositoryMock := tt.accessRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
 
-			srv, err := NewService(ctx, accessRepositoryMock, tokenOperationsMock, jwtConfig)
+			srv, err := NewService(ctx, accessRepositoryMock, tokenOperationsMock)
 			require.NoError(t, err)
 
 			err = srv.Check(tt.args.ctx, tt.args.req)
@@ -336,7 +326,7 @@ func TestGetRoleEndpoints(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyAccessTokenMock.Expect(token, secretKeyBytes).Return(claimsUser, nil)
+				mock.VerifyAccessTokenMock.Expect(token).Return(claimsUser, nil)
 				return mock
 			},
 		},
@@ -352,7 +342,7 @@ func TestGetRoleEndpoints(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyAccessTokenMock.Expect(token, secretKeyBytes).Return(claimsAdmin, nil)
+				mock.VerifyAccessTokenMock.Expect(token).Return(claimsAdmin, nil)
 				return mock
 			},
 		},
@@ -368,7 +358,7 @@ func TestGetRoleEndpoints(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyAccessTokenMock.Expect(token, secretKeyBytes).Return(claimsAdmin, nil)
+				mock.VerifyAccessTokenMock.Expect(token).Return(claimsAdmin, nil)
 				return mock
 			},
 		},
@@ -379,7 +369,7 @@ func TestGetRoleEndpoints(t *testing.T) {
 			accessRepositoryMock := tt.accessRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
 
-			srv, err := NewService(ctx, accessRepositoryMock, tokenOperationsMock, jwtConfig)
+			srv, err := NewService(ctx, accessRepositoryMock, tokenOperationsMock)
 			require.NoError(t, err)
 			require.NotNil(t, srv)
 
@@ -423,7 +413,7 @@ func TestAddRoleEndpoint(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyAccessTokenMock.Expect(token, secretKeyBytes).Return(claimsUser, nil)
+				mock.VerifyAccessTokenMock.Expect(token).Return(claimsUser, nil)
 				return mock
 			},
 		},
@@ -438,7 +428,7 @@ func TestAddRoleEndpoint(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyAccessTokenMock.Expect(token, secretKeyBytes).Return(claimsAdmin, nil)
+				mock.VerifyAccessTokenMock.Expect(token).Return(claimsAdmin, nil)
 				return mock
 			},
 		},
@@ -453,7 +443,7 @@ func TestAddRoleEndpoint(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyAccessTokenMock.Expect(token, secretKeyBytes).Return(claimsAdmin, nil)
+				mock.VerifyAccessTokenMock.Expect(token).Return(claimsAdmin, nil)
 				return mock
 			},
 		},
@@ -468,7 +458,7 @@ func TestAddRoleEndpoint(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyAccessTokenMock.Expect(token, secretKeyBytes).Return(claimsAdmin, nil)
+				mock.VerifyAccessTokenMock.Expect(token).Return(claimsAdmin, nil)
 				return mock
 			},
 		},
@@ -478,7 +468,7 @@ func TestAddRoleEndpoint(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			accessRepositoryMock := tt.accessRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
-			srv, _ := NewService(ctx, accessRepositoryMock, tokenOperationsMock, jwtConfig)
+			srv, _ := NewService(ctx, accessRepositoryMock, tokenOperationsMock)
 
 			err := srv.AddRoleEndpoint(ctx, endpoint, roles)
 			require.Equal(t, tt.err, err)
@@ -517,7 +507,7 @@ func TestUpdateRoleEndpoint(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyAccessTokenMock.Expect(token, secretKeyBytes).Return(claimsUser, nil)
+				mock.VerifyAccessTokenMock.Expect(token).Return(claimsUser, nil)
 				return mock
 			},
 		},
@@ -532,7 +522,7 @@ func TestUpdateRoleEndpoint(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyAccessTokenMock.Expect(token, secretKeyBytes).Return(claimsAdmin, nil)
+				mock.VerifyAccessTokenMock.Expect(token).Return(claimsAdmin, nil)
 				return mock
 			},
 		},
@@ -547,7 +537,7 @@ func TestUpdateRoleEndpoint(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyAccessTokenMock.Expect(token, secretKeyBytes).Return(claimsAdmin, nil)
+				mock.VerifyAccessTokenMock.Expect(token).Return(claimsAdmin, nil)
 				return mock
 			},
 		},
@@ -557,7 +547,7 @@ func TestUpdateRoleEndpoint(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			accessRepositoryMock := tt.accessRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
-			srv, _ := NewService(ctx, accessRepositoryMock, tokenOperationsMock, jwtConfig)
+			srv, _ := NewService(ctx, accessRepositoryMock, tokenOperationsMock)
 
 			err := srv.UpdateRoleEndpoint(ctx, endpoint, roles)
 			require.Equal(t, tt.err, err)
@@ -594,7 +584,7 @@ func TestDeleteRoleEndpoint(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyAccessTokenMock.Expect(token, secretKeyBytes).Return(claimsUser, nil)
+				mock.VerifyAccessTokenMock.Expect(token).Return(claimsUser, nil)
 				return mock
 			},
 		},
@@ -609,7 +599,7 @@ func TestDeleteRoleEndpoint(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyAccessTokenMock.Expect(token, secretKeyBytes).Return(claimsAdmin, nil)
+				mock.VerifyAccessTokenMock.Expect(token).Return(claimsAdmin, nil)
 				return mock
 			},
 		},
@@ -624,7 +614,7 @@ func TestDeleteRoleEndpoint(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyAccessTokenMock.Expect(token, secretKeyBytes).Return(claimsAdmin, nil)
+				mock.VerifyAccessTokenMock.Expect(token).Return(claimsAdmin, nil)
 				return mock
 			},
 		},
@@ -634,7 +624,7 @@ func TestDeleteRoleEndpoint(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			accessRepositoryMock := tt.accessRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
-			srv, _ := NewService(ctx, accessRepositoryMock, tokenOperationsMock, jwtConfig)
+			srv, _ := NewService(ctx, accessRepositoryMock, tokenOperationsMock)
 
 			err := srv.DeleteRoleEndpoint(ctx, endpoint)
 			require.Equal(t, tt.err, err)

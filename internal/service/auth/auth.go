@@ -35,18 +35,12 @@ func (s *authService) Login(ctx context.Context, creds *model.UserCreds) (*model
 		Name: authInfo.Username,
 		Role: authInfo.Role,
 	},
-		[]byte(s.jwtConfig.SecretKey),
-		s.jwtConfig.AccessTokenTTL,
 	)
 	if err != nil {
 		return nil, ErrTokenGeneration
 	}
 
-	refreshToken, err := s.tokenOperations.GenerateRefreshToken(
-		authInfo.ID,
-		[]byte(s.jwtConfig.SecretKey),
-		s.jwtConfig.RefreshTokenTTL,
-	)
+	refreshToken, err := s.tokenOperations.GenerateRefreshToken(authInfo.ID)
 	if err != nil {
 		return nil, ErrTokenGeneration
 	}
@@ -63,7 +57,7 @@ func (s *authService) GetAccessToken(ctx context.Context, refreshToken string) (
 		return "", err
 	}
 
-	claims, err := s.tokenOperations.VerifyRefreshToken(refreshToken, []byte(s.jwtConfig.SecretKey))
+	claims, err := s.tokenOperations.VerifyRefreshToken(refreshToken)
 	if err != nil {
 		return "", ErrInvalidRefresh
 	}
@@ -78,8 +72,6 @@ func (s *authService) GetAccessToken(ctx context.Context, refreshToken string) (
 		Name: user.Name,
 		Role: user.Role,
 	},
-		[]byte(s.jwtConfig.SecretKey),
-		s.jwtConfig.AccessTokenTTL,
 	)
 	if err != nil {
 		return "", ErrTokenGeneration
@@ -94,16 +86,12 @@ func (s *authService) GetRefreshToken(ctx context.Context, oldRefreshToken strin
 		return "", err
 	}
 
-	claims, err := s.tokenOperations.VerifyRefreshToken(oldRefreshToken, []byte(s.jwtConfig.SecretKey))
+	claims, err := s.tokenOperations.VerifyRefreshToken(oldRefreshToken)
 	if err != nil {
 		return "", ErrInvalidRefresh
 	}
 
-	refreshToken, err := s.tokenOperations.GenerateRefreshToken(
-		claims.UserID,
-		[]byte(s.jwtConfig.SecretKey),
-		s.jwtConfig.RefreshTokenTTL,
-	)
+	refreshToken, err := s.tokenOperations.GenerateRefreshToken(claims.UserID)
 	if err != nil {
 		return "", ErrTokenGeneration
 	}
@@ -117,7 +105,7 @@ func (s *authService) GetRefreshToken(ctx context.Context, oldRefreshToken strin
 
 // Logout invalidates the refresh token by adding it to the list of revoked tokens
 func (s *authService) Logout(ctx context.Context, refreshToken string) error {
-	_, err := s.tokenOperations.VerifyRefreshToken(refreshToken, []byte(s.jwtConfig.SecretKey))
+	_, err := s.tokenOperations.VerifyRefreshToken(refreshToken)
 	if err != nil {
 		return ErrInvalidRefresh
 	}

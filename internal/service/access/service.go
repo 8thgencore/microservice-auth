@@ -4,7 +4,6 @@ import (
 	"context"
 	"sync"
 
-	"github.com/8thgencore/microservice-auth/internal/config"
 	"github.com/8thgencore/microservice-auth/internal/converter"
 	"github.com/8thgencore/microservice-auth/internal/repository"
 	"github.com/8thgencore/microservice-auth/internal/service"
@@ -14,7 +13,6 @@ import (
 type accessService struct {
 	accessRepository repository.AccessRepository
 	tokenOperations  tokens.TokenOperations
-	jwtConfig        config.JWTConfig
 	accessibleRoles  map[string][]string
 	rolesMutex       sync.RWMutex
 }
@@ -24,7 +22,6 @@ func NewService(
 	ctx context.Context,
 	accessRepository repository.AccessRepository,
 	tokenOperations tokens.TokenOperations,
-	jwtConfig config.JWTConfig,
 ) (service.AccessService, error) {
 	endpointPermissions, err := accessRepository.GetRoleEndpoints(ctx)
 	if err != nil {
@@ -35,7 +32,6 @@ func NewService(
 	return &accessService{
 		accessRepository: accessRepository,
 		tokenOperations:  tokenOperations,
-		jwtConfig:        jwtConfig,
 		accessibleRoles:  accessibleRoles,
 	}, nil
 }

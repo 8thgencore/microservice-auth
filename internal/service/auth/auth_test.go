@@ -4,13 +4,11 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"time"
 
 	"github.com/gojuno/minimock/v3"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/8thgencore/microservice-auth/internal/config"
 	"github.com/8thgencore/microservice-auth/internal/model"
 	"github.com/8thgencore/microservice-auth/internal/repository"
 	repositoryMocks "github.com/8thgencore/microservice-auth/internal/repository/mocks"
@@ -28,18 +26,10 @@ var (
 	oldRefreshToken = "old_refresh_token"
 	accessToken     = "access_token"
 
-	secretKey = "secret"
-
 	user = model.User{
 		ID:   userID,
 		Name: username,
 		Role: role,
-	}
-
-	jwtConfig = config.JWTConfig{
-		SecretKey:       secretKey,
-		AccessTokenTTL:  30 * time.Minute,
-		RefreshTokenTTL: 360 * time.Minute,
 	}
 )
 
@@ -158,7 +148,7 @@ func TestLogin(t *testing.T) {
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				mock.GenerateAccessTokenMock.
-					Expect(user, []byte(secretKey), jwtConfig.AccessTokenTTL).
+					Expect(user).
 					Return("", ErrTokenGeneration)
 				return mock
 			},
@@ -183,10 +173,10 @@ func TestLogin(t *testing.T) {
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				mock.GenerateAccessTokenMock.
-					Expect(user, []byte(secretKey), jwtConfig.AccessTokenTTL).
+					Expect(user).
 					Return(accessToken, nil)
 				mock.GenerateRefreshTokenMock.
-					Expect(user.ID, []byte(secretKey), jwtConfig.RefreshTokenTTL).
+					Expect(user.ID).
 					Return("", ErrTokenGeneration)
 
 				return mock
@@ -213,11 +203,11 @@ func TestLogin(t *testing.T) {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				// Expect Generate to be called for access token
 				mock.GenerateAccessTokenMock.
-					Expect(user, []byte(secretKey), jwtConfig.AccessTokenTTL).
+					Expect(user).
 					Return(accessToken, nil)
 				// Expect Generate to be called for refresh token
 				mock.GenerateRefreshTokenMock.
-					Expect(user.ID, []byte(secretKey), jwtConfig.RefreshTokenTTL).
+					Expect(user.ID).
 					Return(refreshToken, nil)
 
 				return mock
@@ -236,7 +226,6 @@ func TestLogin(t *testing.T) {
 				userRepositoryMock,
 				tokenRepositoryMock,
 				tokenOperationsMock,
-				jwtConfig,
 			)
 
 			res, err := srv.Login(tt.args.ctx, tt.args.req)
@@ -298,10 +287,10 @@ func TestGetAccessToken(t *testing.T) {
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				mock.VerifyRefreshTokenMock.
-					Expect(refreshToken, []byte(secretKey)).
+					Expect(refreshToken).
 					Return(refreshClaims, nil)
 				mock.GenerateAccessTokenMock.
-					Expect(user, []byte(secretKey), jwtConfig.AccessTokenTTL).
+					Expect(user).
 					Return(accessToken, nil)
 
 				return mock
@@ -371,7 +360,7 @@ func TestGetAccessToken(t *testing.T) {
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				mock.VerifyRefreshTokenMock.
-					Expect(refreshToken, []byte(secretKey)).
+					Expect(refreshToken).
 					Return(nil, ErrInvalidRefresh)
 				return mock
 			},
@@ -397,7 +386,7 @@ func TestGetAccessToken(t *testing.T) {
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				mock.VerifyRefreshTokenMock.
-					Expect(refreshToken, []byte(secretKey)).
+					Expect(refreshToken).
 					Return(refreshClaims, nil)
 				return mock
 			},
@@ -422,9 +411,9 @@ func TestGetAccessToken(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyRefreshTokenMock.Expect(refreshToken, []byte(secretKey)).Return(refreshClaims, nil)
+				mock.VerifyRefreshTokenMock.Expect(refreshToken).Return(refreshClaims, nil)
 				mock.GenerateAccessTokenMock.
-					Expect(user, []byte(secretKey), jwtConfig.AccessTokenTTL).
+					Expect(user).
 					Return("", ErrTokenGeneration)
 
 				return mock
@@ -443,7 +432,6 @@ func TestGetAccessToken(t *testing.T) {
 				userRepositoryMock,
 				tokenRepositoryMock,
 				tokenOperationsMock,
-				jwtConfig,
 			)
 			res, err := srv.GetAccessToken(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)
@@ -504,9 +492,9 @@ func TestGetRefreshToken(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyRefreshTokenMock.Expect(oldRefreshToken, []byte(secretKey)).Return(refreshClaims, nil)
+				mock.VerifyRefreshTokenMock.Expect(oldRefreshToken).Return(refreshClaims, nil)
 				mock.GenerateRefreshTokenMock.
-					Expect(user.ID, []byte(secretKey), jwtConfig.RefreshTokenTTL).
+					Expect(user.ID).
 					Return(refreshToken, nil)
 
 				return mock
@@ -553,7 +541,7 @@ func TestGetRefreshToken(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyRefreshTokenMock.Expect(oldRefreshToken, []byte(secretKey)).Return(nil, ErrInvalidRefresh)
+				mock.VerifyRefreshTokenMock.Expect(oldRefreshToken).Return(nil, ErrInvalidRefresh)
 				return mock
 			},
 		},
@@ -576,9 +564,9 @@ func TestGetRefreshToken(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyRefreshTokenMock.Expect(oldRefreshToken, []byte(secretKey)).Return(refreshClaims, nil)
+				mock.VerifyRefreshTokenMock.Expect(oldRefreshToken).Return(refreshClaims, nil)
 				mock.GenerateRefreshTokenMock.
-					Expect(user.ID, []byte(secretKey), jwtConfig.RefreshTokenTTL).
+					Expect(user.ID).
 					Return("", ErrTokenGeneration)
 
 				return mock
@@ -604,9 +592,9 @@ func TestGetRefreshToken(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyRefreshTokenMock.Expect(oldRefreshToken, []byte(secretKey)).Return(refreshClaims, nil)
+				mock.VerifyRefreshTokenMock.Expect(oldRefreshToken).Return(refreshClaims, nil)
 				mock.GenerateRefreshTokenMock.
-					Expect(user.ID, []byte(secretKey), jwtConfig.RefreshTokenTTL).
+					Expect(user.ID).
 					Return(refreshToken, nil)
 
 				return mock
@@ -625,7 +613,6 @@ func TestGetRefreshToken(t *testing.T) {
 				userRepositoryMock,
 				tokenRepositoryMock,
 				tokenOperationsMock,
-				jwtConfig,
 			)
 			res, err := srv.GetRefreshToken(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)
@@ -649,7 +636,6 @@ func TestLogout(t *testing.T) {
 		ctx          = context.Background()
 		mc           = minimock.NewController(t)
 		refreshToken = "validRefreshToken"
-		secretKey    = []byte("secret")
 	)
 
 	tests := []struct {
@@ -673,7 +659,7 @@ func TestLogout(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyRefreshTokenMock.Expect(refreshToken, secretKey).Return(&model.RefreshClaims{}, nil)
+				mock.VerifyRefreshTokenMock.Expect(refreshToken).Return(&model.RefreshClaims{}, nil)
 				return mock
 			},
 		},
@@ -690,7 +676,7 @@ func TestLogout(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyRefreshTokenMock.Expect(refreshToken, secretKey).Return(nil, ErrInvalidRefresh)
+				mock.VerifyRefreshTokenMock.Expect(refreshToken).Return(nil, ErrInvalidRefresh)
 				return mock
 			},
 		},
@@ -708,7 +694,7 @@ func TestLogout(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
-				mock.VerifyRefreshTokenMock.Expect(refreshToken, secretKey).Return(&model.RefreshClaims{}, nil)
+				mock.VerifyRefreshTokenMock.Expect(refreshToken).Return(&model.RefreshClaims{}, nil)
 				return mock
 			},
 		},
@@ -724,7 +710,6 @@ func TestLogout(t *testing.T) {
 				nil, // userRepository не используется в этом методе
 				tokenRepositoryMock,
 				tokenOperationsMock,
-				jwtConfig,
 			)
 
 			err := srv.Logout(tt.args.ctx, tt.args.refreshToken)
