@@ -7,6 +7,7 @@ type UserClaims struct {
 	jwt.RegisteredClaims
 	Username string `json:"username"`
 	Role     string `json:"role"`
+	Version  int    `json:"ver"`
 }
 
 // RefreshClaims - a data structure containing the minimum data for the refresh token.

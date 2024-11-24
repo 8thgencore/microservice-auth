@@ -9,21 +9,27 @@ import (
 )
 
 type repo struct {
-	redisClient cache.Client
-	ttl         time.Duration // Time-to-live for revoked tokens
+	redisClient     cache.Client
+	accessTokenTTL  time.Duration
+	refreshTokenTTL time.Duration
 }
 
 // NewRepository creates a new instance of TokenRepository.
-func NewRepository(redisClient cache.Client, ttl time.Duration) repository.TokenRepository {
+func NewRepository(
+	redisClient cache.Client,
+	accessTokenTTL time.Duration,
+	refreshTokenTTL time.Duration,
+) repository.TokenRepository {
 	return &repo{
-		redisClient: redisClient,
-		ttl:         ttl,
+		redisClient:     redisClient,
+		accessTokenTTL:  accessTokenTTL,
+		refreshTokenTTL: refreshTokenTTL,
 	}
 }
 
 // AddRevokedToken adds a revoked refresh token to Redis with a TTL (time-to-live).
 func (r *repo) AddRevokedToken(ctx context.Context, refreshToken string) error {
-	if err := r.redisClient.SetEx(ctx, refreshToken, true, r.ttl); err != nil {
+	if err := r.redisClient.SetEx(ctx, refreshToken, true, r.refreshTokenTTL); err != nil {
 		return err
 	}
 
@@ -42,4 +48,14 @@ func (r *repo) IsTokenRevoked(ctx context.Context, refreshToken string) (bool, e
 	}
 
 	return true, nil
+}
+
+// NeedUpdateAccessToken implements repository.TokenRepository.
+func (r *repo) NeedUpdateAccessToken(ctx context.Context, userID string) (bool, error) {
+	panic("unimplemented")
+}
+
+// UpdateUserVersion implements repository.TokenRepository.
+func (r *repo) UpdateUserVersion(ctx context.Context, userID string, version int) error {
+	panic("unimplemented")
 }

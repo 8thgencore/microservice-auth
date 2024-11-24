@@ -11,6 +11,7 @@ type User struct {
 	Name      string
 	Email     string
 	Role      string
+	Version   int
 	CreatedAt time.Time
 	UpdatedAt sql.NullTime
 }

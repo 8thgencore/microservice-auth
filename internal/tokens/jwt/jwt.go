@@ -8,6 +8,7 @@ import (
 	jwt "github.com/golang-jwt/jwt/v5"
 
 	"github.com/8thgencore/microservice-auth/internal/model"
+	"github.com/8thgencore/microservice-auth/internal/repository"
 	"github.com/8thgencore/microservice-auth/internal/tokens"
 )
 
@@ -15,6 +16,7 @@ type tokenOperations struct {
 	secretKey       []byte
 	accessTokenTTL  time.Duration
 	refreshTokenTTL time.Duration
+	tokenRepository repository.TokenRepository
 }
 
 var _ tokens.TokenOperations = (*tokenOperations)(nil)
@@ -24,11 +26,13 @@ func NewTokenOperations(
 	secretKey []byte,
 	accessTokenTTL time.Duration,
 	refreshTokenTTL time.Duration,
+	tokenRepository repository.TokenRepository,
 ) tokens.TokenOperations {
 	return &tokenOperations{
 		secretKey:       secretKey,
 		accessTokenTTL:  accessTokenTTL,
 		refreshTokenTTL: refreshTokenTTL,
+		tokenRepository: tokenRepository,
 	}
 }
 
@@ -41,6 +45,7 @@ func (t *tokenOperations) GenerateAccessToken(user model.User) (string, error) {
 		},
 		Username: user.Name,
 		Role:     user.Role,
+		Version:  user.Version,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

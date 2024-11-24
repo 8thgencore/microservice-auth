@@ -29,6 +29,20 @@ type TokenRepositoryMock struct {
 	afterIsTokenRevokedCounter  uint64
 	beforeIsTokenRevokedCounter uint64
 	IsTokenRevokedMock          mTokenRepositoryMockIsTokenRevoked
+
+	funcNeedUpdateAccessToken          func(ctx context.Context, userID string) (b1 bool, err error)
+	funcNeedUpdateAccessTokenOrigin    string
+	inspectFuncNeedUpdateAccessToken   func(ctx context.Context, userID string)
+	afterNeedUpdateAccessTokenCounter  uint64
+	beforeNeedUpdateAccessTokenCounter uint64
+	NeedUpdateAccessTokenMock          mTokenRepositoryMockNeedUpdateAccessToken
+
+	funcUpdateUserVersion          func(ctx context.Context, userID string, version int) (err error)
+	funcUpdateUserVersionOrigin    string
+	inspectFuncUpdateUserVersion   func(ctx context.Context, userID string, version int)
+	afterUpdateUserVersionCounter  uint64
+	beforeUpdateUserVersionCounter uint64
+	UpdateUserVersionMock          mTokenRepositoryMockUpdateUserVersion
 }
 
 // NewTokenRepositoryMock returns a mock for mm_repository.TokenRepository
@@ -44,6 +58,12 @@ func NewTokenRepositoryMock(t minimock.Tester) *TokenRepositoryMock {
 
 	m.IsTokenRevokedMock = mTokenRepositoryMockIsTokenRevoked{mock: m}
 	m.IsTokenRevokedMock.callArgs = []*TokenRepositoryMockIsTokenRevokedParams{}
+
+	m.NeedUpdateAccessTokenMock = mTokenRepositoryMockNeedUpdateAccessToken{mock: m}
+	m.NeedUpdateAccessTokenMock.callArgs = []*TokenRepositoryMockNeedUpdateAccessTokenParams{}
+
+	m.UpdateUserVersionMock = mTokenRepositoryMockUpdateUserVersion{mock: m}
+	m.UpdateUserVersionMock.callArgs = []*TokenRepositoryMockUpdateUserVersionParams{}
 
 	t.Cleanup(m.MinimockFinish)
 
@@ -735,6 +755,722 @@ func (m *TokenRepositoryMock) MinimockIsTokenRevokedInspect() {
 	}
 }
 
+type mTokenRepositoryMockNeedUpdateAccessToken struct {
+	optional           bool
+	mock               *TokenRepositoryMock
+	defaultExpectation *TokenRepositoryMockNeedUpdateAccessTokenExpectation
+	expectations       []*TokenRepositoryMockNeedUpdateAccessTokenExpectation
+
+	callArgs []*TokenRepositoryMockNeedUpdateAccessTokenParams
+	mutex    sync.RWMutex
+
+	expectedInvocations       uint64
+	expectedInvocationsOrigin string
+}
+
+// TokenRepositoryMockNeedUpdateAccessTokenExpectation specifies expectation struct of the TokenRepository.NeedUpdateAccessToken
+type TokenRepositoryMockNeedUpdateAccessTokenExpectation struct {
+	mock               *TokenRepositoryMock
+	params             *TokenRepositoryMockNeedUpdateAccessTokenParams
+	paramPtrs          *TokenRepositoryMockNeedUpdateAccessTokenParamPtrs
+	expectationOrigins TokenRepositoryMockNeedUpdateAccessTokenExpectationOrigins
+	results            *TokenRepositoryMockNeedUpdateAccessTokenResults
+	returnOrigin       string
+	Counter            uint64
+}
+
+// TokenRepositoryMockNeedUpdateAccessTokenParams contains parameters of the TokenRepository.NeedUpdateAccessToken
+type TokenRepositoryMockNeedUpdateAccessTokenParams struct {
+	ctx    context.Context
+	userID string
+}
+
+// TokenRepositoryMockNeedUpdateAccessTokenParamPtrs contains pointers to parameters of the TokenRepository.NeedUpdateAccessToken
+type TokenRepositoryMockNeedUpdateAccessTokenParamPtrs struct {
+	ctx    *context.Context
+	userID *string
+}
+
+// TokenRepositoryMockNeedUpdateAccessTokenResults contains results of the TokenRepository.NeedUpdateAccessToken
+type TokenRepositoryMockNeedUpdateAccessTokenResults struct {
+	b1  bool
+	err error
+}
+
+// TokenRepositoryMockNeedUpdateAccessTokenOrigins contains origins of expectations of the TokenRepository.NeedUpdateAccessToken
+type TokenRepositoryMockNeedUpdateAccessTokenExpectationOrigins struct {
+	origin       string
+	originCtx    string
+	originUserID string
+}
+
+// Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
+// the test will fail minimock's automatic final call check if the mocked method was not called at least once.
+// Optional() makes method check to work in '0 or more' mode.
+// It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
+// catch the problems when the expected method call is totally skipped during test run.
+func (mmNeedUpdateAccessToken *mTokenRepositoryMockNeedUpdateAccessToken) Optional() *mTokenRepositoryMockNeedUpdateAccessToken {
+	mmNeedUpdateAccessToken.optional = true
+	return mmNeedUpdateAccessToken
+}
+
+// Expect sets up expected params for TokenRepository.NeedUpdateAccessToken
+func (mmNeedUpdateAccessToken *mTokenRepositoryMockNeedUpdateAccessToken) Expect(ctx context.Context, userID string) *mTokenRepositoryMockNeedUpdateAccessToken {
+	if mmNeedUpdateAccessToken.mock.funcNeedUpdateAccessToken != nil {
+		mmNeedUpdateAccessToken.mock.t.Fatalf("TokenRepositoryMock.NeedUpdateAccessToken mock is already set by Set")
+	}
+
+	if mmNeedUpdateAccessToken.defaultExpectation == nil {
+		mmNeedUpdateAccessToken.defaultExpectation = &TokenRepositoryMockNeedUpdateAccessTokenExpectation{}
+	}
+
+	if mmNeedUpdateAccessToken.defaultExpectation.paramPtrs != nil {
+		mmNeedUpdateAccessToken.mock.t.Fatalf("TokenRepositoryMock.NeedUpdateAccessToken mock is already set by ExpectParams functions")
+	}
+
+	mmNeedUpdateAccessToken.defaultExpectation.params = &TokenRepositoryMockNeedUpdateAccessTokenParams{ctx, userID}
+	mmNeedUpdateAccessToken.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmNeedUpdateAccessToken.expectations {
+		if minimock.Equal(e.params, mmNeedUpdateAccessToken.defaultExpectation.params) {
+			mmNeedUpdateAccessToken.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmNeedUpdateAccessToken.defaultExpectation.params)
+		}
+	}
+
+	return mmNeedUpdateAccessToken
+}
+
+// ExpectCtxParam1 sets up expected param ctx for TokenRepository.NeedUpdateAccessToken
+func (mmNeedUpdateAccessToken *mTokenRepositoryMockNeedUpdateAccessToken) ExpectCtxParam1(ctx context.Context) *mTokenRepositoryMockNeedUpdateAccessToken {
+	if mmNeedUpdateAccessToken.mock.funcNeedUpdateAccessToken != nil {
+		mmNeedUpdateAccessToken.mock.t.Fatalf("TokenRepositoryMock.NeedUpdateAccessToken mock is already set by Set")
+	}
+
+	if mmNeedUpdateAccessToken.defaultExpectation == nil {
+		mmNeedUpdateAccessToken.defaultExpectation = &TokenRepositoryMockNeedUpdateAccessTokenExpectation{}
+	}
+
+	if mmNeedUpdateAccessToken.defaultExpectation.params != nil {
+		mmNeedUpdateAccessToken.mock.t.Fatalf("TokenRepositoryMock.NeedUpdateAccessToken mock is already set by Expect")
+	}
+
+	if mmNeedUpdateAccessToken.defaultExpectation.paramPtrs == nil {
+		mmNeedUpdateAccessToken.defaultExpectation.paramPtrs = &TokenRepositoryMockNeedUpdateAccessTokenParamPtrs{}
+	}
+	mmNeedUpdateAccessToken.defaultExpectation.paramPtrs.ctx = &ctx
+	mmNeedUpdateAccessToken.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
+
+	return mmNeedUpdateAccessToken
+}
+
+// ExpectUserIDParam2 sets up expected param userID for TokenRepository.NeedUpdateAccessToken
+func (mmNeedUpdateAccessToken *mTokenRepositoryMockNeedUpdateAccessToken) ExpectUserIDParam2(userID string) *mTokenRepositoryMockNeedUpdateAccessToken {
+	if mmNeedUpdateAccessToken.mock.funcNeedUpdateAccessToken != nil {
+		mmNeedUpdateAccessToken.mock.t.Fatalf("TokenRepositoryMock.NeedUpdateAccessToken mock is already set by Set")
+	}
+
+	if mmNeedUpdateAccessToken.defaultExpectation == nil {
+		mmNeedUpdateAccessToken.defaultExpectation = &TokenRepositoryMockNeedUpdateAccessTokenExpectation{}
+	}
+
+	if mmNeedUpdateAccessToken.defaultExpectation.params != nil {
+		mmNeedUpdateAccessToken.mock.t.Fatalf("TokenRepositoryMock.NeedUpdateAccessToken mock is already set by Expect")
+	}
+
+	if mmNeedUpdateAccessToken.defaultExpectation.paramPtrs == nil {
+		mmNeedUpdateAccessToken.defaultExpectation.paramPtrs = &TokenRepositoryMockNeedUpdateAccessTokenParamPtrs{}
+	}
+	mmNeedUpdateAccessToken.defaultExpectation.paramPtrs.userID = &userID
+	mmNeedUpdateAccessToken.defaultExpectation.expectationOrigins.originUserID = minimock.CallerInfo(1)
+
+	return mmNeedUpdateAccessToken
+}
+
+// Inspect accepts an inspector function that has same arguments as the TokenRepository.NeedUpdateAccessToken
+func (mmNeedUpdateAccessToken *mTokenRepositoryMockNeedUpdateAccessToken) Inspect(f func(ctx context.Context, userID string)) *mTokenRepositoryMockNeedUpdateAccessToken {
+	if mmNeedUpdateAccessToken.mock.inspectFuncNeedUpdateAccessToken != nil {
+		mmNeedUpdateAccessToken.mock.t.Fatalf("Inspect function is already set for TokenRepositoryMock.NeedUpdateAccessToken")
+	}
+
+	mmNeedUpdateAccessToken.mock.inspectFuncNeedUpdateAccessToken = f
+
+	return mmNeedUpdateAccessToken
+}
+
+// Return sets up results that will be returned by TokenRepository.NeedUpdateAccessToken
+func (mmNeedUpdateAccessToken *mTokenRepositoryMockNeedUpdateAccessToken) Return(b1 bool, err error) *TokenRepositoryMock {
+	if mmNeedUpdateAccessToken.mock.funcNeedUpdateAccessToken != nil {
+		mmNeedUpdateAccessToken.mock.t.Fatalf("TokenRepositoryMock.NeedUpdateAccessToken mock is already set by Set")
+	}
+
+	if mmNeedUpdateAccessToken.defaultExpectation == nil {
+		mmNeedUpdateAccessToken.defaultExpectation = &TokenRepositoryMockNeedUpdateAccessTokenExpectation{mock: mmNeedUpdateAccessToken.mock}
+	}
+	mmNeedUpdateAccessToken.defaultExpectation.results = &TokenRepositoryMockNeedUpdateAccessTokenResults{b1, err}
+	mmNeedUpdateAccessToken.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmNeedUpdateAccessToken.mock
+}
+
+// Set uses given function f to mock the TokenRepository.NeedUpdateAccessToken method
+func (mmNeedUpdateAccessToken *mTokenRepositoryMockNeedUpdateAccessToken) Set(f func(ctx context.Context, userID string) (b1 bool, err error)) *TokenRepositoryMock {
+	if mmNeedUpdateAccessToken.defaultExpectation != nil {
+		mmNeedUpdateAccessToken.mock.t.Fatalf("Default expectation is already set for the TokenRepository.NeedUpdateAccessToken method")
+	}
+
+	if len(mmNeedUpdateAccessToken.expectations) > 0 {
+		mmNeedUpdateAccessToken.mock.t.Fatalf("Some expectations are already set for the TokenRepository.NeedUpdateAccessToken method")
+	}
+
+	mmNeedUpdateAccessToken.mock.funcNeedUpdateAccessToken = f
+	mmNeedUpdateAccessToken.mock.funcNeedUpdateAccessTokenOrigin = minimock.CallerInfo(1)
+	return mmNeedUpdateAccessToken.mock
+}
+
+// When sets expectation for the TokenRepository.NeedUpdateAccessToken which will trigger the result defined by the following
+// Then helper
+func (mmNeedUpdateAccessToken *mTokenRepositoryMockNeedUpdateAccessToken) When(ctx context.Context, userID string) *TokenRepositoryMockNeedUpdateAccessTokenExpectation {
+	if mmNeedUpdateAccessToken.mock.funcNeedUpdateAccessToken != nil {
+		mmNeedUpdateAccessToken.mock.t.Fatalf("TokenRepositoryMock.NeedUpdateAccessToken mock is already set by Set")
+	}
+
+	expectation := &TokenRepositoryMockNeedUpdateAccessTokenExpectation{
+		mock:               mmNeedUpdateAccessToken.mock,
+		params:             &TokenRepositoryMockNeedUpdateAccessTokenParams{ctx, userID},
+		expectationOrigins: TokenRepositoryMockNeedUpdateAccessTokenExpectationOrigins{origin: minimock.CallerInfo(1)},
+	}
+	mmNeedUpdateAccessToken.expectations = append(mmNeedUpdateAccessToken.expectations, expectation)
+	return expectation
+}
+
+// Then sets up TokenRepository.NeedUpdateAccessToken return parameters for the expectation previously defined by the When method
+func (e *TokenRepositoryMockNeedUpdateAccessTokenExpectation) Then(b1 bool, err error) *TokenRepositoryMock {
+	e.results = &TokenRepositoryMockNeedUpdateAccessTokenResults{b1, err}
+	return e.mock
+}
+
+// Times sets number of times TokenRepository.NeedUpdateAccessToken should be invoked
+func (mmNeedUpdateAccessToken *mTokenRepositoryMockNeedUpdateAccessToken) Times(n uint64) *mTokenRepositoryMockNeedUpdateAccessToken {
+	if n == 0 {
+		mmNeedUpdateAccessToken.mock.t.Fatalf("Times of TokenRepositoryMock.NeedUpdateAccessToken mock can not be zero")
+	}
+	mm_atomic.StoreUint64(&mmNeedUpdateAccessToken.expectedInvocations, n)
+	mmNeedUpdateAccessToken.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmNeedUpdateAccessToken
+}
+
+func (mmNeedUpdateAccessToken *mTokenRepositoryMockNeedUpdateAccessToken) invocationsDone() bool {
+	if len(mmNeedUpdateAccessToken.expectations) == 0 && mmNeedUpdateAccessToken.defaultExpectation == nil && mmNeedUpdateAccessToken.mock.funcNeedUpdateAccessToken == nil {
+		return true
+	}
+
+	totalInvocations := mm_atomic.LoadUint64(&mmNeedUpdateAccessToken.mock.afterNeedUpdateAccessTokenCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmNeedUpdateAccessToken.expectedInvocations)
+
+	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
+}
+
+// NeedUpdateAccessToken implements mm_repository.TokenRepository
+func (mmNeedUpdateAccessToken *TokenRepositoryMock) NeedUpdateAccessToken(ctx context.Context, userID string) (b1 bool, err error) {
+	mm_atomic.AddUint64(&mmNeedUpdateAccessToken.beforeNeedUpdateAccessTokenCounter, 1)
+	defer mm_atomic.AddUint64(&mmNeedUpdateAccessToken.afterNeedUpdateAccessTokenCounter, 1)
+
+	mmNeedUpdateAccessToken.t.Helper()
+
+	if mmNeedUpdateAccessToken.inspectFuncNeedUpdateAccessToken != nil {
+		mmNeedUpdateAccessToken.inspectFuncNeedUpdateAccessToken(ctx, userID)
+	}
+
+	mm_params := TokenRepositoryMockNeedUpdateAccessTokenParams{ctx, userID}
+
+	// Record call args
+	mmNeedUpdateAccessToken.NeedUpdateAccessTokenMock.mutex.Lock()
+	mmNeedUpdateAccessToken.NeedUpdateAccessTokenMock.callArgs = append(mmNeedUpdateAccessToken.NeedUpdateAccessTokenMock.callArgs, &mm_params)
+	mmNeedUpdateAccessToken.NeedUpdateAccessTokenMock.mutex.Unlock()
+
+	for _, e := range mmNeedUpdateAccessToken.NeedUpdateAccessTokenMock.expectations {
+		if minimock.Equal(*e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.b1, e.results.err
+		}
+	}
+
+	if mmNeedUpdateAccessToken.NeedUpdateAccessTokenMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmNeedUpdateAccessToken.NeedUpdateAccessTokenMock.defaultExpectation.Counter, 1)
+		mm_want := mmNeedUpdateAccessToken.NeedUpdateAccessTokenMock.defaultExpectation.params
+		mm_want_ptrs := mmNeedUpdateAccessToken.NeedUpdateAccessTokenMock.defaultExpectation.paramPtrs
+
+		mm_got := TokenRepositoryMockNeedUpdateAccessTokenParams{ctx, userID}
+
+		if mm_want_ptrs != nil {
+
+			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
+				mmNeedUpdateAccessToken.t.Errorf("TokenRepositoryMock.NeedUpdateAccessToken got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmNeedUpdateAccessToken.NeedUpdateAccessTokenMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+			}
+
+			if mm_want_ptrs.userID != nil && !minimock.Equal(*mm_want_ptrs.userID, mm_got.userID) {
+				mmNeedUpdateAccessToken.t.Errorf("TokenRepositoryMock.NeedUpdateAccessToken got unexpected parameter userID, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmNeedUpdateAccessToken.NeedUpdateAccessTokenMock.defaultExpectation.expectationOrigins.originUserID, *mm_want_ptrs.userID, mm_got.userID, minimock.Diff(*mm_want_ptrs.userID, mm_got.userID))
+			}
+
+		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmNeedUpdateAccessToken.t.Errorf("TokenRepositoryMock.NeedUpdateAccessToken got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmNeedUpdateAccessToken.NeedUpdateAccessTokenMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmNeedUpdateAccessToken.NeedUpdateAccessTokenMock.defaultExpectation.results
+		if mm_results == nil {
+			mmNeedUpdateAccessToken.t.Fatal("No results are set for the TokenRepositoryMock.NeedUpdateAccessToken")
+		}
+		return (*mm_results).b1, (*mm_results).err
+	}
+	if mmNeedUpdateAccessToken.funcNeedUpdateAccessToken != nil {
+		return mmNeedUpdateAccessToken.funcNeedUpdateAccessToken(ctx, userID)
+	}
+	mmNeedUpdateAccessToken.t.Fatalf("Unexpected call to TokenRepositoryMock.NeedUpdateAccessToken. %v %v", ctx, userID)
+	return
+}
+
+// NeedUpdateAccessTokenAfterCounter returns a count of finished TokenRepositoryMock.NeedUpdateAccessToken invocations
+func (mmNeedUpdateAccessToken *TokenRepositoryMock) NeedUpdateAccessTokenAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmNeedUpdateAccessToken.afterNeedUpdateAccessTokenCounter)
+}
+
+// NeedUpdateAccessTokenBeforeCounter returns a count of TokenRepositoryMock.NeedUpdateAccessToken invocations
+func (mmNeedUpdateAccessToken *TokenRepositoryMock) NeedUpdateAccessTokenBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmNeedUpdateAccessToken.beforeNeedUpdateAccessTokenCounter)
+}
+
+// Calls returns a list of arguments used in each call to TokenRepositoryMock.NeedUpdateAccessToken.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmNeedUpdateAccessToken *mTokenRepositoryMockNeedUpdateAccessToken) Calls() []*TokenRepositoryMockNeedUpdateAccessTokenParams {
+	mmNeedUpdateAccessToken.mutex.RLock()
+
+	argCopy := make([]*TokenRepositoryMockNeedUpdateAccessTokenParams, len(mmNeedUpdateAccessToken.callArgs))
+	copy(argCopy, mmNeedUpdateAccessToken.callArgs)
+
+	mmNeedUpdateAccessToken.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockNeedUpdateAccessTokenDone returns true if the count of the NeedUpdateAccessToken invocations corresponds
+// the number of defined expectations
+func (m *TokenRepositoryMock) MinimockNeedUpdateAccessTokenDone() bool {
+	if m.NeedUpdateAccessTokenMock.optional {
+		// Optional methods provide '0 or more' call count restriction.
+		return true
+	}
+
+	for _, e := range m.NeedUpdateAccessTokenMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	return m.NeedUpdateAccessTokenMock.invocationsDone()
+}
+
+// MinimockNeedUpdateAccessTokenInspect logs each unmet expectation
+func (m *TokenRepositoryMock) MinimockNeedUpdateAccessTokenInspect() {
+	for _, e := range m.NeedUpdateAccessTokenMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to TokenRepositoryMock.NeedUpdateAccessToken at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+		}
+	}
+
+	afterNeedUpdateAccessTokenCounter := mm_atomic.LoadUint64(&m.afterNeedUpdateAccessTokenCounter)
+	// if default expectation was set then invocations count should be greater than zero
+	if m.NeedUpdateAccessTokenMock.defaultExpectation != nil && afterNeedUpdateAccessTokenCounter < 1 {
+		if m.NeedUpdateAccessTokenMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to TokenRepositoryMock.NeedUpdateAccessToken at\n%s", m.NeedUpdateAccessTokenMock.defaultExpectation.returnOrigin)
+		} else {
+			m.t.Errorf("Expected call to TokenRepositoryMock.NeedUpdateAccessToken at\n%s with params: %#v", m.NeedUpdateAccessTokenMock.defaultExpectation.expectationOrigins.origin, *m.NeedUpdateAccessTokenMock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcNeedUpdateAccessToken != nil && afterNeedUpdateAccessTokenCounter < 1 {
+		m.t.Errorf("Expected call to TokenRepositoryMock.NeedUpdateAccessToken at\n%s", m.funcNeedUpdateAccessTokenOrigin)
+	}
+
+	if !m.NeedUpdateAccessTokenMock.invocationsDone() && afterNeedUpdateAccessTokenCounter > 0 {
+		m.t.Errorf("Expected %d calls to TokenRepositoryMock.NeedUpdateAccessToken at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.NeedUpdateAccessTokenMock.expectedInvocations), m.NeedUpdateAccessTokenMock.expectedInvocationsOrigin, afterNeedUpdateAccessTokenCounter)
+	}
+}
+
+type mTokenRepositoryMockUpdateUserVersion struct {
+	optional           bool
+	mock               *TokenRepositoryMock
+	defaultExpectation *TokenRepositoryMockUpdateUserVersionExpectation
+	expectations       []*TokenRepositoryMockUpdateUserVersionExpectation
+
+	callArgs []*TokenRepositoryMockUpdateUserVersionParams
+	mutex    sync.RWMutex
+
+	expectedInvocations       uint64
+	expectedInvocationsOrigin string
+}
+
+// TokenRepositoryMockUpdateUserVersionExpectation specifies expectation struct of the TokenRepository.UpdateUserVersion
+type TokenRepositoryMockUpdateUserVersionExpectation struct {
+	mock               *TokenRepositoryMock
+	params             *TokenRepositoryMockUpdateUserVersionParams
+	paramPtrs          *TokenRepositoryMockUpdateUserVersionParamPtrs
+	expectationOrigins TokenRepositoryMockUpdateUserVersionExpectationOrigins
+	results            *TokenRepositoryMockUpdateUserVersionResults
+	returnOrigin       string
+	Counter            uint64
+}
+
+// TokenRepositoryMockUpdateUserVersionParams contains parameters of the TokenRepository.UpdateUserVersion
+type TokenRepositoryMockUpdateUserVersionParams struct {
+	ctx     context.Context
+	userID  string
+	version int
+}
+
+// TokenRepositoryMockUpdateUserVersionParamPtrs contains pointers to parameters of the TokenRepository.UpdateUserVersion
+type TokenRepositoryMockUpdateUserVersionParamPtrs struct {
+	ctx     *context.Context
+	userID  *string
+	version *int
+}
+
+// TokenRepositoryMockUpdateUserVersionResults contains results of the TokenRepository.UpdateUserVersion
+type TokenRepositoryMockUpdateUserVersionResults struct {
+	err error
+}
+
+// TokenRepositoryMockUpdateUserVersionOrigins contains origins of expectations of the TokenRepository.UpdateUserVersion
+type TokenRepositoryMockUpdateUserVersionExpectationOrigins struct {
+	origin        string
+	originCtx     string
+	originUserID  string
+	originVersion string
+}
+
+// Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
+// the test will fail minimock's automatic final call check if the mocked method was not called at least once.
+// Optional() makes method check to work in '0 or more' mode.
+// It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
+// catch the problems when the expected method call is totally skipped during test run.
+func (mmUpdateUserVersion *mTokenRepositoryMockUpdateUserVersion) Optional() *mTokenRepositoryMockUpdateUserVersion {
+	mmUpdateUserVersion.optional = true
+	return mmUpdateUserVersion
+}
+
+// Expect sets up expected params for TokenRepository.UpdateUserVersion
+func (mmUpdateUserVersion *mTokenRepositoryMockUpdateUserVersion) Expect(ctx context.Context, userID string, version int) *mTokenRepositoryMockUpdateUserVersion {
+	if mmUpdateUserVersion.mock.funcUpdateUserVersion != nil {
+		mmUpdateUserVersion.mock.t.Fatalf("TokenRepositoryMock.UpdateUserVersion mock is already set by Set")
+	}
+
+	if mmUpdateUserVersion.defaultExpectation == nil {
+		mmUpdateUserVersion.defaultExpectation = &TokenRepositoryMockUpdateUserVersionExpectation{}
+	}
+
+	if mmUpdateUserVersion.defaultExpectation.paramPtrs != nil {
+		mmUpdateUserVersion.mock.t.Fatalf("TokenRepositoryMock.UpdateUserVersion mock is already set by ExpectParams functions")
+	}
+
+	mmUpdateUserVersion.defaultExpectation.params = &TokenRepositoryMockUpdateUserVersionParams{ctx, userID, version}
+	mmUpdateUserVersion.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmUpdateUserVersion.expectations {
+		if minimock.Equal(e.params, mmUpdateUserVersion.defaultExpectation.params) {
+			mmUpdateUserVersion.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmUpdateUserVersion.defaultExpectation.params)
+		}
+	}
+
+	return mmUpdateUserVersion
+}
+
+// ExpectCtxParam1 sets up expected param ctx for TokenRepository.UpdateUserVersion
+func (mmUpdateUserVersion *mTokenRepositoryMockUpdateUserVersion) ExpectCtxParam1(ctx context.Context) *mTokenRepositoryMockUpdateUserVersion {
+	if mmUpdateUserVersion.mock.funcUpdateUserVersion != nil {
+		mmUpdateUserVersion.mock.t.Fatalf("TokenRepositoryMock.UpdateUserVersion mock is already set by Set")
+	}
+
+	if mmUpdateUserVersion.defaultExpectation == nil {
+		mmUpdateUserVersion.defaultExpectation = &TokenRepositoryMockUpdateUserVersionExpectation{}
+	}
+
+	if mmUpdateUserVersion.defaultExpectation.params != nil {
+		mmUpdateUserVersion.mock.t.Fatalf("TokenRepositoryMock.UpdateUserVersion mock is already set by Expect")
+	}
+
+	if mmUpdateUserVersion.defaultExpectation.paramPtrs == nil {
+		mmUpdateUserVersion.defaultExpectation.paramPtrs = &TokenRepositoryMockUpdateUserVersionParamPtrs{}
+	}
+	mmUpdateUserVersion.defaultExpectation.paramPtrs.ctx = &ctx
+	mmUpdateUserVersion.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
+
+	return mmUpdateUserVersion
+}
+
+// ExpectUserIDParam2 sets up expected param userID for TokenRepository.UpdateUserVersion
+func (mmUpdateUserVersion *mTokenRepositoryMockUpdateUserVersion) ExpectUserIDParam2(userID string) *mTokenRepositoryMockUpdateUserVersion {
+	if mmUpdateUserVersion.mock.funcUpdateUserVersion != nil {
+		mmUpdateUserVersion.mock.t.Fatalf("TokenRepositoryMock.UpdateUserVersion mock is already set by Set")
+	}
+
+	if mmUpdateUserVersion.defaultExpectation == nil {
+		mmUpdateUserVersion.defaultExpectation = &TokenRepositoryMockUpdateUserVersionExpectation{}
+	}
+
+	if mmUpdateUserVersion.defaultExpectation.params != nil {
+		mmUpdateUserVersion.mock.t.Fatalf("TokenRepositoryMock.UpdateUserVersion mock is already set by Expect")
+	}
+
+	if mmUpdateUserVersion.defaultExpectation.paramPtrs == nil {
+		mmUpdateUserVersion.defaultExpectation.paramPtrs = &TokenRepositoryMockUpdateUserVersionParamPtrs{}
+	}
+	mmUpdateUserVersion.defaultExpectation.paramPtrs.userID = &userID
+	mmUpdateUserVersion.defaultExpectation.expectationOrigins.originUserID = minimock.CallerInfo(1)
+
+	return mmUpdateUserVersion
+}
+
+// ExpectVersionParam3 sets up expected param version for TokenRepository.UpdateUserVersion
+func (mmUpdateUserVersion *mTokenRepositoryMockUpdateUserVersion) ExpectVersionParam3(version int) *mTokenRepositoryMockUpdateUserVersion {
+	if mmUpdateUserVersion.mock.funcUpdateUserVersion != nil {
+		mmUpdateUserVersion.mock.t.Fatalf("TokenRepositoryMock.UpdateUserVersion mock is already set by Set")
+	}
+
+	if mmUpdateUserVersion.defaultExpectation == nil {
+		mmUpdateUserVersion.defaultExpectation = &TokenRepositoryMockUpdateUserVersionExpectation{}
+	}
+
+	if mmUpdateUserVersion.defaultExpectation.params != nil {
+		mmUpdateUserVersion.mock.t.Fatalf("TokenRepositoryMock.UpdateUserVersion mock is already set by Expect")
+	}
+
+	if mmUpdateUserVersion.defaultExpectation.paramPtrs == nil {
+		mmUpdateUserVersion.defaultExpectation.paramPtrs = &TokenRepositoryMockUpdateUserVersionParamPtrs{}
+	}
+	mmUpdateUserVersion.defaultExpectation.paramPtrs.version = &version
+	mmUpdateUserVersion.defaultExpectation.expectationOrigins.originVersion = minimock.CallerInfo(1)
+
+	return mmUpdateUserVersion
+}
+
+// Inspect accepts an inspector function that has same arguments as the TokenRepository.UpdateUserVersion
+func (mmUpdateUserVersion *mTokenRepositoryMockUpdateUserVersion) Inspect(f func(ctx context.Context, userID string, version int)) *mTokenRepositoryMockUpdateUserVersion {
+	if mmUpdateUserVersion.mock.inspectFuncUpdateUserVersion != nil {
+		mmUpdateUserVersion.mock.t.Fatalf("Inspect function is already set for TokenRepositoryMock.UpdateUserVersion")
+	}
+
+	mmUpdateUserVersion.mock.inspectFuncUpdateUserVersion = f
+
+	return mmUpdateUserVersion
+}
+
+// Return sets up results that will be returned by TokenRepository.UpdateUserVersion
+func (mmUpdateUserVersion *mTokenRepositoryMockUpdateUserVersion) Return(err error) *TokenRepositoryMock {
+	if mmUpdateUserVersion.mock.funcUpdateUserVersion != nil {
+		mmUpdateUserVersion.mock.t.Fatalf("TokenRepositoryMock.UpdateUserVersion mock is already set by Set")
+	}
+
+	if mmUpdateUserVersion.defaultExpectation == nil {
+		mmUpdateUserVersion.defaultExpectation = &TokenRepositoryMockUpdateUserVersionExpectation{mock: mmUpdateUserVersion.mock}
+	}
+	mmUpdateUserVersion.defaultExpectation.results = &TokenRepositoryMockUpdateUserVersionResults{err}
+	mmUpdateUserVersion.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmUpdateUserVersion.mock
+}
+
+// Set uses given function f to mock the TokenRepository.UpdateUserVersion method
+func (mmUpdateUserVersion *mTokenRepositoryMockUpdateUserVersion) Set(f func(ctx context.Context, userID string, version int) (err error)) *TokenRepositoryMock {
+	if mmUpdateUserVersion.defaultExpectation != nil {
+		mmUpdateUserVersion.mock.t.Fatalf("Default expectation is already set for the TokenRepository.UpdateUserVersion method")
+	}
+
+	if len(mmUpdateUserVersion.expectations) > 0 {
+		mmUpdateUserVersion.mock.t.Fatalf("Some expectations are already set for the TokenRepository.UpdateUserVersion method")
+	}
+
+	mmUpdateUserVersion.mock.funcUpdateUserVersion = f
+	mmUpdateUserVersion.mock.funcUpdateUserVersionOrigin = minimock.CallerInfo(1)
+	return mmUpdateUserVersion.mock
+}
+
+// When sets expectation for the TokenRepository.UpdateUserVersion which will trigger the result defined by the following
+// Then helper
+func (mmUpdateUserVersion *mTokenRepositoryMockUpdateUserVersion) When(ctx context.Context, userID string, version int) *TokenRepositoryMockUpdateUserVersionExpectation {
+	if mmUpdateUserVersion.mock.funcUpdateUserVersion != nil {
+		mmUpdateUserVersion.mock.t.Fatalf("TokenRepositoryMock.UpdateUserVersion mock is already set by Set")
+	}
+
+	expectation := &TokenRepositoryMockUpdateUserVersionExpectation{
+		mock:               mmUpdateUserVersion.mock,
+		params:             &TokenRepositoryMockUpdateUserVersionParams{ctx, userID, version},
+		expectationOrigins: TokenRepositoryMockUpdateUserVersionExpectationOrigins{origin: minimock.CallerInfo(1)},
+	}
+	mmUpdateUserVersion.expectations = append(mmUpdateUserVersion.expectations, expectation)
+	return expectation
+}
+
+// Then sets up TokenRepository.UpdateUserVersion return parameters for the expectation previously defined by the When method
+func (e *TokenRepositoryMockUpdateUserVersionExpectation) Then(err error) *TokenRepositoryMock {
+	e.results = &TokenRepositoryMockUpdateUserVersionResults{err}
+	return e.mock
+}
+
+// Times sets number of times TokenRepository.UpdateUserVersion should be invoked
+func (mmUpdateUserVersion *mTokenRepositoryMockUpdateUserVersion) Times(n uint64) *mTokenRepositoryMockUpdateUserVersion {
+	if n == 0 {
+		mmUpdateUserVersion.mock.t.Fatalf("Times of TokenRepositoryMock.UpdateUserVersion mock can not be zero")
+	}
+	mm_atomic.StoreUint64(&mmUpdateUserVersion.expectedInvocations, n)
+	mmUpdateUserVersion.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmUpdateUserVersion
+}
+
+func (mmUpdateUserVersion *mTokenRepositoryMockUpdateUserVersion) invocationsDone() bool {
+	if len(mmUpdateUserVersion.expectations) == 0 && mmUpdateUserVersion.defaultExpectation == nil && mmUpdateUserVersion.mock.funcUpdateUserVersion == nil {
+		return true
+	}
+
+	totalInvocations := mm_atomic.LoadUint64(&mmUpdateUserVersion.mock.afterUpdateUserVersionCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmUpdateUserVersion.expectedInvocations)
+
+	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
+}
+
+// UpdateUserVersion implements mm_repository.TokenRepository
+func (mmUpdateUserVersion *TokenRepositoryMock) UpdateUserVersion(ctx context.Context, userID string, version int) (err error) {
+	mm_atomic.AddUint64(&mmUpdateUserVersion.beforeUpdateUserVersionCounter, 1)
+	defer mm_atomic.AddUint64(&mmUpdateUserVersion.afterUpdateUserVersionCounter, 1)
+
+	mmUpdateUserVersion.t.Helper()
+
+	if mmUpdateUserVersion.inspectFuncUpdateUserVersion != nil {
+		mmUpdateUserVersion.inspectFuncUpdateUserVersion(ctx, userID, version)
+	}
+
+	mm_params := TokenRepositoryMockUpdateUserVersionParams{ctx, userID, version}
+
+	// Record call args
+	mmUpdateUserVersion.UpdateUserVersionMock.mutex.Lock()
+	mmUpdateUserVersion.UpdateUserVersionMock.callArgs = append(mmUpdateUserVersion.UpdateUserVersionMock.callArgs, &mm_params)
+	mmUpdateUserVersion.UpdateUserVersionMock.mutex.Unlock()
+
+	for _, e := range mmUpdateUserVersion.UpdateUserVersionMock.expectations {
+		if minimock.Equal(*e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.err
+		}
+	}
+
+	if mmUpdateUserVersion.UpdateUserVersionMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmUpdateUserVersion.UpdateUserVersionMock.defaultExpectation.Counter, 1)
+		mm_want := mmUpdateUserVersion.UpdateUserVersionMock.defaultExpectation.params
+		mm_want_ptrs := mmUpdateUserVersion.UpdateUserVersionMock.defaultExpectation.paramPtrs
+
+		mm_got := TokenRepositoryMockUpdateUserVersionParams{ctx, userID, version}
+
+		if mm_want_ptrs != nil {
+
+			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
+				mmUpdateUserVersion.t.Errorf("TokenRepositoryMock.UpdateUserVersion got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmUpdateUserVersion.UpdateUserVersionMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+			}
+
+			if mm_want_ptrs.userID != nil && !minimock.Equal(*mm_want_ptrs.userID, mm_got.userID) {
+				mmUpdateUserVersion.t.Errorf("TokenRepositoryMock.UpdateUserVersion got unexpected parameter userID, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmUpdateUserVersion.UpdateUserVersionMock.defaultExpectation.expectationOrigins.originUserID, *mm_want_ptrs.userID, mm_got.userID, minimock.Diff(*mm_want_ptrs.userID, mm_got.userID))
+			}
+
+			if mm_want_ptrs.version != nil && !minimock.Equal(*mm_want_ptrs.version, mm_got.version) {
+				mmUpdateUserVersion.t.Errorf("TokenRepositoryMock.UpdateUserVersion got unexpected parameter version, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmUpdateUserVersion.UpdateUserVersionMock.defaultExpectation.expectationOrigins.originVersion, *mm_want_ptrs.version, mm_got.version, minimock.Diff(*mm_want_ptrs.version, mm_got.version))
+			}
+
+		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmUpdateUserVersion.t.Errorf("TokenRepositoryMock.UpdateUserVersion got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmUpdateUserVersion.UpdateUserVersionMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmUpdateUserVersion.UpdateUserVersionMock.defaultExpectation.results
+		if mm_results == nil {
+			mmUpdateUserVersion.t.Fatal("No results are set for the TokenRepositoryMock.UpdateUserVersion")
+		}
+		return (*mm_results).err
+	}
+	if mmUpdateUserVersion.funcUpdateUserVersion != nil {
+		return mmUpdateUserVersion.funcUpdateUserVersion(ctx, userID, version)
+	}
+	mmUpdateUserVersion.t.Fatalf("Unexpected call to TokenRepositoryMock.UpdateUserVersion. %v %v %v", ctx, userID, version)
+	return
+}
+
+// UpdateUserVersionAfterCounter returns a count of finished TokenRepositoryMock.UpdateUserVersion invocations
+func (mmUpdateUserVersion *TokenRepositoryMock) UpdateUserVersionAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmUpdateUserVersion.afterUpdateUserVersionCounter)
+}
+
+// UpdateUserVersionBeforeCounter returns a count of TokenRepositoryMock.UpdateUserVersion invocations
+func (mmUpdateUserVersion *TokenRepositoryMock) UpdateUserVersionBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmUpdateUserVersion.beforeUpdateUserVersionCounter)
+}
+
+// Calls returns a list of arguments used in each call to TokenRepositoryMock.UpdateUserVersion.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmUpdateUserVersion *mTokenRepositoryMockUpdateUserVersion) Calls() []*TokenRepositoryMockUpdateUserVersionParams {
+	mmUpdateUserVersion.mutex.RLock()
+
+	argCopy := make([]*TokenRepositoryMockUpdateUserVersionParams, len(mmUpdateUserVersion.callArgs))
+	copy(argCopy, mmUpdateUserVersion.callArgs)
+
+	mmUpdateUserVersion.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockUpdateUserVersionDone returns true if the count of the UpdateUserVersion invocations corresponds
+// the number of defined expectations
+func (m *TokenRepositoryMock) MinimockUpdateUserVersionDone() bool {
+	if m.UpdateUserVersionMock.optional {
+		// Optional methods provide '0 or more' call count restriction.
+		return true
+	}
+
+	for _, e := range m.UpdateUserVersionMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	return m.UpdateUserVersionMock.invocationsDone()
+}
+
+// MinimockUpdateUserVersionInspect logs each unmet expectation
+func (m *TokenRepositoryMock) MinimockUpdateUserVersionInspect() {
+	for _, e := range m.UpdateUserVersionMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to TokenRepositoryMock.UpdateUserVersion at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+		}
+	}
+
+	afterUpdateUserVersionCounter := mm_atomic.LoadUint64(&m.afterUpdateUserVersionCounter)
+	// if default expectation was set then invocations count should be greater than zero
+	if m.UpdateUserVersionMock.defaultExpectation != nil && afterUpdateUserVersionCounter < 1 {
+		if m.UpdateUserVersionMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to TokenRepositoryMock.UpdateUserVersion at\n%s", m.UpdateUserVersionMock.defaultExpectation.returnOrigin)
+		} else {
+			m.t.Errorf("Expected call to TokenRepositoryMock.UpdateUserVersion at\n%s with params: %#v", m.UpdateUserVersionMock.defaultExpectation.expectationOrigins.origin, *m.UpdateUserVersionMock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcUpdateUserVersion != nil && afterUpdateUserVersionCounter < 1 {
+		m.t.Errorf("Expected call to TokenRepositoryMock.UpdateUserVersion at\n%s", m.funcUpdateUserVersionOrigin)
+	}
+
+	if !m.UpdateUserVersionMock.invocationsDone() && afterUpdateUserVersionCounter > 0 {
+		m.t.Errorf("Expected %d calls to TokenRepositoryMock.UpdateUserVersion at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.UpdateUserVersionMock.expectedInvocations), m.UpdateUserVersionMock.expectedInvocationsOrigin, afterUpdateUserVersionCounter)
+	}
+}
+
 // MinimockFinish checks that all mocked methods have been called the expected number of times
 func (m *TokenRepositoryMock) MinimockFinish() {
 	m.finishOnce.Do(func() {
@@ -742,6 +1478,10 @@ func (m *TokenRepositoryMock) MinimockFinish() {
 			m.MinimockAddRevokedTokenInspect()
 
 			m.MinimockIsTokenRevokedInspect()
+
+			m.MinimockNeedUpdateAccessTokenInspect()
+
+			m.MinimockUpdateUserVersionInspect()
 		}
 	})
 }
@@ -766,5 +1506,7 @@ func (m *TokenRepositoryMock) minimockDone() bool {
 	done := true
 	return done &&
 		m.MinimockAddRevokedTokenDone() &&
-		m.MinimockIsTokenRevokedDone()
+		m.MinimockIsTokenRevokedDone() &&
+		m.MinimockNeedUpdateAccessTokenDone() &&
+		m.MinimockUpdateUserVersionDone()
 }

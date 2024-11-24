@@ -12,6 +12,7 @@ func ToUserFromRepo(user *dao.User) *model.User {
 		Name:      user.Name,
 		Email:     user.Email,
 		Role:      user.Role,
+		Version:   user.Version,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 	}

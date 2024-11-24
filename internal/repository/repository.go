@@ -30,6 +30,12 @@ type LogRepository interface {
 
 // TokenRepository is the interface for revoked token repository communication.
 type TokenRepository interface {
+	// AddRevokedToken adds the revoked token to the cache.
 	AddRevokedToken(ctx context.Context, refreshToken string) error
+	// IsTokenRevoked checks if the refresh token is revoked.
 	IsTokenRevoked(ctx context.Context, refreshToken string) (bool, error)
+	// UpdateUserVersion sets the user version that requires a forced token refresh.
+	UpdateUserVersion(ctx context.Context, userID string, version int) error
+	// NeedUpdateAccessToken checks if the access token should be refreshed.
+	NeedUpdateAccessToken(ctx context.Context, userID string) (bool, error)
 }

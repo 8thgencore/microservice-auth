@@ -11,6 +11,7 @@ type User struct {
 	Name      string       `db:"name"`
 	Email     string       `db:"email"`
 	Role      string       `db:"role"`
+	Version   int          `db:"version"`
 	CreatedAt time.Time    `db:"created_at"`
 	UpdatedAt sql.NullTime `db:"updated_at"`
 }

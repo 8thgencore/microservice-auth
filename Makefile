@@ -10,8 +10,7 @@ CONFIG=.env.$(ENV)
 LOCAL_BIN:=$(CURDIR)/bin
 
 # Migration settings
-LOCAL_MIGRATION_DIR=$(MIGRATION_DIR)
-LOCAL_MIGRATION_DSN="host=localhost \
+MIGRATION_DSN="host=localhost \
 	port=$(POSTGRES_PORT) \
 	dbname=$(POSTGRES_DB) \
 	user=$(POSTGRES_USER) \
@@ -46,6 +45,7 @@ install-deps:
 	GOBIN=$(LOCAL_BIN) go install github.com/envoyproxy/protoc-gen-validate@v1.1.0
 	GOBIN=$(LOCAL_BIN) go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.24.0
 	GOBIN=$(LOCAL_BIN) go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.24.0
+	GOBIN=$(LOCAL_BIN) go install github.com/pressly/goose/v3/cmd/goose@latest
 	GOBIN=$(LOCAL_BIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.0
 	GOBIN=$(LOCAL_BIN) go install mvdan.cc/gofumpt@latest
 	GOBIN=$(LOCAL_BIN) go install github.com/yoheimuta/protolint/cmd/protolint@latest
@@ -233,14 +233,17 @@ docker-deploy: check-env docker-build
 # MIGRATION #
 # ######### #
 
-local-migration-status: check-env
-	$(LOCAL_BIN)/goose -dir ${LOCAL_MIGRATION_DIR} postgres ${LOCAL_MIGRATION_DSN} status -v
+migration-create: check-env
+	$(LOCAL_BIN)/goose -dir ${MIGRATION_DIR} create $(NAME) sql
 
-local-migration-up: check-env
-	$(LOCAL_BIN)/goose -dir ${LOCAL_MIGRATION_DIR} postgres ${LOCAL_MIGRATION_DSN} up -v
+migration-status: check-env
+	$(LOCAL_BIN)/goose -dir ${MIGRATION_DIR} postgres ${MIGRATION_DSN} status -v
 
-local-migration-down: check-env
-	$(LOCAL_BIN)/goose -dir ${LOCAL_MIGRATION_DIR} postgres ${LOCAL_MIGRATION_DSN} down -v
+migration-up: check-env
+	$(LOCAL_BIN)/goose -dir ${MIGRATION_DIR} postgres ${MIGRATION_DSN} up -v
+
+migration-down: check-env
+	$(LOCAL_BIN)/goose -dir ${MIGRATION_DIR} postgres ${MIGRATION_DSN} down -v
 
 # #### #
 # STOP #

@@ -84,7 +84,11 @@ func (s *ServiceProvider) LogRepository(ctx context.Context) repository.LogRepos
 // TokenRepository returns a Token repository.
 func (s *ServiceProvider) TokenRepository(ctx context.Context) repository.TokenRepository {
 	if s.tokenRepository == nil {
-		s.tokenRepository = tokenRepository.NewRepository(s.CacheClient(ctx), s.Config.JWT.RefreshTokenTTL)
+		s.tokenRepository = tokenRepository.NewRepository(
+			s.CacheClient(ctx),
+			s.Config.JWT.AccessTokenTTL,
+			s.Config.JWT.RefreshTokenTTL,
+		)
 	}
 	return s.tokenRepository
 }
@@ -158,12 +162,13 @@ func (s *ServiceProvider) AccessImpl(ctx context.Context) *access.Implementation
 }
 
 // TokenOperations returns a token operation service.
-func (s *ServiceProvider) TokenOperations(_ context.Context) tokens.TokenOperations {
+func (s *ServiceProvider) TokenOperations(ctx context.Context) tokens.TokenOperations {
 	if s.tokenOperations == nil {
 		s.tokenOperations = jwt.NewTokenOperations(
 			[]byte(s.Config.JWT.SecretKey),
 			s.Config.JWT.AccessTokenTTL,
 			s.Config.JWT.RefreshTokenTTL,
+			s.TokenRepository(ctx),
 		)
 	}
 
