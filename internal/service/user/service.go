@@ -10,6 +10,7 @@ import (
 type serv struct {
 	userRepository  repository.UserRepository
 	logRepository   repository.LogRepository
+	tokenRepository repository.TokenRepository
 	tokenOperations tokens.TokenOperations
 	txManager       db.TxManager
 }
@@ -18,12 +19,14 @@ type serv struct {
 func NewService(
 	userRepository repository.UserRepository,
 	logRepository repository.LogRepository,
+	tokenRepository repository.TokenRepository,
 	tokenOperations tokens.TokenOperations,
 	txManager db.TxManager,
 ) service.UserService {
 	return &serv{
 		userRepository:  userRepository,
 		logRepository:   logRepository,
+		tokenRepository: tokenRepository,
 		tokenOperations: tokenOperations,
 		txManager:       txManager,
 	}

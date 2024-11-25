@@ -25,6 +25,7 @@ const (
 	passwordColumn  = "password"
 	emailColumn     = "email"
 	roleColumn      = "role"
+	versionColumn   = "version"
 	createdAtColumn = "created_at"
 	updatedAtColumn = "updated_at"
 
@@ -78,7 +79,7 @@ func (r *repo) Create(ctx context.Context, user *model.UserCreate) (string, erro
 }
 
 func (r *repo) Get(ctx context.Context, id string) (*model.User, error) {
-	builderSelect := sq.Select(idColumn, nameColumn, emailColumn, roleColumn, createdAtColumn, updatedAtColumn).
+	builderSelect := sq.Select(idColumn, nameColumn, emailColumn, roleColumn, versionColumn, createdAtColumn, updatedAtColumn).
 		From(tableName).
 		PlaceholderFormat(sq.Dollar).
 		Where(sq.Eq{idColumn: id}).
@@ -121,6 +122,9 @@ func (r *repo) Update(ctx context.Context, user *model.UserUpdate) error {
 	}
 	if user.Role.Valid {
 		builderUpdate = builderUpdate.Set(roleColumn, user.Role.String)
+	}
+	if user.Version.Valid {
+		builderUpdate = builderUpdate.Set(versionColumn, user.Version.Int32)
 	}
 
 	query, args, err := builderUpdate.ToSql()
@@ -175,7 +179,7 @@ func (r *repo) Delete(ctx context.Context, id string) error {
 }
 
 func (r *repo) GetAuthInfo(ctx context.Context, username string) (*model.AuthInfo, error) {
-	builderSelect := sq.Select(idColumn, nameColumn, roleColumn, passwordColumn).
+	builderSelect := sq.Select(idColumn, nameColumn, roleColumn, passwordColumn, versionColumn).
 		From(tableName).
 		PlaceholderFormat(sq.Dollar).
 		Where(sq.Eq{nameColumn: username}).

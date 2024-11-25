@@ -31,9 +31,10 @@ func (s *authService) Login(ctx context.Context, creds *model.UserCreds) (*model
 	}
 
 	accessToken, err := s.tokenOperations.GenerateAccessToken(model.User{
-		ID:   authInfo.ID,
-		Name: authInfo.Username,
-		Role: authInfo.Role,
+		ID:      authInfo.ID,
+		Name:    authInfo.Username,
+		Role:    authInfo.Role,
+		Version: authInfo.Version,
 	},
 	)
 	if err != nil {
@@ -62,7 +63,7 @@ func (s *authService) GetAccessToken(ctx context.Context, refreshToken string) (
 		return "", ErrInvalidRefresh
 	}
 
-	user, err := s.userRepository.Get(ctx, claims.UserID)
+	user, err := s.userRepository.Get(ctx, claims.Subject)
 	if err != nil {
 		return "", ErrUserNotFound
 	}
@@ -91,7 +92,7 @@ func (s *authService) GetRefreshToken(ctx context.Context, oldRefreshToken strin
 		return "", ErrInvalidRefresh
 	}
 
-	refreshToken, err := s.tokenOperations.GenerateRefreshToken(claims.UserID)
+	refreshToken, err := s.tokenOperations.GenerateRefreshToken(claims.Subject)
 	if err != nil {
 		return "", ErrTokenGeneration
 	}

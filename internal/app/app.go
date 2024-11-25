@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	"github.com/8thgencore/microservice-common/pkg/logger"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/grpclog"
 )
 
 // App structure contains main application structures.
@@ -87,6 +89,8 @@ func (a *App) runGrpcServer() error {
 	cfg := a.serviceProvider.Config.GRPC
 
 	logger.Info("gRPC server running on ", zap.String("address", cfg.Address()))
+
+	grpclog.SetLoggerV2(grpclog.NewLoggerV2(io.Discard, io.Discard, io.Discard))
 
 	lis, err := net.Listen(cfg.Transport, cfg.Address())
 	if err != nil {

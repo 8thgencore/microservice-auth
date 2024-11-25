@@ -22,4 +22,5 @@ type AuthInfo struct {
 	Username string `db:"name"`
 	Password string `db:"password"`
 	Role     string `db:"role"`
+	Version  int    `db:"version"`
 }

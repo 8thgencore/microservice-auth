@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 
@@ -93,11 +94,16 @@ func (s *serv) Get(ctx context.Context, id string) (*model.User, error) {
 
 // Update handles the updating of a user's information.
 func (s *serv) Update(ctx context.Context, user *model.UserUpdate) error {
+	var currentUser *model.User
 	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
-		_, errTx := s.userRepository.Get(ctx, user.ID)
+		var errTx error
+		currentUser, errTx = s.userRepository.Get(ctx, user.ID)
 		if errTx != nil {
 			return errTx
 		}
+
+		currentUser.Version = currentUser.Version + 1
+		user.Version = sql.NullInt32{Int32: int32(currentUser.Version), Valid: true}
 
 		errTx = s.userRepository.Update(ctx, user)
 		if errTx != nil {
@@ -117,6 +123,10 @@ func (s *serv) Update(ctx context.Context, user *model.UserUpdate) error {
 			return ErrUserEmailExists
 		}
 
+		return ErrUserUpdate
+	}
+
+	if err := s.tokenRepository.SetTokenVersion(ctx, currentUser.ID, currentUser.Version); err != nil {
 		return ErrUserUpdate
 	}
 

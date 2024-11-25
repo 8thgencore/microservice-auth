@@ -70,6 +70,7 @@ func TestCreate(t *testing.T) {
 
 	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
 	type logRepositoryMockFunc func(mc *minimock.Controller) repository.LogRepository
+	type tokenRepositoryMockFunc func(mc *minimock.Controller) repository.TokenRepository
 	type tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
 	type transactorMockFunc func(mc *minimock.Controller) db.Transactor
 
@@ -105,6 +106,7 @@ func TestCreate(t *testing.T) {
 		err                 error
 		userRepositoryMock  userRepositoryMockFunc
 		logRepositoryMock   logRepositoryMockFunc
+		tokenRepositoryMock tokenRepositoryMockFunc
 		tokenOperationsMock tokenOperationsMockFunc
 		transactorMock      transactorMockFunc
 	}{
@@ -264,10 +266,11 @@ func TestCreate(t *testing.T) {
 
 			userRepositoryMock := tt.userRepositoryMock(mc)
 			logRepositoryMock := tt.logRepositoryMock(mc)
+			tokenRepositoryMock := tt.tokenRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
 
 			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
-			srv := NewService(userRepositoryMock, logRepositoryMock, tokenOperationsMock, txManagerMock)
+			srv := NewService(userRepositoryMock, logRepositoryMock, tokenRepositoryMock, tokenOperationsMock, txManagerMock)
 
 			user := &model.UserCreate{}
 			if err := copier.Copy(&user, &tt.args.req); err != nil {
@@ -286,6 +289,7 @@ func TestGet(t *testing.T) {
 	t.Parallel()
 	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
 	type logRepositoryMockFunc func(mc *minimock.Controller) repository.LogRepository
+	type tokenRepositoryMockFunc func(mc *minimock.Controller) repository.TokenRepository
 	type tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
 	type transactorMockFunc func(mc *minimock.Controller) db.Transactor
 
@@ -306,6 +310,7 @@ func TestGet(t *testing.T) {
 		err                 error
 		userRepositoryMock  userRepositoryMockFunc
 		logRepositoryMock   logRepositoryMockFunc
+		tokenRepositoryMock tokenRepositoryMockFunc
 		tokenOperationsMock tokenOperationsMockFunc
 		transactorMock      transactorMockFunc
 	}{
@@ -411,10 +416,13 @@ func TestGet(t *testing.T) {
 
 			userRepositoryMock := tt.userRepositoryMock(mc)
 			logRepositoryMock := tt.logRepositoryMock(mc)
+			tokenRepositoryMock := tt.tokenRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
 
 			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
-			srv := NewService(userRepositoryMock, logRepositoryMock, tokenOperationsMock, txManagerMock)
+			srv := NewService(
+				userRepositoryMock, logRepositoryMock, tokenRepositoryMock, tokenOperationsMock, txManagerMock,
+			)
 
 			res, err := srv.Get(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)
@@ -428,6 +436,7 @@ func TestUpdate(t *testing.T) {
 	t.Parallel()
 	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
 	type logRepositoryMockFunc func(mc *minimock.Controller) repository.LogRepository
+	type tokenRepositoryMockFunc func(mc *minimock.Controller) repository.TokenRepository
 	type tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
 	type transactorMockFunc func(mc *minimock.Controller) db.Transactor
 
@@ -463,6 +472,7 @@ func TestUpdate(t *testing.T) {
 		err                 error
 		userRepositoryMock  userRepositoryMockFunc
 		logRepositoryMock   logRepositoryMockFunc
+		tokenRepositoryMock tokenRepositoryMockFunc
 		tokenOperationsMock tokenOperationsMockFunc
 		transactorMock      transactorMockFunc
 	}{
@@ -567,10 +577,13 @@ func TestUpdate(t *testing.T) {
 
 			userRepositoryMock := tt.userRepositoryMock(mc)
 			logRepositoryMock := tt.logRepositoryMock(mc)
+			tokenRepositoryMock := tt.tokenRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
 
 			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
-			srv := NewService(userRepositoryMock, logRepositoryMock, tokenOperationsMock, txManagerMock)
+			srv := NewService(
+				userRepositoryMock, logRepositoryMock, tokenRepositoryMock, tokenOperationsMock, txManagerMock,
+			)
 
 			err := srv.Update(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)
@@ -583,6 +596,7 @@ func TestDelete(t *testing.T) {
 	t.Parallel()
 	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
 	type logRepositoryMockFunc func(mc *minimock.Controller) repository.LogRepository
+	type tokenRepositoryMockFunc func(mc *minimock.Controller) repository.TokenRepository
 	type tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
 	type transactorMockFunc func(mc *minimock.Controller) db.Transactor
 
@@ -602,6 +616,7 @@ func TestDelete(t *testing.T) {
 		err                 error
 		userRepositoryMock  userRepositoryMockFunc
 		logRepositoryMock   logRepositoryMockFunc
+		tokenRepositoryMock tokenRepositoryMockFunc
 		tokenOperationsMock tokenOperationsMockFunc
 		transactorMock      transactorMockFunc
 	}{
@@ -728,10 +743,13 @@ func TestDelete(t *testing.T) {
 
 			userRepositoryMock := tt.userRepositoryMock(mc)
 			logRepositoryMock := tt.logRepositoryMock(mc)
+			tokenRepositoryMock := tt.tokenRepositoryMock(mc)
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
 			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
 
-			srv := NewService(userRepositoryMock, logRepositoryMock, tokenOperationsMock, txManagerMock)
+			srv := NewService(
+				userRepositoryMock, logRepositoryMock, tokenRepositoryMock, tokenOperationsMock, txManagerMock,
+			)
 
 			err := srv.Delete(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)

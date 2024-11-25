@@ -100,6 +100,7 @@ func (s *ServiceProvider) UserService(ctx context.Context) service.UserService {
 		s.userService = userService.NewService(
 			s.UserRepository(ctx),
 			s.LogRepository(ctx),
+			s.TokenRepository(ctx),
 			s.TokenOperations(ctx),
 			s.TxManager(ctx),
 		)

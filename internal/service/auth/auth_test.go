@@ -251,7 +251,7 @@ func TestGetAccessToken(t *testing.T) {
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
 
-		refreshClaims = &model.RefreshClaims{UserID: userID}
+		refreshClaims = &model.RefreshClaims{}
 
 		req = refreshToken
 		res = accessToken
@@ -456,7 +456,7 @@ func TestGetRefreshToken(t *testing.T) {
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
 
-		refreshClaims = &model.RefreshClaims{UserID: userID}
+		refreshClaims = &model.RefreshClaims{}
 
 		req = oldRefreshToken
 		res = refreshToken

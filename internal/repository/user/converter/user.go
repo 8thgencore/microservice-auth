@@ -24,6 +24,7 @@ func ToAuthInfoFromRepo(authInfo *dao.AuthInfo) *model.AuthInfo {
 		ID:       authInfo.ID,
 		Username: authInfo.Username,
 		Role:     authInfo.Role,
+		Version:  authInfo.Version,
 		Password: authInfo.Password,
 	}
 }

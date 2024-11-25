@@ -64,7 +64,6 @@ func (t *tokenOperations) GenerateRefreshToken(userID string) (string, error) {
 			Subject:   userID,
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(t.refreshTokenTTL)),
 		},
-		UserID: userID,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

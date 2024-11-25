@@ -54,7 +54,7 @@ func (r *repo) IsTokenRevoked(ctx context.Context, refreshToken string) (bool, e
 // SetTokenVersion sets the token version.
 func (r *repo) SetTokenVersion(ctx context.Context, userID string, version int) error {
 	key := "token_version:" + userID
-	if err := r.redisClient.SetEx(ctx, key, version, r.refreshTokenTTL); err != nil {
+	if err := r.redisClient.SetEx(ctx, key, version, r.accessTokenTTL); err != nil {
 		return fmt.Errorf("could not set user version: %w", err)
 	}
 
