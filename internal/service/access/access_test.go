@@ -43,6 +43,11 @@ var (
 	}
 )
 
+type (
+	accessRepositoryMockFunc func(mc *minimock.Controller) repository.AccessRepository
+	tokenOperationsMockFunc  func(mc *minimock.Controller) tokens.TokenOperations
+)
+
 func TestNewService(t *testing.T) {
 	t.Parallel()
 
@@ -117,9 +122,6 @@ func TestNewService(t *testing.T) {
 
 func TestCheck(t *testing.T) {
 	t.Parallel()
-
-	type accessRepositoryMockFunc func(mc *minimock.Controller) repository.AccessRepository
-	type tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
 
 	type args struct {
 		ctx context.Context
@@ -382,9 +384,6 @@ func TestGetRoleEndpoints(t *testing.T) {
 
 func TestAddRoleEndpoint(t *testing.T) {
 	t.Parallel()
-
-	type accessRepositoryMockFunc func(mc *minimock.Controller) repository.AccessRepository
-	type tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
 
 	var (
 		mc    = minimock.NewController(t)

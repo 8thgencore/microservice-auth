@@ -44,6 +44,14 @@ var (
 	}
 )
 
+type (
+	userRepositoryMockFunc  func(mc *minimock.Controller) repository.UserRepository
+	logRepositoryMockFunc   func(mc *minimock.Controller) repository.LogRepository
+	tokenRepositoryMockFunc func(mc *minimock.Controller) repository.TokenRepository
+	tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
+	transactorMockFunc      func(mc *minimock.Controller) db.Transactor
+)
+
 var (
 	opts = pgx.TxOptions{IsoLevel: pgx.ReadCommitted}
 
@@ -67,12 +75,6 @@ var (
 // TestCreate tests the creation of a new user.
 func TestCreate(t *testing.T) {
 	t.Parallel()
-
-	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
-	type logRepositoryMockFunc func(mc *minimock.Controller) repository.LogRepository
-	type tokenRepositoryMockFunc func(mc *minimock.Controller) repository.TokenRepository
-	type tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
-	type transactorMockFunc func(mc *minimock.Controller) db.Transactor
 
 	type args struct {
 		ctx context.Context
@@ -126,6 +128,10 @@ func TestCreate(t *testing.T) {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				return mock
 			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				mock := repositoryMocks.NewTokenRepositoryMock(mc)
+				return mock
+			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				return mock
@@ -152,13 +158,16 @@ func TestCreate(t *testing.T) {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				return mock
 			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				mock := repositoryMocks.NewTokenRepositoryMock(mc)
+				return mock
+			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				return mock
 			},
 			transactorMock: transactorRollbackMock,
 		},
-
 		{
 			name: "log repository error case",
 			args: args{
@@ -177,13 +186,16 @@ func TestCreate(t *testing.T) {
 				mock.LogMock.Optional().Return(ErrUserCreate)
 				return mock
 			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				mock := repositoryMocks.NewTokenRepositoryMock(mc)
+				return mock
+			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				return mock
 			},
 			transactorMock: transactorRollbackMock,
 		},
-
 		{
 			name: "user with existing name",
 			args: args{
@@ -201,13 +213,16 @@ func TestCreate(t *testing.T) {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				return mock
 			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				mock := repositoryMocks.NewTokenRepositoryMock(mc)
+				return mock
+			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				return mock
 			},
 			transactorMock: transactorRollbackMock,
 		},
-
 		{
 			name: "user with existing email",
 			args: args{
@@ -225,13 +240,16 @@ func TestCreate(t *testing.T) {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				return mock
 			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				mock := repositoryMocks.NewTokenRepositoryMock(mc)
+				return mock
+			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				return mock
 			},
 			transactorMock: transactorRollbackMock,
 		},
-
 		{
 			name: "success case",
 			args: args{
@@ -248,6 +266,10 @@ func TestCreate(t *testing.T) {
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				mock.LogMock.Optional().Return(nil)
+				return mock
+			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				mock := repositoryMocks.NewTokenRepositoryMock(mc)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
@@ -270,7 +292,9 @@ func TestCreate(t *testing.T) {
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
 
 			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
-			srv := NewService(userRepositoryMock, logRepositoryMock, tokenRepositoryMock, tokenOperationsMock, txManagerMock)
+			srv := NewService(
+				userRepositoryMock, logRepositoryMock, tokenRepositoryMock, tokenOperationsMock, txManagerMock,
+			)
 
 			user := &model.UserCreate{}
 			if err := copier.Copy(&user, &tt.args.req); err != nil {
@@ -287,11 +311,6 @@ func TestCreate(t *testing.T) {
 // TestGet tests the retrieval of an existing user.
 func TestGet(t *testing.T) {
 	t.Parallel()
-	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
-	type logRepositoryMockFunc func(mc *minimock.Controller) repository.LogRepository
-	type tokenRepositoryMockFunc func(mc *minimock.Controller) repository.TokenRepository
-	type tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
-	type transactorMockFunc func(mc *minimock.Controller) db.Transactor
 
 	type args struct {
 		ctx context.Context
@@ -332,6 +351,10 @@ func TestGet(t *testing.T) {
 				mock.LogMock.Optional().Return(nil)
 				return mock
 			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				mock := repositoryMocks.NewTokenRepositoryMock(mc)
+				return mock
+			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				return mock
@@ -353,6 +376,10 @@ func TestGet(t *testing.T) {
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
+				return mock
+			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				mock := repositoryMocks.NewTokenRepositoryMock(mc)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
@@ -379,6 +406,10 @@ func TestGet(t *testing.T) {
 				mock.LogMock.Optional().Return(ErrUserRead)
 				return mock
 			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				mock := repositoryMocks.NewTokenRepositoryMock(mc)
+				return mock
+			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				return mock
@@ -400,6 +431,10 @@ func TestGet(t *testing.T) {
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
+				return mock
+			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				mock := repositoryMocks.NewTokenRepositoryMock(mc)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
@@ -434,11 +469,6 @@ func TestGet(t *testing.T) {
 // TestUpdate tests the update of an existing user.
 func TestUpdate(t *testing.T) {
 	t.Parallel()
-	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
-	type logRepositoryMockFunc func(mc *minimock.Controller) repository.LogRepository
-	type tokenRepositoryMockFunc func(mc *minimock.Controller) repository.TokenRepository
-	type tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
-	type transactorMockFunc func(mc *minimock.Controller) db.Transactor
 
 	type args struct {
 		ctx context.Context
@@ -494,6 +524,11 @@ func TestUpdate(t *testing.T) {
 				mock.LogMock.Optional().Return(nil)
 				return mock
 			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				mock := repositoryMocks.NewTokenRepositoryMock(mc)
+				mock.SetTokenVersionMock.Expect(ctx, id, 0).Return(nil)
+				return mock
+			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				return mock
@@ -514,6 +549,10 @@ func TestUpdate(t *testing.T) {
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
+				return mock
+			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				mock := repositoryMocks.NewTokenRepositoryMock(mc)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
@@ -539,6 +578,10 @@ func TestUpdate(t *testing.T) {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				return mock
 			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				mock := repositoryMocks.NewTokenRepositoryMock(mc)
+				return mock
+			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				return mock
@@ -561,6 +604,10 @@ func TestUpdate(t *testing.T) {
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
 				mock.LogMock.Optional().Return(ErrUserUpdate)
+				return mock
+			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				mock := repositoryMocks.NewTokenRepositoryMock(mc)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
@@ -594,11 +641,6 @@ func TestUpdate(t *testing.T) {
 // TestDelete tests the deletion of an existing user.
 func TestDelete(t *testing.T) {
 	t.Parallel()
-	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
-	type logRepositoryMockFunc func(mc *minimock.Controller) repository.LogRepository
-	type tokenRepositoryMockFunc func(mc *minimock.Controller) repository.TokenRepository
-	type tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
-	type transactorMockFunc func(mc *minimock.Controller) db.Transactor
 
 	type args struct {
 		ctx context.Context
@@ -638,6 +680,10 @@ func TestDelete(t *testing.T) {
 				mock.LogMock.Optional().Return(nil)
 				return mock
 			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				mock := repositoryMocks.NewTokenRepositoryMock(mc)
+				return mock
+			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				return mock
@@ -658,6 +704,10 @@ func TestDelete(t *testing.T) {
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
+				return mock
+			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				mock := repositoryMocks.NewTokenRepositoryMock(mc)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
@@ -681,6 +731,10 @@ func TestDelete(t *testing.T) {
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
+				return mock
+			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				mock := repositoryMocks.NewTokenRepositoryMock(mc)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
@@ -707,6 +761,10 @@ func TestDelete(t *testing.T) {
 				mock.LogMock.Optional().Return(ErrUserDelete)
 				return mock
 			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				mock := repositoryMocks.NewTokenRepositoryMock(mc)
+				return mock
+			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				return mock
@@ -727,6 +785,10 @@ func TestDelete(t *testing.T) {
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
 				mock := repositoryMocks.NewLogRepositoryMock(mc)
+				return mock
+			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				mock := repositoryMocks.NewTokenRepositoryMock(mc)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {

@@ -33,12 +33,14 @@ var (
 	}
 )
 
+type (
+	userRepositoryMockFunc  func(mc *minimock.Controller) repository.UserRepository
+	tokenRepositoryMockFunc func(mc *minimock.Controller) repository.TokenRepository
+	tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
+)
+
 func TestLogin(t *testing.T) {
 	t.Parallel()
-
-	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
-	type tokenRepositoryMockFunc func(mc *minimock.Controller) repository.TokenRepository
-	type tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
 
 	type args struct {
 		ctx context.Context
@@ -238,10 +240,6 @@ func TestLogin(t *testing.T) {
 func TestGetAccessToken(t *testing.T) {
 	t.Parallel()
 
-	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
-	type tokenRepositoryMockFunc func(mc *minimock.Controller) repository.TokenRepository
-	type tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
-
 	type args struct {
 		ctx context.Context
 		req string
@@ -276,7 +274,7 @@ func TestGetAccessToken(t *testing.T) {
 			err:  nil,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
-				mock.GetMock.Expect(ctx, userID).Return(&user, nil)
+				mock.GetMock.Expect(ctx, refreshClaims.Subject).Return(&user, nil)
 				return mock
 			},
 			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
@@ -375,7 +373,7 @@ func TestGetAccessToken(t *testing.T) {
 			err:  ErrUserNotFound,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
-				mock.GetMock.Expect(ctx, userID).Return(nil, ErrUserNotFound)
+				mock.GetMock.Expect(ctx, refreshClaims.Subject).Return(nil, ErrUserNotFound)
 				return mock
 			},
 			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
@@ -401,7 +399,7 @@ func TestGetAccessToken(t *testing.T) {
 			err:  ErrTokenGeneration,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
-				mock.GetMock.Expect(ctx, userID).Return(&user, nil)
+				mock.GetMock.Expect(ctx, refreshClaims.Subject).Return(&user, nil)
 				return mock
 			},
 			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
@@ -442,10 +440,6 @@ func TestGetAccessToken(t *testing.T) {
 
 func TestGetRefreshToken(t *testing.T) {
 	t.Parallel()
-
-	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
-	type tokenRepositoryMockFunc func(mc *minimock.Controller) repository.TokenRepository
-	type tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
 
 	type args struct {
 		ctx context.Context
@@ -494,7 +488,7 @@ func TestGetRefreshToken(t *testing.T) {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				mock.VerifyRefreshTokenMock.Expect(oldRefreshToken).Return(refreshClaims, nil)
 				mock.GenerateRefreshTokenMock.
-					Expect(user.ID).
+					Expect(refreshClaims.Subject).
 					Return(refreshToken, nil)
 
 				return mock
@@ -566,7 +560,7 @@ func TestGetRefreshToken(t *testing.T) {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				mock.VerifyRefreshTokenMock.Expect(oldRefreshToken).Return(refreshClaims, nil)
 				mock.GenerateRefreshTokenMock.
-					Expect(user.ID).
+					Expect(refreshClaims.Subject).
 					Return("", ErrTokenGeneration)
 
 				return mock
@@ -594,7 +588,7 @@ func TestGetRefreshToken(t *testing.T) {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
 				mock.VerifyRefreshTokenMock.Expect(oldRefreshToken).Return(refreshClaims, nil)
 				mock.GenerateRefreshTokenMock.
-					Expect(user.ID).
+					Expect(refreshClaims.Subject).
 					Return(refreshToken, nil)
 
 				return mock
@@ -623,9 +617,6 @@ func TestGetRefreshToken(t *testing.T) {
 
 func TestLogout(t *testing.T) {
 	t.Parallel()
-
-	type tokenRepositoryMockFunc func(mc *minimock.Controller) repository.TokenRepository
-	type tokenOperationsMockFunc func(mc *minimock.Controller) tokens.TokenOperations
 
 	type args struct {
 		ctx          context.Context
