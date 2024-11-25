@@ -79,7 +79,15 @@ func (r *repo) Create(ctx context.Context, user *model.UserCreate) (string, erro
 }
 
 func (r *repo) Get(ctx context.Context, id string) (*model.User, error) {
-	builderSelect := sq.Select(idColumn, nameColumn, emailColumn, roleColumn, versionColumn, createdAtColumn, updatedAtColumn).
+	builderSelect := sq.Select(
+		idColumn,
+		nameColumn,
+		emailColumn,
+		roleColumn,
+		versionColumn,
+		createdAtColumn,
+		updatedAtColumn,
+	).
 		From(tableName).
 		PlaceholderFormat(sq.Dollar).
 		Where(sq.Eq{idColumn: id}).

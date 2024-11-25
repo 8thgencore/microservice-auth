@@ -5,9 +5,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"math"
 
 	"github.com/8thgencore/microservice-auth/internal/model"
+	"github.com/8thgencore/microservice-common/pkg/logger"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -102,8 +105,12 @@ func (s *serv) Update(ctx context.Context, user *model.UserUpdate) error {
 			return errTx
 		}
 
-		currentUser.Version = currentUser.Version + 1
-		user.Version = sql.NullInt32{Int32: int32(currentUser.Version), Valid: true}
+		convertedVersion, err := safeIntToInt32(currentUser.Version)
+		if err != nil {
+			logger.Error("version value out of range for int32: %d", zap.Int("method", currentUser.Version))
+			return err
+		}
+		user.Version = sql.NullInt32{Int32: convertedVersion, Valid: true}
 
 		errTx = s.userRepository.Update(ctx, user)
 		if errTx != nil {
@@ -165,6 +172,14 @@ func hashPassword(password string) (string, error) {
 		return "", ErrPasswordProcessing
 	}
 	return string(hashedPassword), nil
+}
+
+// Safe conversion function
+func safeIntToInt32(value int) (int32, error) {
+	if value > math.MaxInt32 || value < math.MinInt32 {
+		return 0, fmt.Errorf("value out of range for int32: %d", value)
+	}
+	return int32(value), nil
 }
 
 // logUserAction is a helper function to log actions performed on a user.
