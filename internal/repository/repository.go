@@ -34,8 +34,8 @@ type TokenRepository interface {
 	AddRevokedToken(ctx context.Context, refreshToken string) error
 	// IsTokenRevoked checks if the refresh token is revoked.
 	IsTokenRevoked(ctx context.Context, refreshToken string) (bool, error)
-	// UpdateUserVersion sets the user version that requires a forced token refresh.
-	UpdateUserVersion(ctx context.Context, userID string, version int) error
-	// NeedUpdateAccessToken checks if the access token should be refreshed.
-	NeedUpdateAccessToken(ctx context.Context, userID string) (bool, error)
+	// SetTokenVersion sets the token version.
+	SetTokenVersion(ctx context.Context, userID string, version int) error
+	// GetTokenVersion gets the current token version from the cache.
+	GetTokenVersion(ctx context.Context, userID string) (int, error)
 }

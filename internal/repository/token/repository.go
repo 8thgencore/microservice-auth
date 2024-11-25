@@ -2,6 +2,7 @@ package token
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/8thgencore/microservice-auth/internal/repository"
@@ -50,12 +51,24 @@ func (r *repo) IsTokenRevoked(ctx context.Context, refreshToken string) (bool, e
 	return true, nil
 }
 
-// NeedUpdateAccessToken implements repository.TokenRepository.
-func (r *repo) NeedUpdateAccessToken(ctx context.Context, userID string) (bool, error) {
-	panic("unimplemented")
+// SetTokenVersion sets the token version.
+func (r *repo) SetTokenVersion(ctx context.Context, userID string, version int) error {
+	key := "token_version:" + userID
+	if err := r.redisClient.SetEx(ctx, key, version, r.refreshTokenTTL); err != nil {
+		return fmt.Errorf("could not set user version: %w", err)
+	}
+
+	return nil
 }
 
-// UpdateUserVersion implements repository.TokenRepository.
-func (r *repo) UpdateUserVersion(ctx context.Context, userID string, version int) error {
-	panic("unimplemented")
+// GetTokenVersion gets the current token version from the cache.
+func (r *repo) GetTokenVersion(ctx context.Context, userID string) (int, error) {
+	key := "token_version:" + userID
+	var version int
+	_, err := r.redisClient.Get(ctx, key)
+	if err != nil {
+		return 0, fmt.Errorf("could not get user version: %w", err)
+	}
+
+	return version, nil
 }

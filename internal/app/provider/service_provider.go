@@ -90,6 +90,7 @@ func (s *ServiceProvider) TokenRepository(ctx context.Context) repository.TokenR
 			s.Config.JWT.RefreshTokenTTL,
 		)
 	}
+
 	return s.tokenRepository
 }
 
