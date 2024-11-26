@@ -41,13 +41,13 @@ service AuthV1 {
   }
 
 
-// RefreshTokens gives both a new access token and a new refresh token.
-rpc RefreshTokens (RefreshTokensRequest) returns (RefreshTokensResponse) {
-  option (google.api.http) = {
-          post: "/v1/auth/refresh"
-          body: "*"
-      };
-}
+  // RefreshTokens gives both a new access token and a new refresh token.
+  rpc RefreshTokens (RefreshTokensRequest) returns (RefreshTokensResponse) {
+    option (google.api.http) = {
+            post: "/v1/auth/refresh"
+            body: "*"
+        };
+  }
 
   // Logout invalidates the refresh token.
   rpc Logout (LogoutRequest) returns (google.protobuf.Empty) {
