@@ -1,13 +1,19 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "User API",
+    "title": "Auth API",
     "version": "1.0.0",
     "contact": {
       "name": "Walter White"
     }
   },
   "tags": [
+    {
+      "name": "AuthV1"
+    },
+    {
+      "name": "AccessV1"
+    },
     {
       "name": "UserV1"
     }
@@ -24,6 +30,268 @@
     "application/json"
   ],
   "paths": {
+    "/v1/access/check": {
+      "post": {
+        "summary": "Check executes user authorization for an endpoint.",
+        "operationId": "AccessV1_Check",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "CheckRequest contains the endpoint a user is trying to access.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/access_v1CheckRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccessV1"
+        ]
+      }
+    },
+    "/v1/access/role-endpoint": {
+      "post": {
+        "summary": "AddRoleEndpoint adds a new endpoint permission with roles.",
+        "operationId": "AccessV1_AddRoleEndpoint",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "AddRoleEndpointRequest represents the request to add roles to an endpoint.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/access_v1AddRoleEndpointRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccessV1"
+        ]
+      },
+      "put": {
+        "summary": "UpdateRoleEndpoint updates an existing endpoint permission.",
+        "operationId": "AccessV1_UpdateRoleEndpoint",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "UpdateRoleEndpointRequest represents the request to update roles for an endpoint.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/access_v1UpdateRoleEndpointRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccessV1"
+        ]
+      }
+    },
+    "/v1/access/role-endpoint/{endpoint}": {
+      "delete": {
+        "summary": "DeleteRoleEndpoint removes an existing endpoint permission.",
+        "operationId": "AccessV1_DeleteRoleEndpoint",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "endpoint",
+            "description": "The endpoint to be deleted.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AccessV1"
+        ]
+      }
+    },
+    "/v1/access/role-endpoints": {
+      "get": {
+        "summary": "GetRoleEndpoints lists all endpoints and their allowed roles.",
+        "operationId": "AccessV1_GetRoleEndpoints",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/access_v1GetRoleEndpointsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "AccessV1"
+        ]
+      }
+    },
+    "/v1/auth/login": {
+      "post": {
+        "summary": "Login gives refresh token and access token based on user credentials.",
+        "operationId": "AuthV1_Login",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/auth_v1LoginResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "LoginRequest represents the request to log in a user.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/auth_v1LoginRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthV1"
+        ]
+      }
+    },
+    "/v1/auth/logout": {
+      "post": {
+        "summary": "Logout invalidates the refresh token.",
+        "operationId": "AuthV1_Logout",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "LogoutRequest represents the request to log out a user by invalidating their refresh token.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/auth_v1LogoutRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthV1"
+        ]
+      }
+    },
+    "/v1/auth/refresh": {
+      "post": {
+        "summary": "RefreshTokens gives both a new access token and a new refresh token.",
+        "operationId": "AuthV1_RefreshTokens",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/auth_v1RefreshTokensResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "RefreshTokensRequest represents the request to refresh both tokens.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/auth_v1RefreshTokensRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthV1"
+        ]
+      }
+    },
     "/v1/user": {
       "get": {
         "summary": "Get is used to obtain user info by ID.",
@@ -154,6 +422,153 @@
     }
   },
   "definitions": {
+    "access_v1AddRoleEndpointRequest": {
+      "type": "object",
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "description": "The endpoint to which roles will be added."
+        },
+        "allowedRoles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/user_v1Role"
+          },
+          "description": "The roles allowed to access this endpoint."
+        }
+      },
+      "description": "AddRoleEndpointRequest represents the request to add roles to an endpoint."
+    },
+    "access_v1CheckRequest": {
+      "type": "object",
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "description": "The endpoint where the user wants access."
+        }
+      },
+      "description": "CheckRequest contains the endpoint a user is trying to access."
+    },
+    "access_v1EndpointPermissions": {
+      "type": "object",
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "description": "The endpoint being described."
+        },
+        "allowedRoles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/user_v1Role"
+          },
+          "description": "The roles allowed to access this endpoint."
+        }
+      },
+      "description": "EndpointPermissions represents the permission settings for an endpoint."
+    },
+    "access_v1GetRoleEndpointsResponse": {
+      "type": "object",
+      "properties": {
+        "endpointPermissions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/access_v1EndpointPermissions"
+          },
+          "description": "List of endpoint permissions."
+        }
+      },
+      "description": "GetRoleEndpointsResponse represents the response containing a list of endpoint permissions."
+    },
+    "access_v1UpdateRoleEndpointRequest": {
+      "type": "object",
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "description": "The endpoint to be updated."
+        },
+        "allowedRoles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/user_v1Role"
+          },
+          "description": "The updated roles for this endpoint."
+        }
+      },
+      "description": "UpdateRoleEndpointRequest represents the request to update roles for an endpoint."
+    },
+    "auth_v1Creds": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string",
+          "description": "Username of the user."
+        },
+        "password": {
+          "type": "string",
+          "description": "Password of the user."
+        }
+      },
+      "description": "Creds represents user credentials required for login."
+    },
+    "auth_v1LoginRequest": {
+      "type": "object",
+      "properties": {
+        "creds": {
+          "$ref": "#/definitions/auth_v1Creds",
+          "description": "User credentials for logging in."
+        }
+      },
+      "description": "LoginRequest represents the request to log in a user."
+    },
+    "auth_v1LoginResponse": {
+      "type": "object",
+      "properties": {
+        "refreshToken": {
+          "type": "string",
+          "description": "User's refresh token used to obtain an access token."
+        },
+        "accessToken": {
+          "type": "string",
+          "description": "User's access token for immediate use."
+        }
+      },
+      "description": "LoginResponse represents the response after a successful login."
+    },
+    "auth_v1LogoutRequest": {
+      "type": "object",
+      "properties": {
+        "refreshToken": {
+          "type": "string",
+          "description": "The refresh token to invalidate."
+        }
+      },
+      "description": "LogoutRequest represents the request to log out a user by invalidating their refresh token."
+    },
+    "auth_v1RefreshTokensRequest": {
+      "type": "object",
+      "properties": {
+        "refreshToken": {
+          "type": "string",
+          "description": "User's current refresh token used to refresh both tokens."
+        }
+      },
+      "description": "RefreshTokensRequest represents the request to refresh both tokens."
+    },
+    "auth_v1RefreshTokensResponse": {
+      "type": "object",
+      "properties": {
+        "refreshToken": {
+          "type": "string",
+          "description": "User's new refresh token."
+        },
+        "accessToken": {
+          "type": "string",
+          "description": "User's new access token."
+        }
+      },
+      "description": "RefreshTokensResponse represents the response with both refreshed tokens."
+    },
     "protobufAny": {
       "type": "object",
       "properties": {

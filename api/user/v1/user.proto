@@ -67,6 +67,8 @@ service UserV1 {
 
 // Role defines the various roles a user can have in the system.
 enum Role {
+  // Unknown or unspecified role.
+  UNKNOWN_UNSPECIFIED = 0;
   // Regular user role.
   USER = 1;
   // Admin user role.

@@ -52,11 +52,6 @@ install-deps:
 	GOBIN=$(LOCAL_BIN) go install github.com/bojand/ghz/cmd/ghz@v0.120.0
 	GOBIN=$(LOCAL_BIN) go install github.com/gojuno/minimock/v3/cmd/minimock@latest
 
-# Fetch Go dependencies
-# get-protoc-deps:
-# 	go get -u google.golang.org/protobuf/cmd/protoc-gen-go
-# 	go get -u google.golang.org/grpc/cmd/protoc-gen-go-grpc
-
 # Linting
 lint:
 	GOBIN=$(LOCAL_BIN) bin/golangci-lint run ./internal/... ./cmd/... ./pkg/... -c .golangci.yaml --fix
@@ -79,45 +74,51 @@ generate-api:
 
 generate-user-api:
 	mkdir -p pkg/pb/user/v1 pkg/swagger
-	protoc --proto_path api/user/v1 --proto_path vendor.protogen \
-	--go_out=pkg/pb/user/v1 --go_opt=paths=source_relative \
-	--plugin=protoc-gen-go=$(LOCAL_BIN)/protoc-gen-go \
-	--go-grpc_out=pkg/pb/user/v1 --go-grpc_opt=paths=source_relative \
-	--plugin=protoc-gen-go-grpc=$(LOCAL_BIN)/protoc-gen-go-grpc \
-	--grpc-gateway_out=pkg/pb/user/v1 --grpc-gateway_opt=paths=source_relative \
-	--plugin=protoc-gen-grpc-gateway=$(LOCAL_BIN)/protoc-gen-grpc-gateway \
-	--openapiv2_out=allow_merge=true,merge_file_name=api:pkg/swagger \
-	--plugin=protoc-gen-openapiv2=$(LOCAL_BIN)/protoc-gen-openapiv2 \
-	--validate_out lang=go:pkg/pb/user/v1 --validate_opt=paths=source_relative \
-	--plugin=protoc-gen-validate=$(LOCAL_BIN)/protoc-gen-validate \
-	api/user/v1/user.proto
+	protoc --proto_path ./api/user/v1 --proto_path vendor.protogen \
+		--go_out=pkg/pb/user/v1 --go_opt=paths=source_relative \
+		--plugin=protoc-gen-go=$(LOCAL_BIN)/protoc-gen-go \
+		--go-grpc_out=pkg/pb/user/v1 --go-grpc_opt=paths=source_relative \
+		--plugin=protoc-gen-go-grpc=$(LOCAL_BIN)/protoc-gen-go-grpc \
+		--grpc-gateway_out=pkg/pb/user/v1 --grpc-gateway_opt=paths=source_relative \
+		--plugin=protoc-gen-grpc-gateway=$(LOCAL_BIN)/protoc-gen-grpc-gateway \
+		--validate_out lang=go:pkg/pb/user/v1 --validate_opt=paths=source_relative \
+		--plugin=protoc-gen-validate=$(LOCAL_BIN)/protoc-gen-validate \
+	./api/user/v1/user.proto
 
 generate-auth-api:
 	mkdir -p pkg/pb/auth/v1
-	protoc --proto_path api/auth/v1 --proto_path vendor.protogen \
-	--go_out=pkg/pb/auth/v1 --go_opt=paths=source_relative \
-	--plugin=protoc-gen-go=$(LOCAL_BIN)/protoc-gen-go \
-	--go-grpc_out=pkg/pb/auth/v1 --go-grpc_opt=paths=source_relative \
-	--plugin=protoc-gen-go-grpc=$(LOCAL_BIN)/protoc-gen-go-grpc \
-	--grpc-gateway_out=pkg/pb/auth/v1 --grpc-gateway_opt=paths=source_relative \
-	--plugin=protoc-gen-grpc-gateway=$(LOCAL_BIN)/protoc-gen-grpc-gateway \
-	--validate_out lang=go:pkg/pb/auth/v1 --validate_opt=paths=source_relative \
-	--plugin=protoc-gen-validate=$(LOCAL_BIN)/protoc-gen-validate \
-	api/auth/v1/auth.proto
-
+	protoc --proto_path ./api/auth/v1 --proto_path vendor.protogen \
+		--go_out=pkg/pb/auth/v1 --go_opt=paths=source_relative \
+		--plugin=protoc-gen-go=$(LOCAL_BIN)/protoc-gen-go \
+		--go-grpc_out=pkg/pb/auth/v1 --go-grpc_opt=paths=source_relative \
+		--plugin=protoc-gen-go-grpc=$(LOCAL_BIN)/protoc-gen-go-grpc \
+		--grpc-gateway_out=pkg/pb/auth/v1 --grpc-gateway_opt=paths=source_relative \
+		--plugin=protoc-gen-grpc-gateway=$(LOCAL_BIN)/protoc-gen-grpc-gateway \
+		--validate_out lang=go:pkg/pb/auth/v1 --validate_opt=paths=source_relative \
+		--plugin=protoc-gen-validate=$(LOCAL_BIN)/protoc-gen-validate \
+	./api/auth/v1/auth.proto
 
 generate-access-api:
 	mkdir -p pkg/pb/access/v1
-	protoc --proto_path api/access/v1 --proto_path api/user/v1 --proto_path vendor.protogen \
-	--go_out=pkg/pb/access/v1 --go_opt=paths=source_relative \
-	--plugin=protoc-gen-go=$(LOCAL_BIN)/protoc-gen-go \
-	--go-grpc_out=pkg/pb/access/v1 --go-grpc_opt=paths=source_relative \
-	--plugin=protoc-gen-go-grpc=$(LOCAL_BIN)/protoc-gen-go-grpc \
-	--grpc-gateway_out=pkg/pb/access/v1 --grpc-gateway_opt=paths=source_relative \
-	--plugin=protoc-gen-grpc-gateway=$(LOCAL_BIN)/protoc-gen-grpc-gateway \
-	--validate_out lang=go:pkg/pb/access/v1 --validate_opt=paths=source_relative \
-	--plugin=protoc-gen-validate=$(LOCAL_BIN)/protoc-gen-validate \
-	api/access/v1/access.proto
+	protoc --proto_path ./api/access/v1 --proto_path ./api/user/v1 --proto_path vendor.protogen \
+		--go_out=pkg/pb/access/v1 --go_opt=paths=source_relative \
+		--plugin=protoc-gen-go=$(LOCAL_BIN)/protoc-gen-go \
+		--go-grpc_out=pkg/pb/access/v1 --go-grpc_opt=paths=source_relative \
+		--plugin=protoc-gen-go-grpc=$(LOCAL_BIN)/protoc-gen-go-grpc \
+		--grpc-gateway_out=pkg/pb/access/v1 --grpc-gateway_opt=paths=source_relative \
+		--plugin=protoc-gen-grpc-gateway=$(LOCAL_BIN)/protoc-gen-grpc-gateway \
+		--validate_out lang=go:pkg/pb/access/v1 --validate_opt=paths=source_relative \
+		--plugin=protoc-gen-validate=$(LOCAL_BIN)/protoc-gen-validate \
+	./api/access/v1/access.proto
+
+generate-openapi:
+	mkdir -p pkg/swagger
+	protoc --proto_path ./api/auth/v1 --proto_path ./api/access/v1 --proto_path ./api/user/v1 \
+		--proto_path=vendor.protogen \
+		--openapiv2_out=allow_merge=true,merge_file_name=api:pkg/swagger \
+		--openapiv2_opt=logtostderr=true \
+		--plugin=protoc-gen-openapiv2=$(LOCAL_BIN)/protoc-gen-openapiv2 \
+	./api/**/**/*.proto
 
 # Update swagger environment variables
 update-swagger: check-env
