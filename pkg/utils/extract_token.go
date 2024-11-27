@@ -22,6 +22,7 @@ var (
 	ErrInvalidAuthHeaderFormat = errors.New("invalid authorization header format")
 )
 
+// ExtractToken extracts the token from the context.
 func ExtractToken(ctx context.Context) (string, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {

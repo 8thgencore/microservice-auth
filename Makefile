@@ -71,6 +71,7 @@ generate-api:
 	make generate-user-api
 	make generate-auth-api
 	make generate-access-api
+	make generate-openapi
 
 generate-user-api:
 	mkdir -p pkg/pb/user/v1 pkg/swagger

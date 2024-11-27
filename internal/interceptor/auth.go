@@ -4,14 +4,17 @@ import (
 	"context"
 	"errors"
 
+	"github.com/8thgencore/microservice-auth/internal/repository"
 	"github.com/8thgencore/microservice-auth/internal/tokens"
 	userv1 "github.com/8thgencore/microservice-auth/pkg/pb/user/v1"
 	"github.com/8thgencore/microservice-auth/pkg/utils"
 	"google.golang.org/grpc"
 )
 
+// Auth is a struct that handles authentication.
 type Auth struct {
 	TokenOperations tokens.TokenOperations
+	TokenRepository repository.TokenRepository
 }
 
 // Map of endpoints that do not require authorization
@@ -23,8 +26,14 @@ var publicEndpoints = map[string]struct{}{
 
 // Map of endpoints that are only accessible by admins
 var adminEndpoints = map[string]struct{}{
-	"/auth_v1.AuthV1/AdminEndpoint1": {},
-	"/auth_v1.AuthV1/AdminEndpoint2": {},
+	"/user_v1.UserV1/Create":                 {},
+	"/user_v1.UserV1/Get":                    {},
+	"/user_v1.UserV1/Update":                 {},
+	"/user_v1.UserV1/Delete":                 {},
+	"/access_v1.AccessV1/AddRoleEndpoint":    {},
+	"/access_v1.AccessV1/UpdateRoleEndpoint": {},
+	"/access_v1.AccessV1/DeleteRoleEndpoint": {},
+	"/access_v1.AccessV1/GetRoleEndpoints":   {},
 }
 
 // AuthInterceptor is used for authorization.
@@ -49,6 +58,14 @@ func (c *Auth) AuthInterceptor(
 	claims, err := c.TokenOperations.VerifyAccessToken(token)
 	if err != nil {
 		return nil, err
+	}
+
+	version, err := c.TokenRepository.GetTokenVersion(ctx, claims.Subject)
+	if err != nil {
+		return nil, err
+	}
+	if claims.Version < version {
+		return nil, errors.New("need refresh token")
 	}
 
 	// Checking whether the current method is in the list of admin endpoints

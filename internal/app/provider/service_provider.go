@@ -185,6 +185,7 @@ func (s *ServiceProvider) AuthInterceptorFactory(ctx context.Context) *intercept
 	if s.authInterceptor == nil {
 		s.authInterceptor = &interceptor.Auth{
 			TokenOperations: s.TokenOperations(ctx),
+			TokenRepository: s.TokenRepository(ctx),
 		}
 	}
 
