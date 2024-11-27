@@ -93,10 +93,10 @@ func TestLogin(t *testing.T) {
 				req: req,
 			},
 			want: nil,
-			err:  ErrUserNotFound,
+			err:  ErrWrongPassword,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
-				mock.GetAuthInfoMock.Expect(minimock.AnyContext, username).Return(nil, ErrUserNotFound)
+				mock.GetAuthInfoMock.Expect(minimock.AnyContext, username).Return(nil, ErrWrongPassword)
 				return mock
 			},
 			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {

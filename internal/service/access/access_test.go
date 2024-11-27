@@ -219,6 +219,7 @@ func TestCheck(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
+				mock.VerifyAccessTokenMock.Expect(token).Return(claimsAdmin, nil)
 				return mock
 			},
 		},

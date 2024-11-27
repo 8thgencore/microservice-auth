@@ -526,7 +526,7 @@ func TestUpdate(t *testing.T) {
 			},
 			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
 				mock := repositoryMocks.NewTokenRepositoryMock(mc)
-				mock.SetTokenVersionMock.Expect(ctx, id, 0).Return(nil)
+				mock.SetTokenVersionMock.Expect(ctx, id, 1).Return(nil)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {

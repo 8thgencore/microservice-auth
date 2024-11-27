@@ -2,13 +2,14 @@ package interceptor
 
 import (
 	"context"
-	"errors"
 
 	"github.com/8thgencore/microservice-auth/internal/repository"
 	"github.com/8thgencore/microservice-auth/internal/tokens"
 	userv1 "github.com/8thgencore/microservice-auth/pkg/pb/user/v1"
 	"github.com/8thgencore/microservice-auth/pkg/utils"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // Auth is a struct that handles authentication.
@@ -51,27 +52,27 @@ func (c *Auth) AuthInterceptor(
 	// Extract token from context
 	token, err := utils.ExtractToken(ctx)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Unauthenticated, err.Error())
 	}
 
 	// Verify access token
 	claims, err := c.TokenOperations.VerifyAccessToken(token)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Unauthenticated, err.Error())
 	}
 
 	version, err := c.TokenRepository.GetTokenVersion(ctx, claims.Subject)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 	if claims.Version < version {
-		return nil, errors.New("need refresh token")
+		return nil, status.Errorf(codes.Unauthenticated, "token is expired")
 	}
 
 	// Checking whether the current method is in the list of admin endpoints
 	if _, exists := adminEndpoints[info.FullMethod]; exists {
 		if claims.Role != userv1.Role_name[int32(userv1.Role_ADMIN)] {
-			return nil, errors.New("access denied: insufficient permissions")
+			return nil, status.Errorf(codes.PermissionDenied, "access denied: insufficient permissions")
 		}
 	}
 
