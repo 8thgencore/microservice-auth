@@ -19,7 +19,7 @@ func (impl *Implementation) Create(ctx context.Context, req *userv1.CreateReques
 
 	id, err := impl.userService.Create(ctx, converter.ToUserCreateFromAPI(req.GetUser()))
 	if err != nil {
-		return nil,  status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
 	return &userv1.CreateResponse{
@@ -30,12 +30,12 @@ func (impl *Implementation) Create(ctx context.Context, req *userv1.CreateReques
 // Get is used for getting user info.
 func (impl *Implementation) Get(ctx context.Context, req *userv1.GetRequest) (*userv1.GetResponse, error) {
 	if req.GetId() == "" {
-        return nil, status.Errorf(codes.InvalidArgument, "invalid request: user ID is required")
-    }
+		return nil, status.Errorf(codes.InvalidArgument, "invalid request: user ID is required")
+	}
 
 	user, err := impl.userService.Get(ctx, req.GetId())
 	if err != nil {
-	     return nil, status.Errorf(codes.NotFound, err.Error())
+		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 
 	return &userv1.GetResponse{
@@ -59,15 +59,14 @@ func (impl *Implementation) Update(ctx context.Context, req *userv1.UpdateReques
 
 // Delete is used for deleting user.
 func (impl *Implementation) Delete(ctx context.Context, req *userv1.DeleteRequest) (*empty.Empty, error) {
-    if req.GetId() == "" {
-        return nil, status.Errorf(codes.InvalidArgument, "invalid request: user ID is required")
-    }
+	if req.GetId() == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid request: user ID is required")
+	}
 
-    err := impl.userService.Delete(ctx, req.GetId())
-    if err != nil {
-        return nil, status.Errorf(codes.NotFound, err.Error())
-    }
-
+	err := impl.userService.Delete(ctx, req.GetId())
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, err.Error())
+	}
 
 	return &empty.Empty{}, nil
 }

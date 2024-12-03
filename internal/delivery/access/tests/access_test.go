@@ -8,6 +8,8 @@ import (
 	"github.com/gojuno/minimock/v3"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	accessAPI "github.com/8thgencore/microservice-auth/internal/delivery/access"
 	"github.com/8thgencore/microservice-auth/internal/service"
@@ -68,7 +70,7 @@ func TestCheck(t *testing.T) {
 				req: req,
 			},
 			want: nil,
-			err:  serviceErr,
+			err:  status.Errorf(codes.PermissionDenied, serviceErr.Error()),
 			accessServiceMock: func(mc *minimock.Controller) service.AccessService {
 				mock := serviceMocks.NewAccessServiceMock(mc)
 				mock.CheckMock.Expect(minimock.AnyContext, endpoint).Return(serviceErr)
