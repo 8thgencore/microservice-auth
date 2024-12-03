@@ -7,6 +7,8 @@ import (
 
 	"github.com/gojuno/minimock/v3"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	authAPI "github.com/8thgencore/microservice-auth/internal/delivery/auth"
 	"github.com/8thgencore/microservice-auth/internal/model"
@@ -86,7 +88,7 @@ func TestLogin(t *testing.T) {
 				req: req,
 			},
 			want: nil,
-			err:  serviceErr,
+			err:  status.Errorf(codes.Unauthenticated, serviceErr.Error()),
 			authServiceMock: func(mc *minimock.Controller) service.AuthService {
 				mock := serviceMocks.NewAuthServiceMock(mc)
 				mock.LoginMock.Expect(minimock.AnyContext, creds).Return(&model.TokenPair{}, serviceErr)
@@ -171,7 +173,7 @@ func TestRefreshTokens(t *testing.T) {
 				req: req,
 			},
 			want: nil,
-			err:  serviceErr,
+			err:  status.Errorf(codes.Unauthenticated, serviceErr.Error()),
 			authServiceMock: func(mc *minimock.Controller) service.AuthService {
 				mock := serviceMocks.NewAuthServiceMock(mc)
 				mock.GetAccessTokenMock.Expect(minimock.AnyContext, oldRefreshToken).
@@ -186,7 +188,7 @@ func TestRefreshTokens(t *testing.T) {
 				req: req,
 			},
 			want: nil,
-			err:  serviceErr,
+			err:  status.Errorf(codes.Unauthenticated, serviceErr.Error()),
 			authServiceMock: func(mc *minimock.Controller) service.AuthService {
 				mock := serviceMocks.NewAuthServiceMock(mc)
 				mock.GetAccessTokenMock.Expect(minimock.AnyContext, oldRefreshToken).

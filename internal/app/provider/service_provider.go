@@ -7,6 +7,7 @@ import (
 	"github.com/8thgencore/microservice-auth/internal/delivery/access"
 	"github.com/8thgencore/microservice-auth/internal/delivery/auth"
 	"github.com/8thgencore/microservice-auth/internal/delivery/user"
+	"github.com/8thgencore/microservice-auth/internal/interceptor"
 	"github.com/8thgencore/microservice-auth/internal/repository"
 	"github.com/8thgencore/microservice-auth/internal/service"
 	"github.com/8thgencore/microservice-auth/internal/tokens"
@@ -31,6 +32,8 @@ type ServiceProvider struct {
 
 	dbClient  db.Client
 	txManager db.TxManager
+
+	authInterceptor *interceptor.Auth
 
 	cache cache.Client
 
@@ -175,4 +178,16 @@ func (s *ServiceProvider) TokenOperations(ctx context.Context) tokens.TokenOpera
 	}
 
 	return s.tokenOperations
+}
+
+// AuthInterceptorFactory returns an instance of interceptor.Auth.
+func (s *ServiceProvider) AuthInterceptorFactory(ctx context.Context) *interceptor.Auth {
+	if s.authInterceptor == nil {
+		s.authInterceptor = &interceptor.Auth{
+			TokenOperations: s.TokenOperations(ctx),
+			TokenRepository: s.TokenRepository(ctx),
+		}
+	}
+
+	return s.authInterceptor
 }

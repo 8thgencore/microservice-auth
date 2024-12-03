@@ -22,7 +22,7 @@ var (
 func (s *authService) Login(ctx context.Context, creds *model.UserCreds) (*model.TokenPair, error) {
 	authInfo, err := s.userRepository.GetAuthInfo(ctx, creds.Username)
 	if err != nil {
-		return nil, ErrUserNotFound
+		return nil, ErrWrongPassword
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(authInfo.Password), []byte(creds.Password))
@@ -69,9 +69,10 @@ func (s *authService) GetAccessToken(ctx context.Context, refreshToken string) (
 	}
 
 	accessToken, err := s.tokenOperations.GenerateAccessToken(model.User{
-		ID:   user.ID,
-		Name: user.Name,
-		Role: user.Role,
+		ID:      user.ID,
+		Name:    user.Name,
+		Role:    user.Role,
+		Version: user.Version,
 	},
 	)
 	if err != nil {

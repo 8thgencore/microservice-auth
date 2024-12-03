@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/golang/protobuf/ptypes/empty"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/8thgencore/microservice-auth/internal/converter"
 	accessv1 "github.com/8thgencore/microservice-auth/pkg/pb/access/v1"
@@ -13,7 +15,7 @@ import (
 func (i *Implementation) Check(ctx context.Context, req *accessv1.CheckRequest) (*empty.Empty, error) {
 	err := i.accessService.Check(ctx, req.GetEndpoint())
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.PermissionDenied, err.Error())
 	}
 
 	return &empty.Empty{}, nil
@@ -26,7 +28,7 @@ func (i *Implementation) AddRoleEndpoint(
 ) (*empty.Empty, error) {
 	err := i.accessService.AddRoleEndpoint(ctx, req.GetEndpoint(), converter.ToRoleStrings(req.GetAllowedRoles()))
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
 	return &empty.Empty{}, nil
@@ -39,7 +41,7 @@ func (i *Implementation) UpdateRoleEndpoint(
 ) (*empty.Empty, error) {
 	err := i.accessService.UpdateRoleEndpoint(ctx, req.GetEndpoint(), converter.ToRoleStrings(req.GetAllowedRoles()))
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
 	return &empty.Empty{}, nil
@@ -52,7 +54,7 @@ func (i *Implementation) DeleteRoleEndpoint(
 ) (*empty.Empty, error) {
 	err := i.accessService.DeleteRoleEndpoint(ctx, req.GetEndpoint())
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
 	return &empty.Empty{}, nil
@@ -65,7 +67,7 @@ func (i *Implementation) GetRoleEndpoints(
 ) (*accessv1.GetRoleEndpointsResponse, error) {
 	endpoints, err := i.accessService.GetRoleEndpoints(ctx)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
 	// Convert the service's response to the gRPC response format

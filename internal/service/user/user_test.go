@@ -30,18 +30,6 @@ var (
 	role            = "USER"
 	createdAt       = timestamppb.Now()
 	updatedAt       = timestamppb.Now()
-
-	user = &model.User{
-		ID:        id,
-		Name:      name,
-		Email:     email,
-		Role:      role,
-		CreatedAt: createdAt.AsTime(),
-		UpdatedAt: sql.NullTime{
-			Time:  updatedAt.AsTime(),
-			Valid: true,
-		},
-	}
 )
 
 type (
@@ -98,6 +86,19 @@ func TestCreate(t *testing.T) {
 			Password:        password,
 			PasswordConfirm: passwordConfirm,
 			Role:            role,
+		}
+
+		user = &model.User{
+			ID:        id,
+			Name:      name,
+			Email:     email,
+			Role:      role,
+			Version:   0,
+			CreatedAt: createdAt.AsTime(),
+			UpdatedAt: sql.NullTime{
+				Time:  updatedAt.AsTime(),
+				Valid: true,
+			},
 		}
 	)
 
@@ -320,6 +321,19 @@ func TestGet(t *testing.T) {
 	var (
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
+
+		user = &model.User{
+			ID:        id,
+			Name:      name,
+			Email:     email,
+			Role:      role,
+			Version:   0,
+			CreatedAt: createdAt.AsTime(),
+			UpdatedAt: sql.NullTime{
+				Time:  updatedAt.AsTime(),
+				Valid: true,
+			},
+		}
 	)
 
 	tests := []struct {
@@ -494,6 +508,19 @@ func TestUpdate(t *testing.T) {
 				Valid:  true,
 			},
 		}
+
+		user = &model.User{
+			ID:        id,
+			Name:      name,
+			Email:     email,
+			Role:      role,
+			Version:   0,
+			CreatedAt: createdAt.AsTime(),
+			UpdatedAt: sql.NullTime{
+				Time:  updatedAt.AsTime(),
+				Valid: true,
+			},
+		}
 	)
 
 	tests := []struct {
@@ -526,7 +553,7 @@ func TestUpdate(t *testing.T) {
 			},
 			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
 				mock := repositoryMocks.NewTokenRepositoryMock(mc)
-				mock.SetTokenVersionMock.Expect(ctx, id, 0).Return(nil)
+				mock.SetTokenVersionMock.Expect(ctx, id, 1).Return(nil)
 				return mock
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
@@ -650,6 +677,19 @@ func TestDelete(t *testing.T) {
 	var (
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
+
+		user = &model.User{
+			ID:        id,
+			Name:      name,
+			Email:     email,
+			Role:      role,
+			Version:   0,
+			CreatedAt: createdAt.AsTime(),
+			UpdatedAt: sql.NullTime{
+				Time:  updatedAt.AsTime(),
+				Valid: true,
+			},
+		}
 	)
 
 	tests := []struct {

@@ -4,17 +4,12 @@ import (
 	"context"
 	"errors"
 	"slices"
-	"strings"
-
-	"google.golang.org/grpc/metadata"
 
 	"github.com/8thgencore/microservice-auth/internal/model"
+	"github.com/8thgencore/microservice-auth/pkg/utils"
 )
 
 const (
-	authMetadataHeader = "authorization"
-	authPrefix         = "Bearer "
-
 	// Constants for service endpoints
 	getRoleEndpointsEndpoint   = "/access_v1.AccessV1/GetRoleEndpoints"
 	addRoleEndpointEndpoint    = "/access_v1.AccessV1/AddRoleEndpoint"
@@ -23,12 +18,6 @@ const (
 )
 
 var (
-	// ErrMetadataNotProvided occurs when metadata is not passed in the request.
-	ErrMetadataNotProvided = errors.New("metadata is not provided")
-	// ErrAuthHeaderNotProvided occurs when the authorization header is missing from the request.
-	ErrAuthHeaderNotProvided = errors.New("authorization header is not provided")
-	// ErrInvalidAuthHeaderFormat occurs when the authorization header has an incorrect format.
-	ErrInvalidAuthHeaderFormat = errors.New("invalid authorization header format")
 	// ErrFailedToReadAccessPolicy occurs when the access policy could not be read.
 	ErrFailedToReadAccessPolicy = errors.New("failed to read access policy")
 	// ErrEndpointNotFound occurs when the specified endpoint is not found.
@@ -55,9 +44,14 @@ var (
 )
 
 func (s *accessService) Check(ctx context.Context, endpoint string) error {
-	token, err := s.extractToken(ctx)
+	token, err := utils.ExtractToken(ctx)
 	if err != nil {
 		return err
+	}
+
+	claims, err := s.tokenOperations.VerifyAccessToken(token)
+	if err != nil {
+		return ErrInvalidAccessToken
 	}
 
 	s.rolesMutex.RLock()
@@ -66,11 +60,6 @@ func (s *accessService) Check(ctx context.Context, endpoint string) error {
 
 	if !ok {
 		return ErrEndpointNotFound
-	}
-
-	claims, err := s.tokenOperations.VerifyAccessToken(token)
-	if err != nil {
-		return ErrInvalidAccessToken
 	}
 
 	if !slices.Contains(roles, claims.Role) {
@@ -156,22 +145,4 @@ func (s *accessService) DeleteRoleEndpoint(ctx context.Context, endpoint string)
 	delete(s.accessibleRoles, endpoint)
 
 	return nil
-}
-
-func (s *accessService) extractToken(ctx context.Context) (string, error) {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return "", ErrMetadataNotProvided
-	}
-
-	authHeader, ok := md[authMetadataHeader]
-	if !ok || len(authHeader) == 0 {
-		return "", ErrAuthHeaderNotProvided
-	}
-
-	if !strings.HasPrefix(authHeader[0], authPrefix) {
-		return "", ErrInvalidAuthHeaderFormat
-	}
-
-	return strings.TrimPrefix(authHeader[0], authPrefix), nil
 }

@@ -3,6 +3,8 @@ package token
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/8thgencore/microservice-auth/internal/repository"
@@ -64,10 +66,17 @@ func (r *repo) SetTokenVersion(ctx context.Context, userID string, version int) 
 // GetTokenVersion gets the current token version from the cache.
 func (r *repo) GetTokenVersion(ctx context.Context, userID string) (int, error) {
 	key := "token_version:" + userID
-	var version int
-	_, err := r.redisClient.Get(ctx, key)
+	rawVersion, err := r.redisClient.Get(ctx, key)
 	if err != nil {
+		if strings.Contains(err.Error(), "key not found") {
+			return 0, nil
+		}
 		return 0, fmt.Errorf("could not get user version: %w", err)
+	}
+
+	version, err := strconv.Atoi(rawVersion)
+	if err != nil {
+		return 0, fmt.Errorf("could not parse user version: %w", err)
 	}
 
 	return version, nil

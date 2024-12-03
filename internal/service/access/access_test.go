@@ -14,6 +14,7 @@ import (
 	repositoryMocks "github.com/8thgencore/microservice-auth/internal/repository/mocks"
 	"github.com/8thgencore/microservice-auth/internal/tokens"
 	tokenMocks "github.com/8thgencore/microservice-auth/internal/tokens/mocks"
+	"github.com/8thgencore/microservice-auth/pkg/utils"
 )
 
 var (
@@ -158,7 +159,7 @@ func TestCheck(t *testing.T) {
 				ctx: ctxNoMd,
 				req: req,
 			},
-			err: ErrMetadataNotProvided,
+			err: utils.ErrMetadataNotProvided,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
 				mock.GetRoleEndpointsMock.Expect(ctx).Return(endpointPermissions, nil)
@@ -175,7 +176,7 @@ func TestCheck(t *testing.T) {
 				ctx: ctxNoAuthHeader,
 				req: req,
 			},
-			err: ErrAuthHeaderNotProvided,
+			err: utils.ErrAuthHeaderNotProvided,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
 				mock.GetRoleEndpointsMock.Expect(ctx).Return(endpointPermissions, nil)
@@ -193,7 +194,7 @@ func TestCheck(t *testing.T) {
 				ctx: ctxNoAuthPrefix,
 				req: req,
 			},
-			err: ErrInvalidAuthHeaderFormat,
+			err: utils.ErrInvalidAuthHeaderFormat,
 			accessRepositoryMock: func(mc *minimock.Controller) repository.AccessRepository {
 				mock := repositoryMocks.NewAccessRepositoryMock(mc)
 				mock.GetRoleEndpointsMock.Expect(ctx).Return(endpointPermissions, nil)
@@ -218,6 +219,7 @@ func TestCheck(t *testing.T) {
 			},
 			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
 				mock := tokenMocks.NewTokenOperationsMock(mc)
+				mock.VerifyAccessTokenMock.Expect(token).Return(claimsAdmin, nil)
 				return mock
 			},
 		},

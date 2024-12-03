@@ -105,6 +105,7 @@ func (s *serv) Update(ctx context.Context, user *model.UserUpdate) error {
 			return errTx
 		}
 
+		currentUser.Version = currentUser.Version + 1
 		convertedVersion, err := safeIntToInt32(currentUser.Version)
 		if err != nil {
 			logger.Error("version value out of range for int32: %d", zap.Int("method", currentUser.Version))

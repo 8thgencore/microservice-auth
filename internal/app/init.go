@@ -89,6 +89,7 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 		creds = insecure.NewCredentials()
 	}
 
+	c := a.serviceProvider.AuthInterceptorFactory(ctx)
 	a.grpcServer = grpc.NewServer(
 		grpc.Creds(creds),
 		grpc.ChainUnaryInterceptor(
@@ -96,6 +97,7 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 			interceptor.ValidateInterceptor,
 			interceptor.MetricsInterceptor,
 			interceptor.TracingInterceptor,
+			c.AuthInterceptor,
 		),
 	)
 
