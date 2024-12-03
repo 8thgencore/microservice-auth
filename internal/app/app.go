@@ -127,8 +127,7 @@ func (a *App) runSwaggerServer() error {
 func (a *App) runPrometheusServer() error {
 	logger.Info("Prometheus server running on ", zap.String("address", a.serviceProvider.Config.Prometheus.Address()))
 
-	err := a.prometheusServer.ListenAndServe()
-	if err != nil {
+	if err := a.prometheusServer.ListenAndServe(); err != nil {
 		return err
 	}
 

@@ -11,7 +11,7 @@ RUN apk update && \
     rm -rf /var/cache/apk/*
 
 # Download the Goose binary and add it to the /bin/ directory
-ADD https://github.com/pressly/goose/releases/download/v3.21.1/goose_linux_x86_64 /bin/goose
+ADD https://github.com/pressly/goose/releases/download/v3.23.0/goose_linux_x86_64 /bin/goose
 # Make the Goose binary executable
 RUN chmod +x /bin/goose
 

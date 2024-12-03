@@ -184,22 +184,24 @@ test-coverage:
 	go tool cover -func=$(TESTS_COVERAGE_FILE) | grep "total"
 
 # Load Testing
+# for tls change --insecure to --cacert=tls/ca.crt
 load-test: check-env
 	$(LOCAL_BIN)/ghz \
 		--proto api/user/v1/user.proto \
 		--import-paths=vendor.protogen/ \
-		--cacert=tls/ca.crt \
+		--insecure \
 		--call user_v1.UserV1.Get \
 		--data '{"id": "01928c0f-f799-71fb-84f4-89197ae522b0"}' \
 		--rps 100 \
 		--total 3000 \
 		${GRPC_HOST}:${GRPC_PORT}
 
+# for tls change --insecure to --cacert=tls/ca.crt
 load-test-error: check-env
 	$(LOCAL_BIN)/ghz \
 		--proto api/user/v1/user.proto \
 		--import-paths=vendor.protogen/ \
-		--cacert=tls/ca.crt \
+		--insecure \
 		--call user_v1.UserV1.Get \
 		--data '{"id": "9f80dfbf-2ae2-4a9c-a490-3921ca7f2b65"}' \
 		--rps 100 \
@@ -228,7 +230,7 @@ docker-build-migrator: check-env
 # DEPLOY #
 # ###### #
 
-docker-deploy: check-env docker-build
+docker-deploy: check-env
 	docker compose --env-file=.env.$(ENV) up -d
 
 # ######### #

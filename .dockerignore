@@ -30,8 +30,5 @@ LICENSE
 go.work
 go.work.sum
 
-# env file
-.env
-
 # air tmp directory
 tmp/
