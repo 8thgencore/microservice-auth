@@ -9,6 +9,7 @@ services:
       - "${GRPC_PORT}:${GRPC_PORT}"
       - "${HTTP_PORT}:${HTTP_PORT}"
       - "${SWAGGER_PORT}:${SWAGGER_PORT}"
+      - "${PROMETHEUS_HTTP_PORT}:${PROMETHEUS_HTTP_PORT}"
     networks:
       - service-network
     depends_on:
