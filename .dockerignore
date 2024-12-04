@@ -30,5 +30,12 @@ LICENSE
 go.work
 go.work.sum
 
+# Tests coverage
+coverage.*
+
 # air tmp directory
 tmp/
+
+# Docker
+Dockerfile
+docker-compose.yaml

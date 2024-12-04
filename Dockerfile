@@ -40,8 +40,8 @@ RUN mkdir logs/
 # Use a minimal base image to run the application
 FROM scratch
 
-# Argument for configuration file path to be passed during the build
-ARG CONFIG
+# Argument for the environment to be passed during the build
+ARG ENV
 
 # Set the working directory in the new image
 WORKDIR /opt/app/
@@ -53,7 +53,7 @@ COPY --from=builder /etc/group /etc/group
 # Copy the compiled binary and configuration file from the builder stage
 # Ensure the ownership is set to the 'auth' user and group
 COPY --from=builder --chown=auth:auth /opt/app/bin/main .
-COPY --from=builder --chown=auth:auth /opt/app/${CONFIG} ./config
+COPY --from=builder --chown=auth:auth /opt/app/.env.${ENV} ./config
 
 # Set the user and group for running the application
 USER auth:auth
