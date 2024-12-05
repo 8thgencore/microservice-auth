@@ -221,10 +221,10 @@ docker-net:
 docker-build: docker-build-app docker-build-migrator
 
 docker-build-app: check-env
-	docker buildx build --no-cache --platform linux/amd64 -t auth:${APP_IMAGE_TAG} --build-arg="ENV=${ENV}" .
+	docker buildx build --no-cache --platform linux/amd64 -t auth:${APP_IMAGE_TAG} .
 
 docker-build-migrator: check-env
-	docker buildx build --no-cache --platform linux/amd64 -t migrator-auth:${MIGRATOR_IMAGE_TAG} -f migrator.Dockerfile --build-arg="ENV=${ENV}" .
+	docker buildx build --no-cache --platform linux/amd64 -t migrator-auth:${MIGRATOR_IMAGE_TAG} -f migrator.Dockerfile .
 
 # ###### #
 # DEPLOY #

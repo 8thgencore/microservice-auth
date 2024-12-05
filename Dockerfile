@@ -1,12 +1,8 @@
 # Use the official Golang image as the base for building the application
 FROM golang:1.23.3-alpine3.20 AS builder
 
-# Argument for the environment to be passed during the build
-ARG ENV
-
 # Update and upgrade the Alpine packages, then install 'make'
 RUN apk update && apk upgrade --available && \
-    apk add make && \
     # Create a new user 'auth' with specific parameters
     adduser \
     --disabled-password \
@@ -29,19 +25,13 @@ RUN go mod download && go mod verify
 COPY . .
 
 # Build the application using the 'make' command, passing the environment as a variable
-RUN make build-app ENV=${ENV}
-
-# Create a logs directory for the application (if needed at runtime)
-RUN mkdir logs/
+RUN GOOS=linux GOARCH=amd64 go build -o ./bin/main cmd/user/main.go
 
 ###########
 # 2 stage #
 ###########
 # Use a minimal base image to run the application
 FROM scratch
-
-# Argument for the environment to be passed during the build
-ARG ENV
 
 # Set the working directory in the new image
 WORKDIR /opt/app/
@@ -53,10 +43,9 @@ COPY --from=builder /etc/group /etc/group
 # Copy the compiled binary and configuration file from the builder stage
 # Ensure the ownership is set to the 'auth' user and group
 COPY --from=builder --chown=auth:auth /opt/app/bin/main .
-COPY --from=builder --chown=auth:auth /opt/app/.env.${ENV} ./config
 
 # Set the user and group for running the application
 USER auth:auth
 
 # Command to run the application with the specified configuration file
-CMD ["./main", "-config=./config"]
+ENTRYPOINT ["./main"]

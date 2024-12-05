@@ -26,6 +26,12 @@ LICENSE
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
+# env file
+.env
+.env.local
+.env.stage
+.env.prod
+
 # Go workspace file
 go.work
 go.work.sum

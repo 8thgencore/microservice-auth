@@ -22,12 +22,10 @@ services:
     image: postgres:${POSTGRES_IMAGE_TAG}
     container_name: db-auth
     restart: unless-stopped
-    env_file:
-      - .env.${ENV}
-    # expose:
-    #   - 5432
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+    expose:
+      - 5432
+    # ports:
+      # - "${POSTGRES_PORT:-5432}:5432"
     networks:
       - service-network
     volumes:
@@ -50,15 +48,13 @@ services:
       #   code and print a message, when the variable is not set or empty
       - redis-server --requirepass "$${REDIS_PASSWORD:?REDIS_PASSWORD variable is not set}"
     restart: unless-stopped
-    env_file:
-      - .env.${ENV}
     environment:
       ALLOW_EMPTY_PASSWORD: no
       REDIS_PASSWORD: "${REDIS_PASSWORD}"
-    # expose:
-    #   - 6379
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
+    expose:
+      - 6379
+    # ports:
+      # - "${REDIS_PORT:-6379}:6379"
     networks:
       - service-network
     healthcheck:
@@ -71,8 +67,8 @@ services:
     image: migrator-auth:${MIGRATOR_IMAGE_TAG}
     container_name: migrator-auth
     restart: on-failure
-    environment:
-      DB_HOST: db-auth
+    env_file:
+      - .env.${ENV}
     networks:
       - service-network
     depends_on:
@@ -82,8 +78,6 @@ services:
   prometheus:
     image: prom/prometheus:${PROMETHEUS_IMAGE_TAG}
     container_name: prometheus
-    env_file:
-      - .env.${ENV}
     ports:
       - "9090:9090"
     networks:
