@@ -1,9 +1,6 @@
 # Set the base image to Alpine Linux 3.20
 FROM alpine:3.20
 
-# Define an argument for the environment
-ARG ENV=$ENV
-
 # Update and upgrade the package index, install Bash, and remove cached packages
 RUN apk update && \
     apk upgrade && \
@@ -21,7 +18,6 @@ WORKDIR /opt/app
 # Copy the SQL migration files, the migration script, and the environment file to the container
 COPY migrations/*.sql migrations/
 COPY migration.sh ./migration.sh
-COPY .env.${ENV} ./.env
 
 # Make the migration script executable
 RUN chmod +x migration.sh
