@@ -22,6 +22,8 @@ services:
     image: postgres:${POSTGRES_IMAGE_TAG}
     container_name: db-auth
     restart: unless-stopped
+    env_file:
+      - .env.${ENV}
     expose:
       - 5432
     # ports:
