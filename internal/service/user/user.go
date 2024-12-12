@@ -10,7 +10,6 @@ import (
 	"github.com/8thgencore/microservice-auth/internal/model"
 	"github.com/8thgencore/microservice-common/pkg/logger"
 	"github.com/google/uuid"
-	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -108,7 +107,7 @@ func (s *serv) Update(ctx context.Context, user *model.UserUpdate) error {
 		currentUser.Version = currentUser.Version + 1
 		convertedVersion, err := safeIntToInt32(currentUser.Version)
 		if err != nil {
-			logger.Error("version value out of range for int32: %d", zap.Int("method", currentUser.Version))
+			logger.Error("version value out of range for int32: %d", logger.Int("method", currentUser.Version))
 			return err
 		}
 		user.Version = sql.NullInt32{Int32: convertedVersion, Valid: true}

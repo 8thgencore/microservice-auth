@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"log"
 
 	"github.com/8thgencore/microservice-auth/internal/config"
 	"github.com/8thgencore/microservice-auth/internal/delivery/access"
@@ -15,7 +16,7 @@ import (
 	"github.com/8thgencore/microservice-common/pkg/cache"
 	"github.com/8thgencore/microservice-common/pkg/db"
 	"github.com/8thgencore/microservice-common/pkg/logger"
-	"go.uber.org/zap"
+	"github.com/8thgencore/microservice-common/pkg/logger/sl"
 
 	accessRepository "github.com/8thgencore/microservice-auth/internal/repository/access"
 	logRepository "github.com/8thgencore/microservice-auth/internal/repository/log"
@@ -121,10 +122,10 @@ func (s *ServiceProvider) AuthService(ctx context.Context) service.AuthService {
 			s.TokenOperations(ctx),
 		)
 	}
+	log.Fatal()
 
 	return s.authService
 }
-
 // AccessService returns an access service.
 func (s *ServiceProvider) AccessService(ctx context.Context) service.AccessService {
 	if s.accessService == nil {
@@ -135,7 +136,7 @@ func (s *ServiceProvider) AccessService(ctx context.Context) service.AccessServi
 			s.TokenOperations(ctx),
 		)
 		if err != nil {
-			logger.Fatal("failed to run access service: ", zap.Error(err))
+			logger.Fatal("failed to run access service: ", sl.Err(err))
 		}
 	}
 
