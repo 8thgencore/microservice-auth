@@ -77,15 +77,20 @@ func (a *App) initServiceProvider(_ context.Context) error {
 }
 
 func (a *App) initGRPCServer(ctx context.Context) error {
+	log.Println("Initializing gRPC server...")
+
 	var creds credentials.TransportCredentials
 	var err error
 
 	if a.cfg.TLS.Enable {
+		log.Println("Enabling TLS for gRPC server...")
 		creds, err = credentials.NewServerTLSFromFile(a.cfg.TLS.CertPath, a.cfg.TLS.KeyPath)
 		if err != nil {
+			log.Printf("Failed to create TLS credentials: %v", err)
 			return err
 		}
 	} else {
+		log.Println("Using insecure credentials for gRPC server...")
 		creds = insecure.NewCredentials()
 	}
 
@@ -103,23 +108,33 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 
 	reflection.Register(a.grpcServer)
 
+	log.Println("Registering UserV1 service...")
 	userv1.RegisterUserV1Server(a.grpcServer, a.serviceProvider.UserImpl(ctx))
+	log.Println("Registering AuthV1 service...")
 	authv1.RegisterAuthV1Server(a.grpcServer, a.serviceProvider.AuthImpl(ctx))
+	log.Println("Registering AccessV1 service...")
 	accessv1.RegisterAccessV1Server(a.grpcServer, a.serviceProvider.AccessImpl(ctx))
+
+	log.Println("gRPC server initialized successfully.")
 
 	return nil
 }
 
 func (a *App) initHTTPServer(ctx context.Context) error {
+	log.Println("Initializing HTTP server...")
+
 	var creds credentials.TransportCredentials
 	var err error
 
 	if a.cfg.TLS.Enable {
+		log.Println("Enabling TLS for HTTP client to connect to gRPC server...")
 		creds, err = credentials.NewClientTLSFromFile(a.cfg.TLS.CertPath, "")
 		if err != nil {
+			log.Printf("Failed to create TLS credentials for HTTP client: %v", err)
 			return err
 		}
 	} else {
+		log.Println("Using insecure credentials for HTTP client to connect to gRPC server...")
 		creds = insecure.NewCredentials()
 	}
 
@@ -140,11 +155,14 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 		AllowCredentials: true,
 	})
 
+	log.Println("Creating HTTP server...")
 	a.httpServer = &http.Server{
 		Addr:              a.cfg.HTTP.Address(),
 		Handler:           corsMiddleware.Handler(mux),
 		ReadHeaderTimeout: 15 * time.Second,
 	}
+
+	log.Println("HTTP server initialized successfully.")
 
 	return nil
 }

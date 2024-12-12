@@ -44,6 +44,8 @@ linters-settings:
       - fieldalignment
       # Disable shadow
       - shadow
+    exclude:
+      - _test\.go$
   dupl:
     threshold: 100
   goconst:

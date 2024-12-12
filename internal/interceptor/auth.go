@@ -52,13 +52,13 @@ func (c *Auth) AuthInterceptor(
 	// Extract token from context
 	token, err := utils.ExtractToken(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+		return nil, status.Errorf(codes.Unauthenticated, "failed to extract token: %v", err)
 	}
 
 	// Verify access token
 	claims, err := c.TokenOperations.VerifyAccessToken(token)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+		return nil, status.Errorf(codes.Unauthenticated, "failed to verify token: %v", err)
 	}
 
 	version, err := c.TokenRepository.GetTokenVersion(ctx, claims.Subject)

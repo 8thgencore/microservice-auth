@@ -10,8 +10,8 @@ import (
 	"github.com/8thgencore/microservice-common/pkg/db/pg"
 	"github.com/8thgencore/microservice-common/pkg/db/transaction"
 	"github.com/8thgencore/microservice-common/pkg/logger"
+	"github.com/8thgencore/microservice-common/pkg/logger/sl"
 	"github.com/redis/go-redis/v9"
-	"go.uber.org/zap"
 )
 
 // DatabaseClient returns a database client.
@@ -22,12 +22,12 @@ func (s *ServiceProvider) DatabaseClient(ctx context.Context) db.Client {
 	if s.dbClient == nil {
 		c, err := pg.New(ctx, s.Config.Database.DSN())
 		if err != nil {
-			logger.Fatal("failed to create db client: ", zap.Error(err))
+			logger.Fatal("failed to create db client: ", sl.Err(err))
 		}
 
 		err = c.DB().Ping(ctx)
 		if err != nil {
-			logger.Fatal("failed to ping database: ", zap.Error(err))
+			logger.Fatal("failed to ping database: ", sl.Err(err))
 		}
 
 		closer.Add(c.Close)
@@ -63,7 +63,7 @@ func (s *ServiceProvider) CacheClient(ctx context.Context) cache.Client {
 		c := redisClient.NewClient(opt)
 
 		if err := c.Ping(ctx); err != nil {
-			logger.Fatal("failed to connect to redis: ", zap.Error(err))
+			logger.Fatal("failed to connect to redis: ", sl.Err(err))
 		}
 
 		s.cache = c

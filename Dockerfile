@@ -1,5 +1,5 @@
 # Use the official Golang image as the base for building the application
-FROM golang:1.23.3-alpine3.20 AS builder
+FROM golang:1.23.4-alpine3.20 AS builder
 
 # Update and upgrade the Alpine packages, then install 'make'
 RUN apk update && apk upgrade --available && \
