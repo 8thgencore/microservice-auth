@@ -122,10 +122,10 @@ func (s *ServiceProvider) AuthService(ctx context.Context) service.AuthService {
 			s.TokenOperations(ctx),
 		)
 	}
+	log.Fatal()
 
 	return s.authService
 }
-
 // AccessService returns an access service.
 func (s *ServiceProvider) AccessService(ctx context.Context) service.AccessService {
 	if s.accessService == nil {
