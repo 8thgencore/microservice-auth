@@ -77,20 +77,20 @@ func (a *App) initServiceProvider(_ context.Context) error {
 }
 
 func (a *App) initGRPCServer(ctx context.Context) error {
-	log.Println("Initializing gRPC server...")
+	logger.Info("[grpc-server] Initializing...")
 
 	var creds credentials.TransportCredentials
 	var err error
 
 	if a.cfg.TLS.Enable {
-		log.Println("Enabling TLS for gRPC server...")
+		logger.Info("[grpc-server] Enabling TLS.")
 		creds, err = credentials.NewServerTLSFromFile(a.cfg.TLS.CertPath, a.cfg.TLS.KeyPath)
 		if err != nil {
-			log.Printf("Failed to create TLS credentials: %v", err)
+			log.Printf("[grpc-server] Failed to create TLS credentials: %v", err)
 			return err
 		}
 	} else {
-		log.Println("Using insecure credentials for gRPC server...")
+		logger.Info("[grpc-server] Using insecure credentials.")
 		creds = insecure.NewCredentials()
 	}
 
@@ -108,33 +108,30 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 
 	reflection.Register(a.grpcServer)
 
-	log.Println("Registering UserV1 service...")
 	userv1.RegisterUserV1Server(a.grpcServer, a.serviceProvider.UserImpl(ctx))
-	log.Println("Registering AuthV1 service...")
 	authv1.RegisterAuthV1Server(a.grpcServer, a.serviceProvider.AuthImpl(ctx))
-	log.Println("Registering AccessV1 service...")
 	accessv1.RegisterAccessV1Server(a.grpcServer, a.serviceProvider.AccessImpl(ctx))
 
-	log.Println("gRPC server initialized successfully.")
+	logger.Info("[grpc-server] Initialized successfully.")
 
 	return nil
 }
 
 func (a *App) initHTTPServer(ctx context.Context) error {
-	log.Println("Initializing HTTP server...")
+	logger.Info("[http-server] Initializing...")
 
 	var creds credentials.TransportCredentials
 	var err error
 
 	if a.cfg.TLS.Enable {
-		log.Println("Enabling TLS for HTTP client to connect to gRPC server...")
-		creds, err = credentials.NewClientTLSFromFile(a.cfg.TLS.CertPath, "")
+		logger.Info("[http-server] Enabling TLS.")
+		creds, err = credentials.NewServerTLSFromFile(a.cfg.TLS.CertPath, a.cfg.TLS.KeyPath)
 		if err != nil {
-			log.Printf("Failed to create TLS credentials for HTTP client: %v", err)
+			log.Printf("[http-server] Failed to create TLS credentials: %v", err)
 			return err
 		}
 	} else {
-		log.Println("Using insecure credentials for HTTP client to connect to gRPC server...")
+		logger.Info("[http-server] Using insecure credentials.")
 		creds = insecure.NewCredentials()
 	}
 
@@ -155,14 +152,13 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 		AllowCredentials: true,
 	})
 
-	log.Println("Creating HTTP server...")
 	a.httpServer = &http.Server{
 		Addr:              a.cfg.HTTP.Address(),
 		Handler:           corsMiddleware.Handler(mux),
 		ReadHeaderTimeout: 15 * time.Second,
 	}
 
-	log.Println("HTTP server initialized successfully.")
+	logger.Info("[http-server] Initialized successfully.")
 
 	return nil
 }
