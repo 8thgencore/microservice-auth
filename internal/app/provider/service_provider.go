@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"log"
 
 	"github.com/8thgencore/microservice-auth/internal/config"
 	"github.com/8thgencore/microservice-auth/internal/delivery/access"
