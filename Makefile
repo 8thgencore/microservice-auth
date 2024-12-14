@@ -39,6 +39,8 @@ endif
 # #################### #
 
 _install-global-deps:
+	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 	go install github.com/air-verse/air@latest
 	go install github.com/pressly/goose/v3/cmd/goose@latest
 

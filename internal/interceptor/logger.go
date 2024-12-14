@@ -2,9 +2,9 @@ package interceptor
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/8thgencore/microservice-common/pkg/logger"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
@@ -18,7 +18,7 @@ func LogInterceptor(
 	res, err := handler(ctx, req)
 	// Check the result and log error
 	if err != nil {
-		logger.Error(err.Error(), zap.String("method", info.FullMethod), zap.Any("req", req))
+		logger.Error(err.Error(), slog.String("method", info.FullMethod), slog.Any("req", req))
 	}
 
 	return res, err

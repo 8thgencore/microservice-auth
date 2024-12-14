@@ -77,15 +77,20 @@ func (a *App) initServiceProvider(_ context.Context) error {
 }
 
 func (a *App) initGRPCServer(ctx context.Context) error {
+	logger.Info("[grpc-server] Initializing...")
+
 	var creds credentials.TransportCredentials
 	var err error
 
 	if a.cfg.TLS.Enable {
+		logger.Info("[grpc-server] Enabling TLS.")
 		creds, err = credentials.NewServerTLSFromFile(a.cfg.TLS.CertPath, a.cfg.TLS.KeyPath)
 		if err != nil {
+			log.Printf("[grpc-server] Failed to create TLS credentials: %v", err)
 			return err
 		}
 	} else {
+		logger.Info("[grpc-server] Using insecure credentials.")
 		creds = insecure.NewCredentials()
 	}
 
@@ -107,19 +112,26 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 	authv1.RegisterAuthV1Server(a.grpcServer, a.serviceProvider.AuthImpl(ctx))
 	accessv1.RegisterAccessV1Server(a.grpcServer, a.serviceProvider.AccessImpl(ctx))
 
+	logger.Info("[grpc-server] Initialized successfully.")
+
 	return nil
 }
 
 func (a *App) initHTTPServer(ctx context.Context) error {
+	logger.Info("[http-server] Initializing...")
+
 	var creds credentials.TransportCredentials
 	var err error
 
 	if a.cfg.TLS.Enable {
-		creds, err = credentials.NewClientTLSFromFile(a.cfg.TLS.CertPath, "")
+		logger.Info("[http-server] Enabling TLS.")
+		creds, err = credentials.NewServerTLSFromFile(a.cfg.TLS.CertPath, a.cfg.TLS.KeyPath)
 		if err != nil {
+			log.Printf("[http-server] Failed to create TLS credentials: %v", err)
 			return err
 		}
 	} else {
+		logger.Info("[http-server] Using insecure credentials.")
 		creds = insecure.NewCredentials()
 	}
 
@@ -145,6 +157,8 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 		Handler:           corsMiddleware.Handler(mux),
 		ReadHeaderTimeout: 15 * time.Second,
 	}
+
+	logger.Info("[http-server] Initialized successfully.")
 
 	return nil
 }

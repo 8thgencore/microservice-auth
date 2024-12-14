@@ -160,6 +160,7 @@ func NewConfig() (*Config, error) {
 	if err = cleanenv.ReadEnv(cfg); err != nil {
 		return nil, fmt.Errorf("error reading env: %w", err)
 	}
+	log.Printf("Load environment: %s", cfg.Env)
 
 	return cfg, nil
 }
