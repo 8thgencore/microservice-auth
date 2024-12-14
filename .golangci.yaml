@@ -43,9 +43,8 @@ linters-settings:
       # those files from linting, so this linter is not useful.
       - fieldalignment
       # Disable shadow
+      - printf
       - shadow
-    exclude:
-      - _test\.go$
   dupl:
     threshold: 100
   goconst:

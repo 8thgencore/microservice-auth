@@ -31,6 +31,13 @@ type UserRepositoryMock struct {
 	beforeDeleteCounter uint64
 	DeleteMock          mUserRepositoryMockDelete
 
+	funcFindByName          func(ctx context.Context, name string) (up1 *model.User, err error)
+	funcFindByNameOrigin    string
+	inspectFuncFindByName   func(ctx context.Context, name string)
+	afterFindByNameCounter  uint64
+	beforeFindByNameCounter uint64
+	FindByNameMock          mUserRepositoryMockFindByName
+
 	funcGet          func(ctx context.Context, id string) (up1 *model.User, err error)
 	funcGetOrigin    string
 	inspectFuncGet   func(ctx context.Context, id string)
@@ -66,6 +73,9 @@ func NewUserRepositoryMock(t minimock.Tester) *UserRepositoryMock {
 
 	m.DeleteMock = mUserRepositoryMockDelete{mock: m}
 	m.DeleteMock.callArgs = []*UserRepositoryMockDeleteParams{}
+
+	m.FindByNameMock = mUserRepositoryMockFindByName{mock: m}
+	m.FindByNameMock.callArgs = []*UserRepositoryMockFindByNameParams{}
 
 	m.GetMock = mUserRepositoryMockGet{mock: m}
 	m.GetMock.callArgs = []*UserRepositoryMockGetParams{}
@@ -763,6 +773,349 @@ func (m *UserRepositoryMock) MinimockDeleteInspect() {
 	if !m.DeleteMock.invocationsDone() && afterDeleteCounter > 0 {
 		m.t.Errorf("Expected %d calls to UserRepositoryMock.Delete at\n%s but found %d calls",
 			mm_atomic.LoadUint64(&m.DeleteMock.expectedInvocations), m.DeleteMock.expectedInvocationsOrigin, afterDeleteCounter)
+	}
+}
+
+type mUserRepositoryMockFindByName struct {
+	optional           bool
+	mock               *UserRepositoryMock
+	defaultExpectation *UserRepositoryMockFindByNameExpectation
+	expectations       []*UserRepositoryMockFindByNameExpectation
+
+	callArgs []*UserRepositoryMockFindByNameParams
+	mutex    sync.RWMutex
+
+	expectedInvocations       uint64
+	expectedInvocationsOrigin string
+}
+
+// UserRepositoryMockFindByNameExpectation specifies expectation struct of the UserRepository.FindByName
+type UserRepositoryMockFindByNameExpectation struct {
+	mock               *UserRepositoryMock
+	params             *UserRepositoryMockFindByNameParams
+	paramPtrs          *UserRepositoryMockFindByNameParamPtrs
+	expectationOrigins UserRepositoryMockFindByNameExpectationOrigins
+	results            *UserRepositoryMockFindByNameResults
+	returnOrigin       string
+	Counter            uint64
+}
+
+// UserRepositoryMockFindByNameParams contains parameters of the UserRepository.FindByName
+type UserRepositoryMockFindByNameParams struct {
+	ctx  context.Context
+	name string
+}
+
+// UserRepositoryMockFindByNameParamPtrs contains pointers to parameters of the UserRepository.FindByName
+type UserRepositoryMockFindByNameParamPtrs struct {
+	ctx  *context.Context
+	name *string
+}
+
+// UserRepositoryMockFindByNameResults contains results of the UserRepository.FindByName
+type UserRepositoryMockFindByNameResults struct {
+	up1 *model.User
+	err error
+}
+
+// UserRepositoryMockFindByNameOrigins contains origins of expectations of the UserRepository.FindByName
+type UserRepositoryMockFindByNameExpectationOrigins struct {
+	origin     string
+	originCtx  string
+	originName string
+}
+
+// Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
+// the test will fail minimock's automatic final call check if the mocked method was not called at least once.
+// Optional() makes method check to work in '0 or more' mode.
+// It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
+// catch the problems when the expected method call is totally skipped during test run.
+func (mmFindByName *mUserRepositoryMockFindByName) Optional() *mUserRepositoryMockFindByName {
+	mmFindByName.optional = true
+	return mmFindByName
+}
+
+// Expect sets up expected params for UserRepository.FindByName
+func (mmFindByName *mUserRepositoryMockFindByName) Expect(ctx context.Context, name string) *mUserRepositoryMockFindByName {
+	if mmFindByName.mock.funcFindByName != nil {
+		mmFindByName.mock.t.Fatalf("UserRepositoryMock.FindByName mock is already set by Set")
+	}
+
+	if mmFindByName.defaultExpectation == nil {
+		mmFindByName.defaultExpectation = &UserRepositoryMockFindByNameExpectation{}
+	}
+
+	if mmFindByName.defaultExpectation.paramPtrs != nil {
+		mmFindByName.mock.t.Fatalf("UserRepositoryMock.FindByName mock is already set by ExpectParams functions")
+	}
+
+	mmFindByName.defaultExpectation.params = &UserRepositoryMockFindByNameParams{ctx, name}
+	mmFindByName.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmFindByName.expectations {
+		if minimock.Equal(e.params, mmFindByName.defaultExpectation.params) {
+			mmFindByName.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmFindByName.defaultExpectation.params)
+		}
+	}
+
+	return mmFindByName
+}
+
+// ExpectCtxParam1 sets up expected param ctx for UserRepository.FindByName
+func (mmFindByName *mUserRepositoryMockFindByName) ExpectCtxParam1(ctx context.Context) *mUserRepositoryMockFindByName {
+	if mmFindByName.mock.funcFindByName != nil {
+		mmFindByName.mock.t.Fatalf("UserRepositoryMock.FindByName mock is already set by Set")
+	}
+
+	if mmFindByName.defaultExpectation == nil {
+		mmFindByName.defaultExpectation = &UserRepositoryMockFindByNameExpectation{}
+	}
+
+	if mmFindByName.defaultExpectation.params != nil {
+		mmFindByName.mock.t.Fatalf("UserRepositoryMock.FindByName mock is already set by Expect")
+	}
+
+	if mmFindByName.defaultExpectation.paramPtrs == nil {
+		mmFindByName.defaultExpectation.paramPtrs = &UserRepositoryMockFindByNameParamPtrs{}
+	}
+	mmFindByName.defaultExpectation.paramPtrs.ctx = &ctx
+	mmFindByName.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
+
+	return mmFindByName
+}
+
+// ExpectNameParam2 sets up expected param name for UserRepository.FindByName
+func (mmFindByName *mUserRepositoryMockFindByName) ExpectNameParam2(name string) *mUserRepositoryMockFindByName {
+	if mmFindByName.mock.funcFindByName != nil {
+		mmFindByName.mock.t.Fatalf("UserRepositoryMock.FindByName mock is already set by Set")
+	}
+
+	if mmFindByName.defaultExpectation == nil {
+		mmFindByName.defaultExpectation = &UserRepositoryMockFindByNameExpectation{}
+	}
+
+	if mmFindByName.defaultExpectation.params != nil {
+		mmFindByName.mock.t.Fatalf("UserRepositoryMock.FindByName mock is already set by Expect")
+	}
+
+	if mmFindByName.defaultExpectation.paramPtrs == nil {
+		mmFindByName.defaultExpectation.paramPtrs = &UserRepositoryMockFindByNameParamPtrs{}
+	}
+	mmFindByName.defaultExpectation.paramPtrs.name = &name
+	mmFindByName.defaultExpectation.expectationOrigins.originName = minimock.CallerInfo(1)
+
+	return mmFindByName
+}
+
+// Inspect accepts an inspector function that has same arguments as the UserRepository.FindByName
+func (mmFindByName *mUserRepositoryMockFindByName) Inspect(f func(ctx context.Context, name string)) *mUserRepositoryMockFindByName {
+	if mmFindByName.mock.inspectFuncFindByName != nil {
+		mmFindByName.mock.t.Fatalf("Inspect function is already set for UserRepositoryMock.FindByName")
+	}
+
+	mmFindByName.mock.inspectFuncFindByName = f
+
+	return mmFindByName
+}
+
+// Return sets up results that will be returned by UserRepository.FindByName
+func (mmFindByName *mUserRepositoryMockFindByName) Return(up1 *model.User, err error) *UserRepositoryMock {
+	if mmFindByName.mock.funcFindByName != nil {
+		mmFindByName.mock.t.Fatalf("UserRepositoryMock.FindByName mock is already set by Set")
+	}
+
+	if mmFindByName.defaultExpectation == nil {
+		mmFindByName.defaultExpectation = &UserRepositoryMockFindByNameExpectation{mock: mmFindByName.mock}
+	}
+	mmFindByName.defaultExpectation.results = &UserRepositoryMockFindByNameResults{up1, err}
+	mmFindByName.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmFindByName.mock
+}
+
+// Set uses given function f to mock the UserRepository.FindByName method
+func (mmFindByName *mUserRepositoryMockFindByName) Set(f func(ctx context.Context, name string) (up1 *model.User, err error)) *UserRepositoryMock {
+	if mmFindByName.defaultExpectation != nil {
+		mmFindByName.mock.t.Fatalf("Default expectation is already set for the UserRepository.FindByName method")
+	}
+
+	if len(mmFindByName.expectations) > 0 {
+		mmFindByName.mock.t.Fatalf("Some expectations are already set for the UserRepository.FindByName method")
+	}
+
+	mmFindByName.mock.funcFindByName = f
+	mmFindByName.mock.funcFindByNameOrigin = minimock.CallerInfo(1)
+	return mmFindByName.mock
+}
+
+// When sets expectation for the UserRepository.FindByName which will trigger the result defined by the following
+// Then helper
+func (mmFindByName *mUserRepositoryMockFindByName) When(ctx context.Context, name string) *UserRepositoryMockFindByNameExpectation {
+	if mmFindByName.mock.funcFindByName != nil {
+		mmFindByName.mock.t.Fatalf("UserRepositoryMock.FindByName mock is already set by Set")
+	}
+
+	expectation := &UserRepositoryMockFindByNameExpectation{
+		mock:               mmFindByName.mock,
+		params:             &UserRepositoryMockFindByNameParams{ctx, name},
+		expectationOrigins: UserRepositoryMockFindByNameExpectationOrigins{origin: minimock.CallerInfo(1)},
+	}
+	mmFindByName.expectations = append(mmFindByName.expectations, expectation)
+	return expectation
+}
+
+// Then sets up UserRepository.FindByName return parameters for the expectation previously defined by the When method
+func (e *UserRepositoryMockFindByNameExpectation) Then(up1 *model.User, err error) *UserRepositoryMock {
+	e.results = &UserRepositoryMockFindByNameResults{up1, err}
+	return e.mock
+}
+
+// Times sets number of times UserRepository.FindByName should be invoked
+func (mmFindByName *mUserRepositoryMockFindByName) Times(n uint64) *mUserRepositoryMockFindByName {
+	if n == 0 {
+		mmFindByName.mock.t.Fatalf("Times of UserRepositoryMock.FindByName mock can not be zero")
+	}
+	mm_atomic.StoreUint64(&mmFindByName.expectedInvocations, n)
+	mmFindByName.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmFindByName
+}
+
+func (mmFindByName *mUserRepositoryMockFindByName) invocationsDone() bool {
+	if len(mmFindByName.expectations) == 0 && mmFindByName.defaultExpectation == nil && mmFindByName.mock.funcFindByName == nil {
+		return true
+	}
+
+	totalInvocations := mm_atomic.LoadUint64(&mmFindByName.mock.afterFindByNameCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmFindByName.expectedInvocations)
+
+	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
+}
+
+// FindByName implements mm_repository.UserRepository
+func (mmFindByName *UserRepositoryMock) FindByName(ctx context.Context, name string) (up1 *model.User, err error) {
+	mm_atomic.AddUint64(&mmFindByName.beforeFindByNameCounter, 1)
+	defer mm_atomic.AddUint64(&mmFindByName.afterFindByNameCounter, 1)
+
+	mmFindByName.t.Helper()
+
+	if mmFindByName.inspectFuncFindByName != nil {
+		mmFindByName.inspectFuncFindByName(ctx, name)
+	}
+
+	mm_params := UserRepositoryMockFindByNameParams{ctx, name}
+
+	// Record call args
+	mmFindByName.FindByNameMock.mutex.Lock()
+	mmFindByName.FindByNameMock.callArgs = append(mmFindByName.FindByNameMock.callArgs, &mm_params)
+	mmFindByName.FindByNameMock.mutex.Unlock()
+
+	for _, e := range mmFindByName.FindByNameMock.expectations {
+		if minimock.Equal(*e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.up1, e.results.err
+		}
+	}
+
+	if mmFindByName.FindByNameMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmFindByName.FindByNameMock.defaultExpectation.Counter, 1)
+		mm_want := mmFindByName.FindByNameMock.defaultExpectation.params
+		mm_want_ptrs := mmFindByName.FindByNameMock.defaultExpectation.paramPtrs
+
+		mm_got := UserRepositoryMockFindByNameParams{ctx, name}
+
+		if mm_want_ptrs != nil {
+
+			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
+				mmFindByName.t.Errorf("UserRepositoryMock.FindByName got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmFindByName.FindByNameMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+			}
+
+			if mm_want_ptrs.name != nil && !minimock.Equal(*mm_want_ptrs.name, mm_got.name) {
+				mmFindByName.t.Errorf("UserRepositoryMock.FindByName got unexpected parameter name, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmFindByName.FindByNameMock.defaultExpectation.expectationOrigins.originName, *mm_want_ptrs.name, mm_got.name, minimock.Diff(*mm_want_ptrs.name, mm_got.name))
+			}
+
+		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmFindByName.t.Errorf("UserRepositoryMock.FindByName got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmFindByName.FindByNameMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmFindByName.FindByNameMock.defaultExpectation.results
+		if mm_results == nil {
+			mmFindByName.t.Fatal("No results are set for the UserRepositoryMock.FindByName")
+		}
+		return (*mm_results).up1, (*mm_results).err
+	}
+	if mmFindByName.funcFindByName != nil {
+		return mmFindByName.funcFindByName(ctx, name)
+	}
+	mmFindByName.t.Fatalf("Unexpected call to UserRepositoryMock.FindByName. %v %v", ctx, name)
+	return
+}
+
+// FindByNameAfterCounter returns a count of finished UserRepositoryMock.FindByName invocations
+func (mmFindByName *UserRepositoryMock) FindByNameAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmFindByName.afterFindByNameCounter)
+}
+
+// FindByNameBeforeCounter returns a count of UserRepositoryMock.FindByName invocations
+func (mmFindByName *UserRepositoryMock) FindByNameBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmFindByName.beforeFindByNameCounter)
+}
+
+// Calls returns a list of arguments used in each call to UserRepositoryMock.FindByName.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmFindByName *mUserRepositoryMockFindByName) Calls() []*UserRepositoryMockFindByNameParams {
+	mmFindByName.mutex.RLock()
+
+	argCopy := make([]*UserRepositoryMockFindByNameParams, len(mmFindByName.callArgs))
+	copy(argCopy, mmFindByName.callArgs)
+
+	mmFindByName.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockFindByNameDone returns true if the count of the FindByName invocations corresponds
+// the number of defined expectations
+func (m *UserRepositoryMock) MinimockFindByNameDone() bool {
+	if m.FindByNameMock.optional {
+		// Optional methods provide '0 or more' call count restriction.
+		return true
+	}
+
+	for _, e := range m.FindByNameMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	return m.FindByNameMock.invocationsDone()
+}
+
+// MinimockFindByNameInspect logs each unmet expectation
+func (m *UserRepositoryMock) MinimockFindByNameInspect() {
+	for _, e := range m.FindByNameMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to UserRepositoryMock.FindByName at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+		}
+	}
+
+	afterFindByNameCounter := mm_atomic.LoadUint64(&m.afterFindByNameCounter)
+	// if default expectation was set then invocations count should be greater than zero
+	if m.FindByNameMock.defaultExpectation != nil && afterFindByNameCounter < 1 {
+		if m.FindByNameMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to UserRepositoryMock.FindByName at\n%s", m.FindByNameMock.defaultExpectation.returnOrigin)
+		} else {
+			m.t.Errorf("Expected call to UserRepositoryMock.FindByName at\n%s with params: %#v", m.FindByNameMock.defaultExpectation.expectationOrigins.origin, *m.FindByNameMock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcFindByName != nil && afterFindByNameCounter < 1 {
+		m.t.Errorf("Expected call to UserRepositoryMock.FindByName at\n%s", m.funcFindByNameOrigin)
+	}
+
+	if !m.FindByNameMock.invocationsDone() && afterFindByNameCounter > 0 {
+		m.t.Errorf("Expected %d calls to UserRepositoryMock.FindByName at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.FindByNameMock.expectedInvocations), m.FindByNameMock.expectedInvocationsOrigin, afterFindByNameCounter)
 	}
 }
 
@@ -1802,6 +2155,8 @@ func (m *UserRepositoryMock) MinimockFinish() {
 
 			m.MinimockDeleteInspect()
 
+			m.MinimockFindByNameInspect()
+
 			m.MinimockGetInspect()
 
 			m.MinimockGetAuthInfoInspect()
@@ -1832,6 +2187,7 @@ func (m *UserRepositoryMock) minimockDone() bool {
 	return done &&
 		m.MinimockCreateDone() &&
 		m.MinimockDeleteDone() &&
+		m.MinimockFindByNameDone() &&
 		m.MinimockGetDone() &&
 		m.MinimockGetAuthInfoDone() &&
 		m.MinimockUpdateDone()

@@ -31,6 +31,13 @@ type UserServiceMock struct {
 	beforeDeleteCounter uint64
 	DeleteMock          mUserServiceMockDelete
 
+	funcEnsureAdminExists          func(ctx context.Context) (err error)
+	funcEnsureAdminExistsOrigin    string
+	inspectFuncEnsureAdminExists   func(ctx context.Context)
+	afterEnsureAdminExistsCounter  uint64
+	beforeEnsureAdminExistsCounter uint64
+	EnsureAdminExistsMock          mUserServiceMockEnsureAdminExists
+
 	funcGet          func(ctx context.Context, id string) (up1 *model.User, err error)
 	funcGetOrigin    string
 	inspectFuncGet   func(ctx context.Context, id string)
@@ -59,6 +66,9 @@ func NewUserServiceMock(t minimock.Tester) *UserServiceMock {
 
 	m.DeleteMock = mUserServiceMockDelete{mock: m}
 	m.DeleteMock.callArgs = []*UserServiceMockDeleteParams{}
+
+	m.EnsureAdminExistsMock = mUserServiceMockEnsureAdminExists{mock: m}
+	m.EnsureAdminExistsMock.callArgs = []*UserServiceMockEnsureAdminExistsParams{}
 
 	m.GetMock = mUserServiceMockGet{mock: m}
 	m.GetMock.callArgs = []*UserServiceMockGetParams{}
@@ -756,6 +766,317 @@ func (m *UserServiceMock) MinimockDeleteInspect() {
 	}
 }
 
+type mUserServiceMockEnsureAdminExists struct {
+	optional           bool
+	mock               *UserServiceMock
+	defaultExpectation *UserServiceMockEnsureAdminExistsExpectation
+	expectations       []*UserServiceMockEnsureAdminExistsExpectation
+
+	callArgs []*UserServiceMockEnsureAdminExistsParams
+	mutex    sync.RWMutex
+
+	expectedInvocations       uint64
+	expectedInvocationsOrigin string
+}
+
+// UserServiceMockEnsureAdminExistsExpectation specifies expectation struct of the UserService.EnsureAdminExists
+type UserServiceMockEnsureAdminExistsExpectation struct {
+	mock               *UserServiceMock
+	params             *UserServiceMockEnsureAdminExistsParams
+	paramPtrs          *UserServiceMockEnsureAdminExistsParamPtrs
+	expectationOrigins UserServiceMockEnsureAdminExistsExpectationOrigins
+	results            *UserServiceMockEnsureAdminExistsResults
+	returnOrigin       string
+	Counter            uint64
+}
+
+// UserServiceMockEnsureAdminExistsParams contains parameters of the UserService.EnsureAdminExists
+type UserServiceMockEnsureAdminExistsParams struct {
+	ctx context.Context
+}
+
+// UserServiceMockEnsureAdminExistsParamPtrs contains pointers to parameters of the UserService.EnsureAdminExists
+type UserServiceMockEnsureAdminExistsParamPtrs struct {
+	ctx *context.Context
+}
+
+// UserServiceMockEnsureAdminExistsResults contains results of the UserService.EnsureAdminExists
+type UserServiceMockEnsureAdminExistsResults struct {
+	err error
+}
+
+// UserServiceMockEnsureAdminExistsOrigins contains origins of expectations of the UserService.EnsureAdminExists
+type UserServiceMockEnsureAdminExistsExpectationOrigins struct {
+	origin    string
+	originCtx string
+}
+
+// Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
+// the test will fail minimock's automatic final call check if the mocked method was not called at least once.
+// Optional() makes method check to work in '0 or more' mode.
+// It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
+// catch the problems when the expected method call is totally skipped during test run.
+func (mmEnsureAdminExists *mUserServiceMockEnsureAdminExists) Optional() *mUserServiceMockEnsureAdminExists {
+	mmEnsureAdminExists.optional = true
+	return mmEnsureAdminExists
+}
+
+// Expect sets up expected params for UserService.EnsureAdminExists
+func (mmEnsureAdminExists *mUserServiceMockEnsureAdminExists) Expect(ctx context.Context) *mUserServiceMockEnsureAdminExists {
+	if mmEnsureAdminExists.mock.funcEnsureAdminExists != nil {
+		mmEnsureAdminExists.mock.t.Fatalf("UserServiceMock.EnsureAdminExists mock is already set by Set")
+	}
+
+	if mmEnsureAdminExists.defaultExpectation == nil {
+		mmEnsureAdminExists.defaultExpectation = &UserServiceMockEnsureAdminExistsExpectation{}
+	}
+
+	if mmEnsureAdminExists.defaultExpectation.paramPtrs != nil {
+		mmEnsureAdminExists.mock.t.Fatalf("UserServiceMock.EnsureAdminExists mock is already set by ExpectParams functions")
+	}
+
+	mmEnsureAdminExists.defaultExpectation.params = &UserServiceMockEnsureAdminExistsParams{ctx}
+	mmEnsureAdminExists.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmEnsureAdminExists.expectations {
+		if minimock.Equal(e.params, mmEnsureAdminExists.defaultExpectation.params) {
+			mmEnsureAdminExists.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmEnsureAdminExists.defaultExpectation.params)
+		}
+	}
+
+	return mmEnsureAdminExists
+}
+
+// ExpectCtxParam1 sets up expected param ctx for UserService.EnsureAdminExists
+func (mmEnsureAdminExists *mUserServiceMockEnsureAdminExists) ExpectCtxParam1(ctx context.Context) *mUserServiceMockEnsureAdminExists {
+	if mmEnsureAdminExists.mock.funcEnsureAdminExists != nil {
+		mmEnsureAdminExists.mock.t.Fatalf("UserServiceMock.EnsureAdminExists mock is already set by Set")
+	}
+
+	if mmEnsureAdminExists.defaultExpectation == nil {
+		mmEnsureAdminExists.defaultExpectation = &UserServiceMockEnsureAdminExistsExpectation{}
+	}
+
+	if mmEnsureAdminExists.defaultExpectation.params != nil {
+		mmEnsureAdminExists.mock.t.Fatalf("UserServiceMock.EnsureAdminExists mock is already set by Expect")
+	}
+
+	if mmEnsureAdminExists.defaultExpectation.paramPtrs == nil {
+		mmEnsureAdminExists.defaultExpectation.paramPtrs = &UserServiceMockEnsureAdminExistsParamPtrs{}
+	}
+	mmEnsureAdminExists.defaultExpectation.paramPtrs.ctx = &ctx
+	mmEnsureAdminExists.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
+
+	return mmEnsureAdminExists
+}
+
+// Inspect accepts an inspector function that has same arguments as the UserService.EnsureAdminExists
+func (mmEnsureAdminExists *mUserServiceMockEnsureAdminExists) Inspect(f func(ctx context.Context)) *mUserServiceMockEnsureAdminExists {
+	if mmEnsureAdminExists.mock.inspectFuncEnsureAdminExists != nil {
+		mmEnsureAdminExists.mock.t.Fatalf("Inspect function is already set for UserServiceMock.EnsureAdminExists")
+	}
+
+	mmEnsureAdminExists.mock.inspectFuncEnsureAdminExists = f
+
+	return mmEnsureAdminExists
+}
+
+// Return sets up results that will be returned by UserService.EnsureAdminExists
+func (mmEnsureAdminExists *mUserServiceMockEnsureAdminExists) Return(err error) *UserServiceMock {
+	if mmEnsureAdminExists.mock.funcEnsureAdminExists != nil {
+		mmEnsureAdminExists.mock.t.Fatalf("UserServiceMock.EnsureAdminExists mock is already set by Set")
+	}
+
+	if mmEnsureAdminExists.defaultExpectation == nil {
+		mmEnsureAdminExists.defaultExpectation = &UserServiceMockEnsureAdminExistsExpectation{mock: mmEnsureAdminExists.mock}
+	}
+	mmEnsureAdminExists.defaultExpectation.results = &UserServiceMockEnsureAdminExistsResults{err}
+	mmEnsureAdminExists.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmEnsureAdminExists.mock
+}
+
+// Set uses given function f to mock the UserService.EnsureAdminExists method
+func (mmEnsureAdminExists *mUserServiceMockEnsureAdminExists) Set(f func(ctx context.Context) (err error)) *UserServiceMock {
+	if mmEnsureAdminExists.defaultExpectation != nil {
+		mmEnsureAdminExists.mock.t.Fatalf("Default expectation is already set for the UserService.EnsureAdminExists method")
+	}
+
+	if len(mmEnsureAdminExists.expectations) > 0 {
+		mmEnsureAdminExists.mock.t.Fatalf("Some expectations are already set for the UserService.EnsureAdminExists method")
+	}
+
+	mmEnsureAdminExists.mock.funcEnsureAdminExists = f
+	mmEnsureAdminExists.mock.funcEnsureAdminExistsOrigin = minimock.CallerInfo(1)
+	return mmEnsureAdminExists.mock
+}
+
+// When sets expectation for the UserService.EnsureAdminExists which will trigger the result defined by the following
+// Then helper
+func (mmEnsureAdminExists *mUserServiceMockEnsureAdminExists) When(ctx context.Context) *UserServiceMockEnsureAdminExistsExpectation {
+	if mmEnsureAdminExists.mock.funcEnsureAdminExists != nil {
+		mmEnsureAdminExists.mock.t.Fatalf("UserServiceMock.EnsureAdminExists mock is already set by Set")
+	}
+
+	expectation := &UserServiceMockEnsureAdminExistsExpectation{
+		mock:               mmEnsureAdminExists.mock,
+		params:             &UserServiceMockEnsureAdminExistsParams{ctx},
+		expectationOrigins: UserServiceMockEnsureAdminExistsExpectationOrigins{origin: minimock.CallerInfo(1)},
+	}
+	mmEnsureAdminExists.expectations = append(mmEnsureAdminExists.expectations, expectation)
+	return expectation
+}
+
+// Then sets up UserService.EnsureAdminExists return parameters for the expectation previously defined by the When method
+func (e *UserServiceMockEnsureAdminExistsExpectation) Then(err error) *UserServiceMock {
+	e.results = &UserServiceMockEnsureAdminExistsResults{err}
+	return e.mock
+}
+
+// Times sets number of times UserService.EnsureAdminExists should be invoked
+func (mmEnsureAdminExists *mUserServiceMockEnsureAdminExists) Times(n uint64) *mUserServiceMockEnsureAdminExists {
+	if n == 0 {
+		mmEnsureAdminExists.mock.t.Fatalf("Times of UserServiceMock.EnsureAdminExists mock can not be zero")
+	}
+	mm_atomic.StoreUint64(&mmEnsureAdminExists.expectedInvocations, n)
+	mmEnsureAdminExists.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmEnsureAdminExists
+}
+
+func (mmEnsureAdminExists *mUserServiceMockEnsureAdminExists) invocationsDone() bool {
+	if len(mmEnsureAdminExists.expectations) == 0 && mmEnsureAdminExists.defaultExpectation == nil && mmEnsureAdminExists.mock.funcEnsureAdminExists == nil {
+		return true
+	}
+
+	totalInvocations := mm_atomic.LoadUint64(&mmEnsureAdminExists.mock.afterEnsureAdminExistsCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmEnsureAdminExists.expectedInvocations)
+
+	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
+}
+
+// EnsureAdminExists implements mm_service.UserService
+func (mmEnsureAdminExists *UserServiceMock) EnsureAdminExists(ctx context.Context) (err error) {
+	mm_atomic.AddUint64(&mmEnsureAdminExists.beforeEnsureAdminExistsCounter, 1)
+	defer mm_atomic.AddUint64(&mmEnsureAdminExists.afterEnsureAdminExistsCounter, 1)
+
+	mmEnsureAdminExists.t.Helper()
+
+	if mmEnsureAdminExists.inspectFuncEnsureAdminExists != nil {
+		mmEnsureAdminExists.inspectFuncEnsureAdminExists(ctx)
+	}
+
+	mm_params := UserServiceMockEnsureAdminExistsParams{ctx}
+
+	// Record call args
+	mmEnsureAdminExists.EnsureAdminExistsMock.mutex.Lock()
+	mmEnsureAdminExists.EnsureAdminExistsMock.callArgs = append(mmEnsureAdminExists.EnsureAdminExistsMock.callArgs, &mm_params)
+	mmEnsureAdminExists.EnsureAdminExistsMock.mutex.Unlock()
+
+	for _, e := range mmEnsureAdminExists.EnsureAdminExistsMock.expectations {
+		if minimock.Equal(*e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.err
+		}
+	}
+
+	if mmEnsureAdminExists.EnsureAdminExistsMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmEnsureAdminExists.EnsureAdminExistsMock.defaultExpectation.Counter, 1)
+		mm_want := mmEnsureAdminExists.EnsureAdminExistsMock.defaultExpectation.params
+		mm_want_ptrs := mmEnsureAdminExists.EnsureAdminExistsMock.defaultExpectation.paramPtrs
+
+		mm_got := UserServiceMockEnsureAdminExistsParams{ctx}
+
+		if mm_want_ptrs != nil {
+
+			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
+				mmEnsureAdminExists.t.Errorf("UserServiceMock.EnsureAdminExists got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmEnsureAdminExists.EnsureAdminExistsMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+			}
+
+		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmEnsureAdminExists.t.Errorf("UserServiceMock.EnsureAdminExists got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmEnsureAdminExists.EnsureAdminExistsMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmEnsureAdminExists.EnsureAdminExistsMock.defaultExpectation.results
+		if mm_results == nil {
+			mmEnsureAdminExists.t.Fatal("No results are set for the UserServiceMock.EnsureAdminExists")
+		}
+		return (*mm_results).err
+	}
+	if mmEnsureAdminExists.funcEnsureAdminExists != nil {
+		return mmEnsureAdminExists.funcEnsureAdminExists(ctx)
+	}
+	mmEnsureAdminExists.t.Fatalf("Unexpected call to UserServiceMock.EnsureAdminExists. %v", ctx)
+	return
+}
+
+// EnsureAdminExistsAfterCounter returns a count of finished UserServiceMock.EnsureAdminExists invocations
+func (mmEnsureAdminExists *UserServiceMock) EnsureAdminExistsAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmEnsureAdminExists.afterEnsureAdminExistsCounter)
+}
+
+// EnsureAdminExistsBeforeCounter returns a count of UserServiceMock.EnsureAdminExists invocations
+func (mmEnsureAdminExists *UserServiceMock) EnsureAdminExistsBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmEnsureAdminExists.beforeEnsureAdminExistsCounter)
+}
+
+// Calls returns a list of arguments used in each call to UserServiceMock.EnsureAdminExists.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmEnsureAdminExists *mUserServiceMockEnsureAdminExists) Calls() []*UserServiceMockEnsureAdminExistsParams {
+	mmEnsureAdminExists.mutex.RLock()
+
+	argCopy := make([]*UserServiceMockEnsureAdminExistsParams, len(mmEnsureAdminExists.callArgs))
+	copy(argCopy, mmEnsureAdminExists.callArgs)
+
+	mmEnsureAdminExists.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockEnsureAdminExistsDone returns true if the count of the EnsureAdminExists invocations corresponds
+// the number of defined expectations
+func (m *UserServiceMock) MinimockEnsureAdminExistsDone() bool {
+	if m.EnsureAdminExistsMock.optional {
+		// Optional methods provide '0 or more' call count restriction.
+		return true
+	}
+
+	for _, e := range m.EnsureAdminExistsMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	return m.EnsureAdminExistsMock.invocationsDone()
+}
+
+// MinimockEnsureAdminExistsInspect logs each unmet expectation
+func (m *UserServiceMock) MinimockEnsureAdminExistsInspect() {
+	for _, e := range m.EnsureAdminExistsMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to UserServiceMock.EnsureAdminExists at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+		}
+	}
+
+	afterEnsureAdminExistsCounter := mm_atomic.LoadUint64(&m.afterEnsureAdminExistsCounter)
+	// if default expectation was set then invocations count should be greater than zero
+	if m.EnsureAdminExistsMock.defaultExpectation != nil && afterEnsureAdminExistsCounter < 1 {
+		if m.EnsureAdminExistsMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to UserServiceMock.EnsureAdminExists at\n%s", m.EnsureAdminExistsMock.defaultExpectation.returnOrigin)
+		} else {
+			m.t.Errorf("Expected call to UserServiceMock.EnsureAdminExists at\n%s with params: %#v", m.EnsureAdminExistsMock.defaultExpectation.expectationOrigins.origin, *m.EnsureAdminExistsMock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcEnsureAdminExists != nil && afterEnsureAdminExistsCounter < 1 {
+		m.t.Errorf("Expected call to UserServiceMock.EnsureAdminExists at\n%s", m.funcEnsureAdminExistsOrigin)
+	}
+
+	if !m.EnsureAdminExistsMock.invocationsDone() && afterEnsureAdminExistsCounter > 0 {
+		m.t.Errorf("Expected %d calls to UserServiceMock.EnsureAdminExists at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.EnsureAdminExistsMock.expectedInvocations), m.EnsureAdminExistsMock.expectedInvocationsOrigin, afterEnsureAdminExistsCounter)
+	}
+}
+
 type mUserServiceMockGet struct {
 	optional           bool
 	mock               *UserServiceMock
@@ -1449,6 +1770,8 @@ func (m *UserServiceMock) MinimockFinish() {
 
 			m.MinimockDeleteInspect()
 
+			m.MinimockEnsureAdminExistsInspect()
+
 			m.MinimockGetInspect()
 
 			m.MinimockUpdateInspect()
@@ -1477,6 +1800,7 @@ func (m *UserServiceMock) minimockDone() bool {
 	return done &&
 		m.MinimockCreateDone() &&
 		m.MinimockDeleteDone() &&
+		m.MinimockEnsureAdminExistsDone() &&
 		m.MinimockGetDone() &&
 		m.MinimockUpdateDone()
 }

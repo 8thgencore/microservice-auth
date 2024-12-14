@@ -45,8 +45,6 @@ _install-global-deps:
 	go install github.com/pressly/goose/v3/cmd/goose@latest
 
 install-deps: _install-global-deps
-	GOBIN=$(LOCAL_BIN) go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.35.2
-	GOBIN=$(LOCAL_BIN) go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1
 	GOBIN=$(LOCAL_BIN) go install github.com/envoyproxy/protoc-gen-validate@v1.1.0
 	GOBIN=$(LOCAL_BIN) go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.24.0
 	GOBIN=$(LOCAL_BIN) go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.24.0
@@ -242,16 +240,16 @@ docker-deploy: check-env
 # ######### #
 
 migration-create: check-env
-	$(LOCAL_BIN)/goose -dir ${MIGRATION_DIR} create $(NAME) sql
+	goose -dir ${MIGRATION_DIR} create $(NAME) sql
 
 migration-status: check-env
-	$(LOCAL_BIN)/goose -dir ${MIGRATION_DIR} postgres ${MIGRATION_DSN} status -v
+	goose -dir ${MIGRATION_DIR} postgres ${MIGRATION_DSN} status -v
 
 migration-up: check-env
-	$(LOCAL_BIN)/goose -dir ${MIGRATION_DIR} postgres ${MIGRATION_DSN} up -v
+	goose -dir ${MIGRATION_DIR} postgres ${MIGRATION_DSN} up -v
 
 migration-down: check-env
-	$(LOCAL_BIN)/goose -dir ${MIGRATION_DIR} postgres ${MIGRATION_DSN} down -v
+	goose -dir ${MIGRATION_DIR} postgres ${MIGRATION_DSN} down -v
 
 # #### #
 # STOP #
@@ -265,4 +263,4 @@ docker-stop: check-env
 # ########### #
 
 dev:
-	$(LOCAL_BIN)/air
+	air
