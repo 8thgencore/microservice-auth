@@ -25,6 +25,15 @@ var (
 	ErrUserRead           = errors.New("failed to read user info")
 	ErrUserUpdate         = errors.New("failed to update user info")
 	ErrUserDelete         = errors.New("failed to delete user")
+	ErrAdminCreation      = errors.New("failed to create admin user")
+)
+
+// Add this constant with other constants
+const (
+	AdminEmail    = "admin@example.com"
+	AdminPassword = "admin123"
+	AdminRole     = "ADMIN"
+	AdminName     = "admin"
 )
 
 // Create handles the creation of a new user.
@@ -66,6 +75,8 @@ func (s *serv) Create(ctx context.Context, user *model.UserCreate) (string, erro
 		if errors.Is(err, ErrUserEmailExists) {
 			return "", ErrUserEmailExists
 		}
+
+		logger.Error("failed to create user", slog.String("error", err.Error()))
 
 		return "", ErrUserCreate
 	}
@@ -195,4 +206,31 @@ func (s *serv) logUserAction(ctx context.Context, action string, userID string) 
 		ID:   uuidv7.String(),
 		Text: fmt.Sprintf("%s with id: %s", action, userID),
 	})
+}
+
+// EnsureAdminExists checks if admin exists and creates one if not
+func (s *serv) EnsureAdminExists(ctx context.Context) error {
+	user, err := s.userRepository.FindByName(ctx, AdminName)
+	if err != nil {
+		return err
+	}
+
+	if user != nil {
+		return nil // Admin already exists
+	}
+
+	adminUser := &model.UserCreate{
+		Name:            AdminName,
+		Email:           AdminEmail,
+		Password:        AdminPassword,
+		PasswordConfirm: AdminPassword,
+		Role:            AdminRole,
+	}
+
+	_, err = s.Create(ctx, adminUser)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -13,6 +13,7 @@ type UserRepository interface {
 	Update(ctx context.Context, user *model.UserUpdate) error
 	Delete(ctx context.Context, id string) error
 	GetAuthInfo(ctx context.Context, username string) (*model.AuthInfo, error)
+	FindByName(ctx context.Context, name string) (*model.User, error)
 }
 
 // AccessRepository is the interface for access policies repository communication.

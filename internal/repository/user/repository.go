@@ -215,3 +215,41 @@ func (r *repo) GetAuthInfo(ctx context.Context, username string) (*model.AuthInf
 
 	return converter.ToAuthInfoFromRepo(&authInfo), nil
 }
+
+// FindByName returns user with specified name
+func (r *repo) FindByName(ctx context.Context, name string) (*model.User, error) {
+	builderSelect := sq.Select(
+		idColumn,
+		nameColumn,
+		emailColumn,
+		roleColumn,
+		versionColumn,
+		createdAtColumn,
+		updatedAtColumn,
+	).
+		From(tableName).
+		PlaceholderFormat(sq.Dollar).
+		Where(sq.Eq{nameColumn: name}).
+		Limit(1)
+
+	query, args, err := builderSelect.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	q := db.Query{
+		Name:     "user_repository.FindByName",
+		QueryRaw: query,
+	}
+
+	var user dao.User
+	err = r.db.DB().ScanOneContext(ctx, &user, q, args...)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return converter.ToUserFromRepo(&user), nil
+}
