@@ -419,6 +419,63 @@
           "UserV1"
         ]
       }
+    },
+    "/v1/user/change-password": {
+      "post": {
+        "summary": "ChangePassword allows users to change their password securely",
+        "operationId": "UserV1_ChangePassword",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/user_v1ChangePasswordRequest"
+            }
+          }
+        ],
+        "tags": [
+          "UserV1"
+        ]
+      }
+    },
+    "/v1/user/me": {
+      "get": {
+        "summary": "GetMe returns information about the currently authenticated user",
+        "operationId": "UserV1_GetMe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/user_v1GetMeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "UserV1"
+        ]
+      }
     }
   },
   "definitions": {
@@ -597,6 +654,20 @@
         }
       }
     },
+    "user_v1ChangePasswordRequest": {
+      "type": "object",
+      "properties": {
+        "currentPassword": {
+          "type": "string",
+          "title": "Current password for verification"
+        },
+        "newPassword": {
+          "type": "string",
+          "title": "New password to set"
+        }
+      },
+      "title": "ChangePasswordRequest represents the request to change a user's password"
+    },
     "user_v1CreateRequest": {
       "type": "object",
       "properties": {
@@ -615,6 +686,16 @@
         }
       },
       "description": "CreateResponse represents the response after a user is created."
+    },
+    "user_v1GetMeResponse": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/user_v1User",
+          "title": "Full user information"
+        }
+      },
+      "title": "GetMeResponse represents the response containing the current user's information"
     },
     "user_v1GetResponse": {
       "type": "object",

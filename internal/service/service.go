@@ -13,6 +13,7 @@ type UserService interface {
 	Update(ctx context.Context, user *model.UserUpdate) error
 	Delete(ctx context.Context, id string) error
 	EnsureAdminExists(ctx context.Context) error
+	ChangePassword(ctx context.Context, userID string, currentPassword, newPassword string) error
 }
 
 // AuthService is the interface for service communication.

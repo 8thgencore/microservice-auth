@@ -5,11 +5,21 @@ import (
 	"time"
 )
 
+// UserRole type is the type for user role.
+type UserRole string
+
+// UserRole constants
+const (
+	UserRoleUser  UserRole = "USER"
+	UserRoleAdmin UserRole = "ADMIN"
+)
+
 // User type is the main structure for user.
 type User struct {
 	ID        string
 	Name      string
 	Email     string
+	Password  string
 	Role      string
 	Version   int
 	CreatedAt time.Time

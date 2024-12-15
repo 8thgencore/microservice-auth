@@ -10,34 +10,36 @@ import (
 
 	"github.com/8thgencore/microservice-auth/internal/model"
 	"github.com/8thgencore/microservice-common/pkg/logger"
+	"github.com/8thgencore/microservice-common/pkg/logger/sl"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 // Errors
 var (
-	ErrUserNameExists     = errors.New("user with provided name already exists")
-	ErrUserEmailExists    = errors.New("user with provided email already exists")
-	ErrUserNotFound       = errors.New("user not found")
-	ErrPasswordsMismatch  = errors.New("passwords don't match")
-	ErrPasswordProcessing = errors.New("failed to process password")
-	ErrUserCreate         = errors.New("failed to create user")
-	ErrUserRead           = errors.New("failed to read user info")
-	ErrUserUpdate         = errors.New("failed to update user info")
-	ErrUserDelete         = errors.New("failed to delete user")
-	ErrAdminCreation      = errors.New("failed to create admin user")
+	ErrUserNameExists         = errors.New("user with provided name already exists")
+	ErrUserEmailExists        = errors.New("user with provided email already exists")
+	ErrUserNotFound           = errors.New("user not found")
+	ErrPasswordsMismatch      = errors.New("passwords don't match")
+	ErrPasswordProcessing     = errors.New("failed to process password")
+	ErrUserCreate             = errors.New("failed to create user")
+	ErrUserRead               = errors.New("failed to read user info")
+	ErrUserUpdate             = errors.New("failed to update user info")
+	ErrUserDelete             = errors.New("failed to delete user")
+	ErrAdminCreation          = errors.New("failed to create admin user")
+	ErrInvalidCurrentPassword = errors.New("invalid current password")
+	ErrUserChangePassword     = errors.New("failed to change password")
 )
 
 // Add this constant with other constants
 const (
 	AdminEmail    = "admin@example.com"
 	AdminPassword = "admin123"
-	AdminRole     = "ADMIN"
 	AdminName     = "admin"
 )
 
 // Create handles the creation of a new user.
-func (s *serv) Create(ctx context.Context, user *model.UserCreate) (string, error) {
+func (s *userService) Create(ctx context.Context, user *model.UserCreate) (string, error) {
 	// Check if passwords match
 	if user.Password != user.PasswordConfirm {
 		return "", ErrPasswordsMismatch
@@ -76,7 +78,7 @@ func (s *serv) Create(ctx context.Context, user *model.UserCreate) (string, erro
 			return "", ErrUserEmailExists
 		}
 
-		logger.Error("failed to create user", slog.String("error", err.Error()))
+		logger.Error("failed to create user", sl.Err(err))
 
 		return "", ErrUserCreate
 	}
@@ -85,7 +87,7 @@ func (s *serv) Create(ctx context.Context, user *model.UserCreate) (string, erro
 }
 
 // Get retrieves a user by their ID.
-func (s *serv) Get(ctx context.Context, id string) (*model.User, error) {
+func (s *userService) Get(ctx context.Context, id string) (*model.User, error) {
 	var user *model.User
 	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
 		var errTx error
@@ -107,7 +109,7 @@ func (s *serv) Get(ctx context.Context, id string) (*model.User, error) {
 }
 
 // Update handles the updating of a user's information.
-func (s *serv) Update(ctx context.Context, user *model.UserUpdate) error {
+func (s *userService) Update(ctx context.Context, user *model.UserUpdate) error {
 	var currentUser *model.User
 	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
 		var errTx error
@@ -153,7 +155,7 @@ func (s *serv) Update(ctx context.Context, user *model.UserUpdate) error {
 }
 
 // Delete handles the deletion of a user.
-func (s *serv) Delete(ctx context.Context, id string) error {
+func (s *userService) Delete(ctx context.Context, id string) error {
 	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
 		_, errTx := s.userRepository.Get(ctx, id)
 		if errTx != nil {
@@ -195,7 +197,7 @@ func safeIntToInt32(value int) (int32, error) {
 }
 
 // logUserAction is a helper function to log actions performed on a user.
-func (s *serv) logUserAction(ctx context.Context, action string, userID string) error {
+func (s *userService) logUserAction(ctx context.Context, action string, userID string) error {
 	// Generate a UUIDv7 for the user
 	uuidv7, err := uuid.NewV7()
 	if err != nil {
@@ -209,7 +211,7 @@ func (s *serv) logUserAction(ctx context.Context, action string, userID string) 
 }
 
 // EnsureAdminExists checks if admin exists and creates one if not
-func (s *serv) EnsureAdminExists(ctx context.Context) error {
+func (s *userService) EnsureAdminExists(ctx context.Context) error {
 	user, err := s.userRepository.FindByName(ctx, AdminName)
 	if err != nil {
 		return err
@@ -224,12 +226,52 @@ func (s *serv) EnsureAdminExists(ctx context.Context) error {
 		Email:           AdminEmail,
 		Password:        AdminPassword,
 		PasswordConfirm: AdminPassword,
-		Role:            AdminRole,
+		Role:            string(model.UserRoleAdmin),
 	}
 
 	_, err = s.Create(ctx, adminUser)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// ChangePassword handles the password change process
+func (s *userService) ChangePassword(ctx context.Context, userID string, currentPassword, newPassword string) error {
+	var user *model.User
+
+	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
+		// Get user's current auth info
+		var errTx error
+		user, errTx = s.userRepository.Get(ctx, userID)
+		if errTx != nil {
+			return errTx
+		}
+
+		fmt.Println("user.Password", user)
+		// Verify current password
+		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(currentPassword)); err != nil {
+			return ErrInvalidCurrentPassword
+		}
+
+		// Hash new password
+		hashedPassword, err := hashPassword(newPassword)
+		if err != nil {
+			return err
+		}
+
+		// Update password in database
+		err = s.userRepository.UpdatePassword(ctx, userID, hashedPassword)
+		if err != nil {
+			return err
+		}
+
+		return s.logUserAction(ctx, "Changed password", userID)
+	})
+	if err != nil {
+		logger.Error("failed to change password", sl.Err(err))
+		return ErrUserChangePassword
 	}
 
 	return nil

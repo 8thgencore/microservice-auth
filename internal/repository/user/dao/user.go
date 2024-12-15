@@ -10,6 +10,7 @@ type User struct {
 	ID        string       `db:"id"`
 	Name      string       `db:"name"`
 	Email     string       `db:"email"`
+	Password  string       `db:"password"`
 	Role      string       `db:"role"`
 	Version   int          `db:"version"`
 	CreatedAt time.Time    `db:"created_at"`

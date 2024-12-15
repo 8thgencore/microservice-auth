@@ -58,6 +58,13 @@ type UserRepositoryMock struct {
 	afterUpdateCounter  uint64
 	beforeUpdateCounter uint64
 	UpdateMock          mUserRepositoryMockUpdate
+
+	funcUpdatePassword          func(ctx context.Context, userID string, hashedPassword string) (err error)
+	funcUpdatePasswordOrigin    string
+	inspectFuncUpdatePassword   func(ctx context.Context, userID string, hashedPassword string)
+	afterUpdatePasswordCounter  uint64
+	beforeUpdatePasswordCounter uint64
+	UpdatePasswordMock          mUserRepositoryMockUpdatePassword
 }
 
 // NewUserRepositoryMock returns a mock for mm_repository.UserRepository
@@ -85,6 +92,9 @@ func NewUserRepositoryMock(t minimock.Tester) *UserRepositoryMock {
 
 	m.UpdateMock = mUserRepositoryMockUpdate{mock: m}
 	m.UpdateMock.callArgs = []*UserRepositoryMockUpdateParams{}
+
+	m.UpdatePasswordMock = mUserRepositoryMockUpdatePassword{mock: m}
+	m.UpdatePasswordMock.callArgs = []*UserRepositoryMockUpdatePasswordParams{}
 
 	t.Cleanup(m.MinimockFinish)
 
@@ -2147,6 +2157,379 @@ func (m *UserRepositoryMock) MinimockUpdateInspect() {
 	}
 }
 
+type mUserRepositoryMockUpdatePassword struct {
+	optional           bool
+	mock               *UserRepositoryMock
+	defaultExpectation *UserRepositoryMockUpdatePasswordExpectation
+	expectations       []*UserRepositoryMockUpdatePasswordExpectation
+
+	callArgs []*UserRepositoryMockUpdatePasswordParams
+	mutex    sync.RWMutex
+
+	expectedInvocations       uint64
+	expectedInvocationsOrigin string
+}
+
+// UserRepositoryMockUpdatePasswordExpectation specifies expectation struct of the UserRepository.UpdatePassword
+type UserRepositoryMockUpdatePasswordExpectation struct {
+	mock               *UserRepositoryMock
+	params             *UserRepositoryMockUpdatePasswordParams
+	paramPtrs          *UserRepositoryMockUpdatePasswordParamPtrs
+	expectationOrigins UserRepositoryMockUpdatePasswordExpectationOrigins
+	results            *UserRepositoryMockUpdatePasswordResults
+	returnOrigin       string
+	Counter            uint64
+}
+
+// UserRepositoryMockUpdatePasswordParams contains parameters of the UserRepository.UpdatePassword
+type UserRepositoryMockUpdatePasswordParams struct {
+	ctx            context.Context
+	userID         string
+	hashedPassword string
+}
+
+// UserRepositoryMockUpdatePasswordParamPtrs contains pointers to parameters of the UserRepository.UpdatePassword
+type UserRepositoryMockUpdatePasswordParamPtrs struct {
+	ctx            *context.Context
+	userID         *string
+	hashedPassword *string
+}
+
+// UserRepositoryMockUpdatePasswordResults contains results of the UserRepository.UpdatePassword
+type UserRepositoryMockUpdatePasswordResults struct {
+	err error
+}
+
+// UserRepositoryMockUpdatePasswordOrigins contains origins of expectations of the UserRepository.UpdatePassword
+type UserRepositoryMockUpdatePasswordExpectationOrigins struct {
+	origin               string
+	originCtx            string
+	originUserID         string
+	originHashedPassword string
+}
+
+// Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
+// the test will fail minimock's automatic final call check if the mocked method was not called at least once.
+// Optional() makes method check to work in '0 or more' mode.
+// It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
+// catch the problems when the expected method call is totally skipped during test run.
+func (mmUpdatePassword *mUserRepositoryMockUpdatePassword) Optional() *mUserRepositoryMockUpdatePassword {
+	mmUpdatePassword.optional = true
+	return mmUpdatePassword
+}
+
+// Expect sets up expected params for UserRepository.UpdatePassword
+func (mmUpdatePassword *mUserRepositoryMockUpdatePassword) Expect(ctx context.Context, userID string, hashedPassword string) *mUserRepositoryMockUpdatePassword {
+	if mmUpdatePassword.mock.funcUpdatePassword != nil {
+		mmUpdatePassword.mock.t.Fatalf("UserRepositoryMock.UpdatePassword mock is already set by Set")
+	}
+
+	if mmUpdatePassword.defaultExpectation == nil {
+		mmUpdatePassword.defaultExpectation = &UserRepositoryMockUpdatePasswordExpectation{}
+	}
+
+	if mmUpdatePassword.defaultExpectation.paramPtrs != nil {
+		mmUpdatePassword.mock.t.Fatalf("UserRepositoryMock.UpdatePassword mock is already set by ExpectParams functions")
+	}
+
+	mmUpdatePassword.defaultExpectation.params = &UserRepositoryMockUpdatePasswordParams{ctx, userID, hashedPassword}
+	mmUpdatePassword.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmUpdatePassword.expectations {
+		if minimock.Equal(e.params, mmUpdatePassword.defaultExpectation.params) {
+			mmUpdatePassword.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmUpdatePassword.defaultExpectation.params)
+		}
+	}
+
+	return mmUpdatePassword
+}
+
+// ExpectCtxParam1 sets up expected param ctx for UserRepository.UpdatePassword
+func (mmUpdatePassword *mUserRepositoryMockUpdatePassword) ExpectCtxParam1(ctx context.Context) *mUserRepositoryMockUpdatePassword {
+	if mmUpdatePassword.mock.funcUpdatePassword != nil {
+		mmUpdatePassword.mock.t.Fatalf("UserRepositoryMock.UpdatePassword mock is already set by Set")
+	}
+
+	if mmUpdatePassword.defaultExpectation == nil {
+		mmUpdatePassword.defaultExpectation = &UserRepositoryMockUpdatePasswordExpectation{}
+	}
+
+	if mmUpdatePassword.defaultExpectation.params != nil {
+		mmUpdatePassword.mock.t.Fatalf("UserRepositoryMock.UpdatePassword mock is already set by Expect")
+	}
+
+	if mmUpdatePassword.defaultExpectation.paramPtrs == nil {
+		mmUpdatePassword.defaultExpectation.paramPtrs = &UserRepositoryMockUpdatePasswordParamPtrs{}
+	}
+	mmUpdatePassword.defaultExpectation.paramPtrs.ctx = &ctx
+	mmUpdatePassword.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
+
+	return mmUpdatePassword
+}
+
+// ExpectUserIDParam2 sets up expected param userID for UserRepository.UpdatePassword
+func (mmUpdatePassword *mUserRepositoryMockUpdatePassword) ExpectUserIDParam2(userID string) *mUserRepositoryMockUpdatePassword {
+	if mmUpdatePassword.mock.funcUpdatePassword != nil {
+		mmUpdatePassword.mock.t.Fatalf("UserRepositoryMock.UpdatePassword mock is already set by Set")
+	}
+
+	if mmUpdatePassword.defaultExpectation == nil {
+		mmUpdatePassword.defaultExpectation = &UserRepositoryMockUpdatePasswordExpectation{}
+	}
+
+	if mmUpdatePassword.defaultExpectation.params != nil {
+		mmUpdatePassword.mock.t.Fatalf("UserRepositoryMock.UpdatePassword mock is already set by Expect")
+	}
+
+	if mmUpdatePassword.defaultExpectation.paramPtrs == nil {
+		mmUpdatePassword.defaultExpectation.paramPtrs = &UserRepositoryMockUpdatePasswordParamPtrs{}
+	}
+	mmUpdatePassword.defaultExpectation.paramPtrs.userID = &userID
+	mmUpdatePassword.defaultExpectation.expectationOrigins.originUserID = minimock.CallerInfo(1)
+
+	return mmUpdatePassword
+}
+
+// ExpectHashedPasswordParam3 sets up expected param hashedPassword for UserRepository.UpdatePassword
+func (mmUpdatePassword *mUserRepositoryMockUpdatePassword) ExpectHashedPasswordParam3(hashedPassword string) *mUserRepositoryMockUpdatePassword {
+	if mmUpdatePassword.mock.funcUpdatePassword != nil {
+		mmUpdatePassword.mock.t.Fatalf("UserRepositoryMock.UpdatePassword mock is already set by Set")
+	}
+
+	if mmUpdatePassword.defaultExpectation == nil {
+		mmUpdatePassword.defaultExpectation = &UserRepositoryMockUpdatePasswordExpectation{}
+	}
+
+	if mmUpdatePassword.defaultExpectation.params != nil {
+		mmUpdatePassword.mock.t.Fatalf("UserRepositoryMock.UpdatePassword mock is already set by Expect")
+	}
+
+	if mmUpdatePassword.defaultExpectation.paramPtrs == nil {
+		mmUpdatePassword.defaultExpectation.paramPtrs = &UserRepositoryMockUpdatePasswordParamPtrs{}
+	}
+	mmUpdatePassword.defaultExpectation.paramPtrs.hashedPassword = &hashedPassword
+	mmUpdatePassword.defaultExpectation.expectationOrigins.originHashedPassword = minimock.CallerInfo(1)
+
+	return mmUpdatePassword
+}
+
+// Inspect accepts an inspector function that has same arguments as the UserRepository.UpdatePassword
+func (mmUpdatePassword *mUserRepositoryMockUpdatePassword) Inspect(f func(ctx context.Context, userID string, hashedPassword string)) *mUserRepositoryMockUpdatePassword {
+	if mmUpdatePassword.mock.inspectFuncUpdatePassword != nil {
+		mmUpdatePassword.mock.t.Fatalf("Inspect function is already set for UserRepositoryMock.UpdatePassword")
+	}
+
+	mmUpdatePassword.mock.inspectFuncUpdatePassword = f
+
+	return mmUpdatePassword
+}
+
+// Return sets up results that will be returned by UserRepository.UpdatePassword
+func (mmUpdatePassword *mUserRepositoryMockUpdatePassword) Return(err error) *UserRepositoryMock {
+	if mmUpdatePassword.mock.funcUpdatePassword != nil {
+		mmUpdatePassword.mock.t.Fatalf("UserRepositoryMock.UpdatePassword mock is already set by Set")
+	}
+
+	if mmUpdatePassword.defaultExpectation == nil {
+		mmUpdatePassword.defaultExpectation = &UserRepositoryMockUpdatePasswordExpectation{mock: mmUpdatePassword.mock}
+	}
+	mmUpdatePassword.defaultExpectation.results = &UserRepositoryMockUpdatePasswordResults{err}
+	mmUpdatePassword.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmUpdatePassword.mock
+}
+
+// Set uses given function f to mock the UserRepository.UpdatePassword method
+func (mmUpdatePassword *mUserRepositoryMockUpdatePassword) Set(f func(ctx context.Context, userID string, hashedPassword string) (err error)) *UserRepositoryMock {
+	if mmUpdatePassword.defaultExpectation != nil {
+		mmUpdatePassword.mock.t.Fatalf("Default expectation is already set for the UserRepository.UpdatePassword method")
+	}
+
+	if len(mmUpdatePassword.expectations) > 0 {
+		mmUpdatePassword.mock.t.Fatalf("Some expectations are already set for the UserRepository.UpdatePassword method")
+	}
+
+	mmUpdatePassword.mock.funcUpdatePassword = f
+	mmUpdatePassword.mock.funcUpdatePasswordOrigin = minimock.CallerInfo(1)
+	return mmUpdatePassword.mock
+}
+
+// When sets expectation for the UserRepository.UpdatePassword which will trigger the result defined by the following
+// Then helper
+func (mmUpdatePassword *mUserRepositoryMockUpdatePassword) When(ctx context.Context, userID string, hashedPassword string) *UserRepositoryMockUpdatePasswordExpectation {
+	if mmUpdatePassword.mock.funcUpdatePassword != nil {
+		mmUpdatePassword.mock.t.Fatalf("UserRepositoryMock.UpdatePassword mock is already set by Set")
+	}
+
+	expectation := &UserRepositoryMockUpdatePasswordExpectation{
+		mock:               mmUpdatePassword.mock,
+		params:             &UserRepositoryMockUpdatePasswordParams{ctx, userID, hashedPassword},
+		expectationOrigins: UserRepositoryMockUpdatePasswordExpectationOrigins{origin: minimock.CallerInfo(1)},
+	}
+	mmUpdatePassword.expectations = append(mmUpdatePassword.expectations, expectation)
+	return expectation
+}
+
+// Then sets up UserRepository.UpdatePassword return parameters for the expectation previously defined by the When method
+func (e *UserRepositoryMockUpdatePasswordExpectation) Then(err error) *UserRepositoryMock {
+	e.results = &UserRepositoryMockUpdatePasswordResults{err}
+	return e.mock
+}
+
+// Times sets number of times UserRepository.UpdatePassword should be invoked
+func (mmUpdatePassword *mUserRepositoryMockUpdatePassword) Times(n uint64) *mUserRepositoryMockUpdatePassword {
+	if n == 0 {
+		mmUpdatePassword.mock.t.Fatalf("Times of UserRepositoryMock.UpdatePassword mock can not be zero")
+	}
+	mm_atomic.StoreUint64(&mmUpdatePassword.expectedInvocations, n)
+	mmUpdatePassword.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmUpdatePassword
+}
+
+func (mmUpdatePassword *mUserRepositoryMockUpdatePassword) invocationsDone() bool {
+	if len(mmUpdatePassword.expectations) == 0 && mmUpdatePassword.defaultExpectation == nil && mmUpdatePassword.mock.funcUpdatePassword == nil {
+		return true
+	}
+
+	totalInvocations := mm_atomic.LoadUint64(&mmUpdatePassword.mock.afterUpdatePasswordCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmUpdatePassword.expectedInvocations)
+
+	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
+}
+
+// UpdatePassword implements mm_repository.UserRepository
+func (mmUpdatePassword *UserRepositoryMock) UpdatePassword(ctx context.Context, userID string, hashedPassword string) (err error) {
+	mm_atomic.AddUint64(&mmUpdatePassword.beforeUpdatePasswordCounter, 1)
+	defer mm_atomic.AddUint64(&mmUpdatePassword.afterUpdatePasswordCounter, 1)
+
+	mmUpdatePassword.t.Helper()
+
+	if mmUpdatePassword.inspectFuncUpdatePassword != nil {
+		mmUpdatePassword.inspectFuncUpdatePassword(ctx, userID, hashedPassword)
+	}
+
+	mm_params := UserRepositoryMockUpdatePasswordParams{ctx, userID, hashedPassword}
+
+	// Record call args
+	mmUpdatePassword.UpdatePasswordMock.mutex.Lock()
+	mmUpdatePassword.UpdatePasswordMock.callArgs = append(mmUpdatePassword.UpdatePasswordMock.callArgs, &mm_params)
+	mmUpdatePassword.UpdatePasswordMock.mutex.Unlock()
+
+	for _, e := range mmUpdatePassword.UpdatePasswordMock.expectations {
+		if minimock.Equal(*e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.err
+		}
+	}
+
+	if mmUpdatePassword.UpdatePasswordMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmUpdatePassword.UpdatePasswordMock.defaultExpectation.Counter, 1)
+		mm_want := mmUpdatePassword.UpdatePasswordMock.defaultExpectation.params
+		mm_want_ptrs := mmUpdatePassword.UpdatePasswordMock.defaultExpectation.paramPtrs
+
+		mm_got := UserRepositoryMockUpdatePasswordParams{ctx, userID, hashedPassword}
+
+		if mm_want_ptrs != nil {
+
+			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
+				mmUpdatePassword.t.Errorf("UserRepositoryMock.UpdatePassword got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmUpdatePassword.UpdatePasswordMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+			}
+
+			if mm_want_ptrs.userID != nil && !minimock.Equal(*mm_want_ptrs.userID, mm_got.userID) {
+				mmUpdatePassword.t.Errorf("UserRepositoryMock.UpdatePassword got unexpected parameter userID, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmUpdatePassword.UpdatePasswordMock.defaultExpectation.expectationOrigins.originUserID, *mm_want_ptrs.userID, mm_got.userID, minimock.Diff(*mm_want_ptrs.userID, mm_got.userID))
+			}
+
+			if mm_want_ptrs.hashedPassword != nil && !minimock.Equal(*mm_want_ptrs.hashedPassword, mm_got.hashedPassword) {
+				mmUpdatePassword.t.Errorf("UserRepositoryMock.UpdatePassword got unexpected parameter hashedPassword, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmUpdatePassword.UpdatePasswordMock.defaultExpectation.expectationOrigins.originHashedPassword, *mm_want_ptrs.hashedPassword, mm_got.hashedPassword, minimock.Diff(*mm_want_ptrs.hashedPassword, mm_got.hashedPassword))
+			}
+
+		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmUpdatePassword.t.Errorf("UserRepositoryMock.UpdatePassword got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmUpdatePassword.UpdatePasswordMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmUpdatePassword.UpdatePasswordMock.defaultExpectation.results
+		if mm_results == nil {
+			mmUpdatePassword.t.Fatal("No results are set for the UserRepositoryMock.UpdatePassword")
+		}
+		return (*mm_results).err
+	}
+	if mmUpdatePassword.funcUpdatePassword != nil {
+		return mmUpdatePassword.funcUpdatePassword(ctx, userID, hashedPassword)
+	}
+	mmUpdatePassword.t.Fatalf("Unexpected call to UserRepositoryMock.UpdatePassword. %v %v %v", ctx, userID, hashedPassword)
+	return
+}
+
+// UpdatePasswordAfterCounter returns a count of finished UserRepositoryMock.UpdatePassword invocations
+func (mmUpdatePassword *UserRepositoryMock) UpdatePasswordAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmUpdatePassword.afterUpdatePasswordCounter)
+}
+
+// UpdatePasswordBeforeCounter returns a count of UserRepositoryMock.UpdatePassword invocations
+func (mmUpdatePassword *UserRepositoryMock) UpdatePasswordBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmUpdatePassword.beforeUpdatePasswordCounter)
+}
+
+// Calls returns a list of arguments used in each call to UserRepositoryMock.UpdatePassword.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmUpdatePassword *mUserRepositoryMockUpdatePassword) Calls() []*UserRepositoryMockUpdatePasswordParams {
+	mmUpdatePassword.mutex.RLock()
+
+	argCopy := make([]*UserRepositoryMockUpdatePasswordParams, len(mmUpdatePassword.callArgs))
+	copy(argCopy, mmUpdatePassword.callArgs)
+
+	mmUpdatePassword.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockUpdatePasswordDone returns true if the count of the UpdatePassword invocations corresponds
+// the number of defined expectations
+func (m *UserRepositoryMock) MinimockUpdatePasswordDone() bool {
+	if m.UpdatePasswordMock.optional {
+		// Optional methods provide '0 or more' call count restriction.
+		return true
+	}
+
+	for _, e := range m.UpdatePasswordMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	return m.UpdatePasswordMock.invocationsDone()
+}
+
+// MinimockUpdatePasswordInspect logs each unmet expectation
+func (m *UserRepositoryMock) MinimockUpdatePasswordInspect() {
+	for _, e := range m.UpdatePasswordMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to UserRepositoryMock.UpdatePassword at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+		}
+	}
+
+	afterUpdatePasswordCounter := mm_atomic.LoadUint64(&m.afterUpdatePasswordCounter)
+	// if default expectation was set then invocations count should be greater than zero
+	if m.UpdatePasswordMock.defaultExpectation != nil && afterUpdatePasswordCounter < 1 {
+		if m.UpdatePasswordMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to UserRepositoryMock.UpdatePassword at\n%s", m.UpdatePasswordMock.defaultExpectation.returnOrigin)
+		} else {
+			m.t.Errorf("Expected call to UserRepositoryMock.UpdatePassword at\n%s with params: %#v", m.UpdatePasswordMock.defaultExpectation.expectationOrigins.origin, *m.UpdatePasswordMock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcUpdatePassword != nil && afterUpdatePasswordCounter < 1 {
+		m.t.Errorf("Expected call to UserRepositoryMock.UpdatePassword at\n%s", m.funcUpdatePasswordOrigin)
+	}
+
+	if !m.UpdatePasswordMock.invocationsDone() && afterUpdatePasswordCounter > 0 {
+		m.t.Errorf("Expected %d calls to UserRepositoryMock.UpdatePassword at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.UpdatePasswordMock.expectedInvocations), m.UpdatePasswordMock.expectedInvocationsOrigin, afterUpdatePasswordCounter)
+	}
+}
+
 // MinimockFinish checks that all mocked methods have been called the expected number of times
 func (m *UserRepositoryMock) MinimockFinish() {
 	m.finishOnce.Do(func() {
@@ -2162,6 +2545,8 @@ func (m *UserRepositoryMock) MinimockFinish() {
 			m.MinimockGetAuthInfoInspect()
 
 			m.MinimockUpdateInspect()
+
+			m.MinimockUpdatePasswordInspect()
 		}
 	})
 }
@@ -2190,5 +2575,6 @@ func (m *UserRepositoryMock) minimockDone() bool {
 		m.MinimockFindByNameDone() &&
 		m.MinimockGetDone() &&
 		m.MinimockGetAuthInfoDone() &&
-		m.MinimockUpdateDone()
+		m.MinimockUpdateDone() &&
+		m.MinimockUpdatePasswordDone()
 }
