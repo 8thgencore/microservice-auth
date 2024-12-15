@@ -59,4 +59,12 @@ func newTestService(
 		tokenOperations: tokenOperations,
 		txManager:       txManager,
 	}
+
+	// Ensure admin exists during service initialization
+	if err := s.EnsureAdminExists(context.Background()); err != nil {
+		// Log the error but don't fail the service initialization
+		logger.Error("failed to ensure admin exists", slog.String("error", err.Error()))
+	}
+
+	return s
 }
