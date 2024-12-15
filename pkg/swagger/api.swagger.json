@@ -422,7 +422,7 @@
     },
     "/v1/user/change-password": {
       "post": {
-        "summary": "ChangePassword allows users to change their password securely\nRequires current password for verification and new password with confirmation",
+        "summary": "ChangePassword allows users to change their password securely",
         "operationId": "UserV1_ChangePassword",
         "responses": {
           "200": {
@@ -456,7 +456,7 @@
     },
     "/v1/user/me": {
       "get": {
-        "summary": "GetMe returns information about the currently authenticated user\nThis endpoint uses the access token to identify the user",
+        "summary": "GetMe returns information about the currently authenticated user",
         "operationId": "UserV1_GetMe",
         "responses": {
           "200": {

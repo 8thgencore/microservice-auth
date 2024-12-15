@@ -65,7 +65,6 @@ service UserV1 {
   }
 
   // GetMe returns information about the currently authenticated user
-  // This endpoint uses the access token to identify the user
   rpc GetMe(google.protobuf.Empty) returns (GetMeResponse) {
     option (google.api.http) = {
       get: "/v1/user/me"
@@ -73,15 +72,12 @@ service UserV1 {
   }
 
   // ChangePassword allows users to change their password securely
-  // Requires current password for verification and new password with confirmation
   rpc ChangePassword(ChangePasswordRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
       post: "/v1/user/change-password"
       body: "*"
     };
   }
-
-
 }
 
 // Role defines the various roles a user can have in the system.
@@ -183,8 +179,7 @@ message GetMeResponse {
 // ChangePasswordRequest represents the request to change a user's password
 message ChangePasswordRequest {
   // Current password for verification
-  string current_password = 2 [(validate.rules).string = {min_len: 8, max_len: 256}];
+  string current_password = 1 [(validate.rules).string = {min_len: 8, max_len: 256}];
   // New password to set
-  string new_password = 3 [(validate.rules).string = {min_len: 8, max_len: 256}];
+  string new_password = 2 [(validate.rules).string = {min_len: 8, max_len: 256}];
 }
-

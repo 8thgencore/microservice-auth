@@ -48,10 +48,8 @@ type UserV1Client interface {
 	// Delete is used for deleting a user by ID.
 	Delete(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// GetMe returns information about the currently authenticated user
-	// This endpoint uses the access token to identify the user
 	GetMe(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetMeResponse, error)
 	// ChangePassword allows users to change their password securely
-	// Requires current password for verification and new password with confirmation
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
@@ -139,10 +137,8 @@ type UserV1Server interface {
 	// Delete is used for deleting a user by ID.
 	Delete(context.Context, *DeleteRequest) (*emptypb.Empty, error)
 	// GetMe returns information about the currently authenticated user
-	// This endpoint uses the access token to identify the user
 	GetMe(context.Context, *emptypb.Empty) (*GetMeResponse, error)
 	// ChangePassword allows users to change their password securely
-	// Requires current password for verification and new password with confirmation
 	ChangePassword(context.Context, *ChangePasswordRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedUserV1Server()
 }
