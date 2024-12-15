@@ -37,7 +37,7 @@ const (
 )
 
 // Create handles the creation of a new user.
-func (s *serv) Create(ctx context.Context, user *model.UserCreate) (string, error) {
+func (s *userService) Create(ctx context.Context, user *model.UserCreate) (string, error) {
 	// Check if passwords match
 	if user.Password != user.PasswordConfirm {
 		return "", ErrPasswordsMismatch
@@ -85,7 +85,7 @@ func (s *serv) Create(ctx context.Context, user *model.UserCreate) (string, erro
 }
 
 // Get retrieves a user by their ID.
-func (s *serv) Get(ctx context.Context, id string) (*model.User, error) {
+func (s *userService) Get(ctx context.Context, id string) (*model.User, error) {
 	var user *model.User
 	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
 		var errTx error
@@ -107,7 +107,7 @@ func (s *serv) Get(ctx context.Context, id string) (*model.User, error) {
 }
 
 // Update handles the updating of a user's information.
-func (s *serv) Update(ctx context.Context, user *model.UserUpdate) error {
+func (s *userService) Update(ctx context.Context, user *model.UserUpdate) error {
 	var currentUser *model.User
 	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
 		var errTx error
@@ -153,7 +153,7 @@ func (s *serv) Update(ctx context.Context, user *model.UserUpdate) error {
 }
 
 // Delete handles the deletion of a user.
-func (s *serv) Delete(ctx context.Context, id string) error {
+func (s *userService) Delete(ctx context.Context, id string) error {
 	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
 		_, errTx := s.userRepository.Get(ctx, id)
 		if errTx != nil {
@@ -195,7 +195,7 @@ func safeIntToInt32(value int) (int32, error) {
 }
 
 // logUserAction is a helper function to log actions performed on a user.
-func (s *serv) logUserAction(ctx context.Context, action string, userID string) error {
+func (s *userService) logUserAction(ctx context.Context, action string, userID string) error {
 	// Generate a UUIDv7 for the user
 	uuidv7, err := uuid.NewV7()
 	if err != nil {
@@ -209,7 +209,7 @@ func (s *serv) logUserAction(ctx context.Context, action string, userID string) 
 }
 
 // EnsureAdminExists checks if admin exists and creates one if not
-func (s *serv) EnsureAdminExists(ctx context.Context) error {
+func (s *userService) EnsureAdminExists(ctx context.Context) error {
 	user, err := s.userRepository.FindByName(ctx, AdminName)
 	if err != nil {
 		return err

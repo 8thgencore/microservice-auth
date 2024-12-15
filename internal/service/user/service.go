@@ -11,7 +11,7 @@ import (
 	"github.com/8thgencore/microservice-common/pkg/logger"
 )
 
-type serv struct {
+type userService struct {
 	userRepository  repository.UserRepository
 	logRepository   repository.LogRepository
 	tokenRepository repository.TokenRepository
@@ -27,7 +27,7 @@ func NewService(
 	tokenOperations tokens.TokenOperations,
 	txManager db.TxManager,
 ) service.UserService {
-	s := &serv{
+	s := &userService{
 		userRepository:  userRepository,
 		logRepository:   logRepository,
 		tokenRepository: tokenRepository,
@@ -42,4 +42,21 @@ func NewService(
 	}
 
 	return s
+}
+
+// newTestService creates service instance without admin check (for testing only)
+func newTestService(
+	userRepository repository.UserRepository,
+	logRepository repository.LogRepository,
+	tokenRepository repository.TokenRepository,
+	tokenOperations tokens.TokenOperations,
+	txManager db.TxManager,
+) service.UserService {
+	return &userService{
+		userRepository:  userRepository,
+		logRepository:   logRepository,
+		tokenRepository: tokenRepository,
+		tokenOperations: tokenOperations,
+		txManager:       txManager,
+	}
 }

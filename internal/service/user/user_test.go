@@ -19,6 +19,7 @@ import (
 	repositoryMocks "github.com/8thgencore/microservice-auth/internal/repository/mocks"
 	tokenMocks "github.com/8thgencore/microservice-auth/internal/tokens/mocks"
 	dbMocks "github.com/8thgencore/microservice-common/pkg/db/mocks"
+	"github.com/8thgencore/microservice-common/pkg/logger"
 )
 
 var (
@@ -59,6 +60,10 @@ var (
 		return mock
 	}
 )
+
+func init() {
+	logger.Init("")
+}
 
 // TestCreate tests the creation of a new user.
 func TestCreate(t *testing.T) {
@@ -138,8 +143,7 @@ func TestCreate(t *testing.T) {
 				return mock
 			},
 			transactorMock: func(mc *minimock.Controller) db.Transactor {
-				mock := dbMocks.NewTransactorMock(mc)
-				return mock
+				return dbMocks.NewTransactorMock(mc)
 			},
 		},
 		{
@@ -293,7 +297,7 @@ func TestCreate(t *testing.T) {
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
 
 			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
-			srv := NewService(
+			srv := newTestService(
 				userRepositoryMock, logRepositoryMock, tokenRepositoryMock, tokenOperationsMock, txManagerMock,
 			)
 
@@ -413,6 +417,7 @@ func TestGet(t *testing.T) {
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
 				mock.GetMock.Expect(minimock.AnyContext, id).Return(user, nil)
+				mock.GetMock.Expect(minimock.AnyContext, id).Return(nil, ErrUserRead)
 				return mock
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
@@ -469,7 +474,7 @@ func TestGet(t *testing.T) {
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
 
 			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
-			srv := NewService(
+			srv := newTestService(
 				userRepositoryMock, logRepositoryMock, tokenRepositoryMock, tokenOperationsMock, txManagerMock,
 			)
 
@@ -655,7 +660,7 @@ func TestUpdate(t *testing.T) {
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
 
 			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
-			srv := NewService(
+			srv := newTestService(
 				userRepositoryMock, logRepositoryMock, tokenRepositoryMock, tokenOperationsMock, txManagerMock,
 			)
 
@@ -849,11 +854,146 @@ func TestDelete(t *testing.T) {
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
 			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
 
-			srv := NewService(
+			srv := newTestService(
 				userRepositoryMock, logRepositoryMock, tokenRepositoryMock, tokenOperationsMock, txManagerMock,
 			)
 
 			err := srv.Delete(tt.args.ctx, tt.args.req)
+			require.Equal(t, tt.err, err)
+		})
+	}
+}
+
+func TestEnsureAdminExists(t *testing.T) {
+	t.Parallel()
+
+	var (
+		mc  = minimock.NewController(t)
+		ctx = context.Background()
+
+		adminUser = &model.User{
+			ID:      id,
+			Name:    AdminName,
+			Email:   AdminEmail,
+			Role:    AdminRole,
+			Version: 0,
+		}
+	)
+
+	tests := []struct {
+		name                string
+		err                 error
+		userRepositoryMock  userRepositoryMockFunc
+		logRepositoryMock   logRepositoryMockFunc
+		tokenRepositoryMock tokenRepositoryMockFunc
+		tokenOperationsMock tokenOperationsMockFunc
+		transactorMock      transactorMockFunc
+	}{
+		{
+			name: "admin already exists case",
+			err:  nil,
+			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
+				mock := repositoryMocks.NewUserRepositoryMock(mc)
+				mock.FindByNameMock.Expect(minimock.AnyContext, AdminName).Return(adminUser, nil)
+				return mock
+			},
+			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
+				return repositoryMocks.NewLogRepositoryMock(mc)
+			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				return repositoryMocks.NewTokenRepositoryMock(mc)
+			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				return tokenMocks.NewTokenOperationsMock(mc)
+			},
+			transactorMock: func(mc *minimock.Controller) db.Transactor {
+				return dbMocks.NewTransactorMock(mc)
+			},
+		},
+		{
+			name: "admin creation success case",
+			err:  nil,
+			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
+				mock := repositoryMocks.NewUserRepositoryMock(mc)
+				mock.FindByNameMock.Expect(minimock.AnyContext, AdminName).Return(nil, nil)
+				mock.CreateMock.Optional().Return("admin_id", nil)
+				return mock
+			},
+			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
+				mock := repositoryMocks.NewLogRepositoryMock(mc)
+				mock.LogMock.Optional().Return(nil)
+				return mock
+			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				return repositoryMocks.NewTokenRepositoryMock(mc)
+			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				return tokenMocks.NewTokenOperationsMock(mc)
+			},
+			transactorMock: transactorCommitMock,
+		},
+		{
+			name: "find by name error case",
+			err:  ErrUserRead,
+			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
+				mock := repositoryMocks.NewUserRepositoryMock(mc)
+				mock.FindByNameMock.Expect(minimock.AnyContext, AdminName).Return(nil, ErrUserRead)
+				return mock
+			},
+			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
+				return repositoryMocks.NewLogRepositoryMock(mc)
+			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				return repositoryMocks.NewTokenRepositoryMock(mc)
+			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				return tokenMocks.NewTokenOperationsMock(mc)
+			},
+			transactorMock: func(mc *minimock.Controller) db.Transactor {
+				return dbMocks.NewTransactorMock(mc)
+			},
+		},
+		{
+			name: "create admin error case",
+			err:  ErrUserCreate,
+			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
+				mock := repositoryMocks.NewUserRepositoryMock(mc)
+				mock.FindByNameMock.Expect(minimock.AnyContext, AdminName).Return(nil, nil)
+				mock.CreateMock.Optional().Return("", ErrUserCreate)
+				return mock
+			},
+			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
+				return repositoryMocks.NewLogRepositoryMock(mc)
+			},
+			tokenRepositoryMock: func(mc *minimock.Controller) repository.TokenRepository {
+				return repositoryMocks.NewTokenRepositoryMock(mc)
+			},
+			tokenOperationsMock: func(mc *minimock.Controller) tokens.TokenOperations {
+				return tokenMocks.NewTokenOperationsMock(mc)
+			},
+			transactorMock: transactorRollbackMock,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			userRepositoryMock := tt.userRepositoryMock(mc)
+			logRepositoryMock := tt.logRepositoryMock(mc)
+			tokenRepositoryMock := tt.tokenRepositoryMock(mc)
+			tokenOperationsMock := tt.tokenOperationsMock(mc)
+			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
+
+			srv := newTestService(
+				userRepositoryMock,
+				logRepositoryMock,
+				tokenRepositoryMock,
+				tokenOperationsMock,
+				txManagerMock,
+			)
+
+			err := srv.EnsureAdminExists(ctx)
 			require.Equal(t, tt.err, err)
 		})
 	}
