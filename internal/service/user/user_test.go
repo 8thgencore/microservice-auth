@@ -875,7 +875,7 @@ func TestEnsureAdminExists(t *testing.T) {
 			ID:      id,
 			Name:    AdminName,
 			Email:   AdminEmail,
-			Role:    AdminRole,
+			Role:    string(model.UserRoleAdmin),
 			Version: 0,
 		}
 	)

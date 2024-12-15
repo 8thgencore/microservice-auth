@@ -89,7 +89,7 @@ func (t *tokenOperations) VerifyAccessToken(tokenStr string) (*model.UserClaims,
 		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("invalid access token: %w", err)
+		return nil, fmt.Errorf("%s", err.Error())
 	}
 
 	if !token.Valid {

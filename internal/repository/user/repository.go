@@ -42,6 +42,7 @@ func NewRepository(db db.Client) repository.UserRepository {
 	return &repo{db: db}
 }
 
+// Create creates a new user.
 func (r *repo) Create(ctx context.Context, user *model.UserCreate) (string, error) {
 	builderInsert := sq.Insert(tableName).
 		PlaceholderFormat(sq.Dollar).
@@ -78,11 +79,13 @@ func (r *repo) Create(ctx context.Context, user *model.UserCreate) (string, erro
 	return id, nil
 }
 
+// Get retrieves a user by their ID.
 func (r *repo) Get(ctx context.Context, id string) (*model.User, error) {
 	builderSelect := sq.Select(
 		idColumn,
 		nameColumn,
 		emailColumn,
+		passwordColumn,
 		roleColumn,
 		versionColumn,
 		createdAtColumn,
@@ -163,6 +166,7 @@ func (r *repo) Update(ctx context.Context, user *model.UserUpdate) error {
 	return nil
 }
 
+// Delete deletes a user by their ID.
 func (r *repo) Delete(ctx context.Context, id string) error {
 	builderDelete := sq.Delete(tableName).
 		PlaceholderFormat(sq.Dollar).
@@ -186,6 +190,7 @@ func (r *repo) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
+// GetAuthInfo retrieves authentication information for a user by their username.
 func (r *repo) GetAuthInfo(ctx context.Context, username string) (*model.AuthInfo, error) {
 	builderSelect := sq.Select(idColumn, nameColumn, roleColumn, passwordColumn, versionColumn).
 		From(tableName).
@@ -252,4 +257,30 @@ func (r *repo) FindByName(ctx context.Context, name string) (*model.User, error)
 	}
 
 	return converter.ToUserFromRepo(&user), nil
+}
+
+// UpdatePassword updates the user's password
+func (r *repo) UpdatePassword(ctx context.Context, userID string, hashedPassword string) error {
+	builderUpdate := sq.Update(tableName).
+		Set(passwordColumn, hashedPassword).
+		Set(updatedAtColumn, sq.Expr("NOW()")).
+		PlaceholderFormat(sq.Dollar).
+		Where(sq.Eq{idColumn: userID})
+
+	query, args, err := builderUpdate.ToSql()
+	if err != nil {
+		return err
+	}
+
+	q := db.Query{
+		Name:     "user_repository.UpdatePassword",
+		QueryRaw: query,
+	}
+
+	_, err = r.db.DB().ExecContext(ctx, q, args...)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

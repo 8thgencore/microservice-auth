@@ -3,6 +3,7 @@ package interceptor
 import (
 	"context"
 
+	"github.com/8thgencore/microservice-auth/internal/delivery/user"
 	"github.com/8thgencore/microservice-auth/internal/repository"
 	"github.com/8thgencore/microservice-auth/internal/tokens"
 	userv1 "github.com/8thgencore/microservice-auth/pkg/pb/user/v1"
@@ -63,7 +64,7 @@ func (c *Auth) AuthInterceptor(
 
 	version, err := c.TokenRepository.GetTokenVersion(ctx, claims.Subject)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "%s", err.Error())
 	}
 	if claims.Version < version {
 		return nil, status.Errorf(codes.Unauthenticated, "token is expired")
@@ -76,5 +77,9 @@ func (c *Auth) AuthInterceptor(
 		}
 	}
 
-	return handler(ctx, req)
+	// Create a new context with the user ID
+	ctxWithUserID := context.WithValue(ctx, user.UserIDKey, claims.Subject)
+
+	// Pass the updated context to the handler
+	return handler(ctxWithUserID, req)
 }
