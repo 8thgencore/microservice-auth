@@ -11,10 +11,10 @@ LOCAL_BIN:=$(CURDIR)/bin
 
 # Migration settings
 MIGRATION_DSN="host=localhost \
-	port=$(POSTGRES_PORT) \
-	dbname=$(POSTGRES_DB) \
-	user=$(POSTGRES_USER) \
-	password=$(POSTGRES_PASSWORD) \
+	port=$(DB_PORT) \
+	dbname=$(DB_NAME) \
+	user=$(DB_USER) \
+	password=$(DB_PASSWORD) \
 	sslmode=disable"
 
 # Tests settings
