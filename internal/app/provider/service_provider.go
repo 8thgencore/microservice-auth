@@ -106,6 +106,7 @@ func (s *ServiceProvider) UserService(ctx context.Context) service.UserService {
 			s.TokenRepository(ctx),
 			s.TokenOperations(ctx),
 			s.TxManager(ctx),
+			&s.Config.Admin,
 		)
 	}
 

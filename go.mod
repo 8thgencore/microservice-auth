@@ -3,7 +3,7 @@ module github.com/8thgencore/microservice-auth
 go 1.23.4
 
 require (
-	github.com/8thgencore/microservice-common v0.2.2-0.20241213123918-9110008e70f7
+	github.com/8thgencore/microservice-common v0.3.0
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/envoyproxy/protoc-gen-validate v1.1.0
 	github.com/gojuno/minimock/v3 v3.4.3

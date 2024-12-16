@@ -37,6 +37,7 @@ type Config struct {
 	Redis      RedisConfig
 	Prometheus PrometheusConfig
 	Tracing    TracingConfig
+	Admin      AdminConfig
 }
 
 // GRPC represents the configuration for the GRPC server.
@@ -139,6 +140,13 @@ type TLSConfig struct {
 	Enable   bool   `env:"ENABLE_TLS" env-default:"false"`
 	CertPath string `env:"TLS_CERT_PATH"`
 	KeyPath  string `env:"TLS_KEY_PATH"`
+}
+
+// AdminConfig represents the configuration for the admin user.
+type AdminConfig struct {
+	Email    string `env:"ADMIN_EMAIL"    env-default:"admin@example.com"`
+	Password string `env:"ADMIN_PASSWORD" env-default:"admin123"`
+	Name     string `env:"ADMIN_NAME"     env-default:"admin"`
 }
 
 // NewConfig creates a new instance of Config.

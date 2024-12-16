@@ -31,13 +31,6 @@ var (
 	ErrUserChangePassword     = errors.New("failed to change password")
 )
 
-// Add this constant with other constants
-const (
-	AdminEmail    = "admin@example.com"
-	AdminPassword = "admin123"
-	AdminName     = "admin"
-)
-
 // Create handles the creation of a new user.
 func (s *userService) Create(ctx context.Context, user *model.UserCreate) (string, error) {
 	// Check if passwords match
@@ -212,7 +205,7 @@ func (s *userService) logUserAction(ctx context.Context, action string, userID s
 
 // EnsureAdminExists checks if admin exists and creates one if not
 func (s *userService) EnsureAdminExists(ctx context.Context) error {
-	user, err := s.userRepository.FindByName(ctx, AdminName)
+	user, err := s.userRepository.FindByName(ctx, s.adminConfig.Name)
 	if err != nil {
 		return err
 	}
@@ -222,10 +215,10 @@ func (s *userService) EnsureAdminExists(ctx context.Context) error {
 	}
 
 	adminUser := &model.UserCreate{
-		Name:            AdminName,
-		Email:           AdminEmail,
-		Password:        AdminPassword,
-		PasswordConfirm: AdminPassword,
+		Name:            s.adminConfig.Name,
+		Email:           s.adminConfig.Email,
+		Password:        s.adminConfig.Password,
+		PasswordConfirm: s.adminConfig.Password,
 		Role:            string(model.UserRoleAdmin),
 	}
 
