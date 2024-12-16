@@ -1,8 +1,6 @@
 package converter
 
 import (
-	"database/sql"
-
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/8thgencore/microservice-auth/internal/model"
@@ -39,38 +37,24 @@ func ToUserCreateFromAPI(user *userv1.UserCreate) *model.UserCreate {
 
 // ToUserUpdateFromAPI converts structure of API layer to service layer model.
 func ToUserUpdateFromAPI(user *userv1.UserUpdate) *model.UserUpdate {
-	var (
-		name  sql.NullString
-		email sql.NullString
-		role  sql.NullString
-	)
+	update := &model.UserUpdate{
+		ID: user.Id,
+	}
 
 	if user.Name != nil {
-		name = sql.NullString{
-			String: user.Name.GetValue(),
-			Valid:  true,
-		}
+		name := user.Name.GetValue()
+		update.Name = &name
 	}
 	if user.Email != nil {
-		email = sql.NullString{
-			String: user.Email.GetValue(),
-			Valid:  true,
-		}
+		email := user.Email.GetValue()
+		update.Email = &email
 	}
-
 	if user.Role != 0 {
-		role = sql.NullString{
-			String: userv1.Role_name[int32(user.Role)],
-			Valid:  true,
-		}
+		role := userv1.Role_name[int32(user.Role)]
+		update.Role = &role
 	}
 
-	return &model.UserUpdate{
-		ID:    user.Id,
-		Name:  name,
-		Email: email,
-		Role:  role,
-	}
+	return update
 }
 
 // ToRoleStrings converts a list of Role enum values to a list of role strings.

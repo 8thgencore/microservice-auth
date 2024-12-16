@@ -1,6 +1,8 @@
 package converter
 
 import (
+	"database/sql"
+
 	"github.com/8thgencore/microservice-auth/internal/model"
 	"github.com/8thgencore/microservice-auth/internal/repository/user/dao"
 )
@@ -28,4 +30,26 @@ func ToAuthInfoFromRepo(authInfo *dao.AuthInfo) *model.AuthInfo {
 		Version:  authInfo.Version,
 		Password: authInfo.Password,
 	}
+}
+
+// ToUserUpdateDAO converts service model to DAO model
+func ToUserUpdateDAO(user *model.UserUpdate) *dao.UserUpdate {
+	update := &dao.UserUpdate{
+		ID: user.ID,
+	}
+
+	if user.Name != nil {
+		update.Name = sql.NullString{String: *user.Name, Valid: true}
+	}
+	if user.Email != nil {
+		update.Email = sql.NullString{String: *user.Email, Valid: true}
+	}
+	if user.Role != nil {
+		update.Role = sql.NullString{String: *user.Role, Valid: true}
+	}
+	if user.Version != nil {
+		update.Version = sql.NullInt32{Int32: *user.Version, Valid: true}
+	}
+
+	return update
 }

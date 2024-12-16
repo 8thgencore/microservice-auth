@@ -2,10 +2,8 @@ package user
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
-	"log/slog"
 	"math"
 
 	"github.com/8thgencore/microservice-auth/internal/model"
@@ -112,12 +110,11 @@ func (s *userService) Update(ctx context.Context, user *model.UserUpdate) error 
 		}
 
 		currentUser.Version = currentUser.Version + 1
-		convertedVersion, err := safeIntToInt32(currentUser.Version)
+		convertedVersion32, err := safeIntToInt32(currentUser.Version)
 		if err != nil {
-			logger.Error("version value out of range for int32: %d", slog.Int("method", currentUser.Version))
 			return err
 		}
-		user.Version = sql.NullInt32{Int32: convertedVersion, Valid: true}
+		user.Version = &convertedVersion32
 
 		errTx = s.userRepository.Update(ctx, user)
 		if errTx != nil {

@@ -29,6 +29,8 @@ const (
 	UserV1_Update_FullMethodName         = "/user_v1.UserV1/Update"
 	UserV1_Delete_FullMethodName         = "/user_v1.UserV1/Delete"
 	UserV1_GetMe_FullMethodName          = "/user_v1.UserV1/GetMe"
+	UserV1_UpdateMe_FullMethodName       = "/user_v1.UserV1/UpdateMe"
+	UserV1_DeleteMe_FullMethodName       = "/user_v1.UserV1/DeleteMe"
 	UserV1_ChangePassword_FullMethodName = "/user_v1.UserV1/ChangePassword"
 )
 
@@ -49,6 +51,10 @@ type UserV1Client interface {
 	Delete(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// GetMe returns information about the currently authenticated user
 	GetMe(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetMeResponse, error)
+	// UpdateMe allows the currently authenticated user to update their own information
+	UpdateMe(ctx context.Context, in *UpdateMeRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// DeleteMe allows the currently authenticated user to delete their account
+	DeleteMe(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// ChangePassword allows users to change their password securely
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
@@ -111,6 +117,26 @@ func (c *userV1Client) GetMe(ctx context.Context, in *emptypb.Empty, opts ...grp
 	return out, nil
 }
 
+func (c *userV1Client) UpdateMe(ctx context.Context, in *UpdateMeRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, UserV1_UpdateMe_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userV1Client) DeleteMe(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, UserV1_DeleteMe_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userV1Client) ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
@@ -138,6 +164,10 @@ type UserV1Server interface {
 	Delete(context.Context, *DeleteRequest) (*emptypb.Empty, error)
 	// GetMe returns information about the currently authenticated user
 	GetMe(context.Context, *emptypb.Empty) (*GetMeResponse, error)
+	// UpdateMe allows the currently authenticated user to update their own information
+	UpdateMe(context.Context, *UpdateMeRequest) (*emptypb.Empty, error)
+	// DeleteMe allows the currently authenticated user to delete their account
+	DeleteMe(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	// ChangePassword allows users to change their password securely
 	ChangePassword(context.Context, *ChangePasswordRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedUserV1Server()
@@ -164,6 +194,12 @@ func (UnimplementedUserV1Server) Delete(context.Context, *DeleteRequest) (*empty
 }
 func (UnimplementedUserV1Server) GetMe(context.Context, *emptypb.Empty) (*GetMeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMe not implemented")
+}
+func (UnimplementedUserV1Server) UpdateMe(context.Context, *UpdateMeRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateMe not implemented")
+}
+func (UnimplementedUserV1Server) DeleteMe(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteMe not implemented")
 }
 func (UnimplementedUserV1Server) ChangePassword(context.Context, *ChangePasswordRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChangePassword not implemented")
@@ -279,6 +315,42 @@ func _UserV1_GetMe_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserV1_UpdateMe_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateMeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserV1Server).UpdateMe(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserV1_UpdateMe_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserV1Server).UpdateMe(ctx, req.(*UpdateMeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserV1_DeleteMe_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserV1Server).DeleteMe(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserV1_DeleteMe_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserV1Server).DeleteMe(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserV1_ChangePassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ChangePasswordRequest)
 	if err := dec(in); err != nil {
@@ -323,6 +395,14 @@ var UserV1_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMe",
 			Handler:    _UserV1_GetMe_Handler,
+		},
+		{
+			MethodName: "UpdateMe",
+			Handler:    _UserV1_UpdateMe_Handler,
+		},
+		{
+			MethodName: "DeleteMe",
+			Handler:    _UserV1_DeleteMe_Handler,
 		},
 		{
 			MethodName: "ChangePassword",

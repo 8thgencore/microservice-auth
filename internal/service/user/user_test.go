@@ -518,19 +518,10 @@ func TestUpdate(t *testing.T) {
 		mc  = minimock.NewController(t)
 
 		req = &model.UserUpdate{
-			ID: id,
-			Name: sql.NullString{
-				String: name,
-				Valid:  true,
-			},
-			Email: sql.NullString{
-				String: email,
-				Valid:  true,
-			},
-			Role: sql.NullString{
-				String: role,
-				Valid:  true,
-			},
+			ID:    id,
+			Name:  &name,
+			Email: &email,
+			Role:  &role,
 		}
 
 		user = &model.User{

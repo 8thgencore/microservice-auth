@@ -25,3 +25,12 @@ type AuthInfo struct {
 	Role     string `db:"role"`
 	Version  int    `db:"version"`
 }
+
+// UserUpdate type is the structure for user update data from storage.
+type UserUpdate struct {
+	ID      string
+	Name    sql.NullString
+	Email   sql.NullString
+	Role    sql.NullString
+	Version sql.NullInt32
+}
