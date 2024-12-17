@@ -24,7 +24,7 @@ LICENSE
 *.out
 
 # Dependency directories (remove the comment below to include it)
-# vendor/
+vendor.protogen/
 
 # env file
 .env
@@ -45,3 +45,9 @@ tmp/
 # Docker
 Dockerfile
 docker-compose.yaml
+
+# Binary
+bin/
+
+# API
+api/
