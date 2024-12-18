@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"testing"
 
+	"github.com/8thgencore/microservice-auth/internal/config"
 	"github.com/8thgencore/microservice-auth/internal/model"
 	"github.com/8thgencore/microservice-auth/internal/repository"
 	"github.com/8thgencore/microservice-auth/internal/tokens"
@@ -58,6 +59,12 @@ var (
 		mock.BeginTxMock.Expect(minimock.AnyContext, opts).Return(txMock, nil)
 		txMock.RollbackMock.Expect(minimock.AnyContext).Return(nil)
 		return mock
+	}
+
+	adminConfig = &config.AdminConfig{
+		Name:     "admin",
+		Email:    "admin@example.com",
+		Password: "admin123",
 	}
 )
 
@@ -297,8 +304,14 @@ func TestCreate(t *testing.T) {
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
 
 			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
+
 			srv := newTestService(
-				userRepositoryMock, logRepositoryMock, tokenRepositoryMock, tokenOperationsMock, txManagerMock,
+				userRepositoryMock,
+				logRepositoryMock,
+				tokenRepositoryMock,
+				tokenOperationsMock,
+				txManagerMock,
+				adminConfig,
 			)
 
 			user := &model.UserCreate{}
@@ -474,8 +487,14 @@ func TestGet(t *testing.T) {
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
 
 			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
+
 			srv := newTestService(
-				userRepositoryMock, logRepositoryMock, tokenRepositoryMock, tokenOperationsMock, txManagerMock,
+				userRepositoryMock,
+				logRepositoryMock,
+				tokenRepositoryMock,
+				tokenOperationsMock,
+				txManagerMock,
+				adminConfig,
 			)
 
 			res, err := srv.Get(tt.args.ctx, tt.args.req)
@@ -499,19 +518,10 @@ func TestUpdate(t *testing.T) {
 		mc  = minimock.NewController(t)
 
 		req = &model.UserUpdate{
-			ID: id,
-			Name: sql.NullString{
-				String: name,
-				Valid:  true,
-			},
-			Email: sql.NullString{
-				String: email,
-				Valid:  true,
-			},
-			Role: sql.NullString{
-				String: role,
-				Valid:  true,
-			},
+			ID:    id,
+			Name:  &name,
+			Email: &email,
+			Role:  &role,
 		}
 
 		user = &model.User{
@@ -660,8 +670,14 @@ func TestUpdate(t *testing.T) {
 			tokenOperationsMock := tt.tokenOperationsMock(mc)
 
 			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
+
 			srv := newTestService(
-				userRepositoryMock, logRepositoryMock, tokenRepositoryMock, tokenOperationsMock, txManagerMock,
+				userRepositoryMock,
+				logRepositoryMock,
+				tokenRepositoryMock,
+				tokenOperationsMock,
+				txManagerMock,
+				adminConfig,
 			)
 
 			err := srv.Update(tt.args.ctx, tt.args.req)
@@ -855,7 +871,12 @@ func TestDelete(t *testing.T) {
 			txManagerMock := transaction.NewTransactionManager(tt.transactorMock(mc))
 
 			srv := newTestService(
-				userRepositoryMock, logRepositoryMock, tokenRepositoryMock, tokenOperationsMock, txManagerMock,
+				userRepositoryMock,
+				logRepositoryMock,
+				tokenRepositoryMock,
+				tokenOperationsMock,
+				txManagerMock,
+				adminConfig,
 			)
 
 			err := srv.Delete(tt.args.ctx, tt.args.req)
@@ -873,8 +894,8 @@ func TestEnsureAdminExists(t *testing.T) {
 
 		adminUser = &model.User{
 			ID:      id,
-			Name:    AdminName,
-			Email:   AdminEmail,
+			Name:    adminConfig.Name,
+			Email:   adminConfig.Email,
 			Role:    string(model.UserRoleAdmin),
 			Version: 0,
 		}
@@ -894,7 +915,7 @@ func TestEnsureAdminExists(t *testing.T) {
 			err:  nil,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
-				mock.FindByNameMock.Expect(minimock.AnyContext, AdminName).Return(adminUser, nil)
+				mock.FindByNameMock.Expect(minimock.AnyContext, adminConfig.Name).Return(adminUser, nil)
 				return mock
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
@@ -915,7 +936,7 @@ func TestEnsureAdminExists(t *testing.T) {
 			err:  nil,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
-				mock.FindByNameMock.Expect(minimock.AnyContext, AdminName).Return(nil, nil)
+				mock.FindByNameMock.Expect(minimock.AnyContext, adminConfig.Name).Return(nil, nil)
 				mock.CreateMock.Optional().Return("admin_id", nil)
 				return mock
 			},
@@ -937,7 +958,7 @@ func TestEnsureAdminExists(t *testing.T) {
 			err:  ErrUserRead,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
-				mock.FindByNameMock.Expect(minimock.AnyContext, AdminName).Return(nil, ErrUserRead)
+				mock.FindByNameMock.Expect(minimock.AnyContext, adminConfig.Name).Return(nil, ErrUserRead)
 				return mock
 			},
 			logRepositoryMock: func(mc *minimock.Controller) repository.LogRepository {
@@ -958,7 +979,7 @@ func TestEnsureAdminExists(t *testing.T) {
 			err:  ErrUserCreate,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				mock := repositoryMocks.NewUserRepositoryMock(mc)
-				mock.FindByNameMock.Expect(minimock.AnyContext, AdminName).Return(nil, nil)
+				mock.FindByNameMock.Expect(minimock.AnyContext, adminConfig.Name).Return(nil, nil)
 				mock.CreateMock.Optional().Return("", ErrUserCreate)
 				return mock
 			},
@@ -991,6 +1012,7 @@ func TestEnsureAdminExists(t *testing.T) {
 				tokenRepositoryMock,
 				tokenOperationsMock,
 				txManagerMock,
+				adminConfig,
 			)
 
 			err := srv.EnsureAdminExists(ctx)

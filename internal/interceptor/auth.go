@@ -64,7 +64,7 @@ func (c *Auth) AuthInterceptor(
 
 	version, err := c.TokenRepository.GetTokenVersion(ctx, claims.Subject)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "%s", err.Error())
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	if claims.Version < version {
 		return nil, status.Errorf(codes.Unauthenticated, "token is expired")

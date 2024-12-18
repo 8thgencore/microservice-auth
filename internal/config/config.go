@@ -37,6 +37,7 @@ type Config struct {
 	Redis      RedisConfig
 	Prometheus PrometheusConfig
 	Tracing    TracingConfig
+	Admin      AdminConfig
 }
 
 // GRPC represents the configuration for the GRPC server.
@@ -76,11 +77,11 @@ func (c *SwaggerConfig) Address() string {
 
 // DatabaseConfig represents the configuration for the Postgres database.
 type DatabaseConfig struct {
-	Host     string `env:"POSTGRES_HOST"     env-required:"true"`
-	Port     string `env:"POSTGRES_PORT"     env-required:"true"`
-	User     string `env:"POSTGRES_USER"     env-required:"true"`
-	Password string `env:"POSTGRES_PASSWORD" env-required:"true"`
-	Name     string `env:"POSTGRES_DB"       env-required:"true"`
+	Host     string `env:"DB_HOST"     env-required:"true"`
+	Port     string `env:"DB_PORT"     env-required:"true"`
+	User     string `env:"DB_USER"     env-required:"true"`
+	Password string `env:"DB_PASSWORD" env-required:"true"`
+	Name     string `env:"DB_NAME"     env-required:"true"`
 }
 
 // DSN returns the data source name (DSN) for the database.
@@ -139,6 +140,13 @@ type TLSConfig struct {
 	Enable   bool   `env:"ENABLE_TLS" env-default:"false"`
 	CertPath string `env:"TLS_CERT_PATH"`
 	KeyPath  string `env:"TLS_KEY_PATH"`
+}
+
+// AdminConfig represents the configuration for the admin user.
+type AdminConfig struct {
+	Email    string `env:"ADMIN_EMAIL"    env-default:"admin@example.com"`
+	Password string `env:"ADMIN_PASSWORD" env-default:"admin123"`
+	Name     string `env:"ADMIN_NAME"     env-default:"admin"`
 }
 
 // NewConfig creates a new instance of Config.

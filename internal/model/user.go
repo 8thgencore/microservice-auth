@@ -36,11 +36,11 @@ type UserCreate struct {
 	Role            string
 }
 
-// UserUpdate type is the structure for updating user info.
+// UserUpdate represents the data for updating a user
 type UserUpdate struct {
 	ID      string
-	Name    sql.NullString
-	Email   sql.NullString
-	Role    sql.NullString
-	Version sql.NullInt32
+	Name    *string // Optional field
+	Email   *string // Optional field
+	Role    *string // Optional field
+	Version *int32  // Optional field
 }

@@ -2,10 +2,8 @@ package user
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
-	"log/slog"
 	"math"
 
 	"github.com/8thgencore/microservice-auth/internal/model"
@@ -29,13 +27,6 @@ var (
 	ErrAdminCreation          = errors.New("failed to create admin user")
 	ErrInvalidCurrentPassword = errors.New("invalid current password")
 	ErrUserChangePassword     = errors.New("failed to change password")
-)
-
-// Add this constant with other constants
-const (
-	AdminEmail    = "admin@example.com"
-	AdminPassword = "admin123"
-	AdminName     = "admin"
 )
 
 // Create handles the creation of a new user.
@@ -119,12 +110,11 @@ func (s *userService) Update(ctx context.Context, user *model.UserUpdate) error 
 		}
 
 		currentUser.Version = currentUser.Version + 1
-		convertedVersion, err := safeIntToInt32(currentUser.Version)
+		convertedVersion32, err := safeIntToInt32(currentUser.Version)
 		if err != nil {
-			logger.Error("version value out of range for int32: %d", slog.Int("method", currentUser.Version))
 			return err
 		}
-		user.Version = sql.NullInt32{Int32: convertedVersion, Valid: true}
+		user.Version = &convertedVersion32
 
 		errTx = s.userRepository.Update(ctx, user)
 		if errTx != nil {
@@ -212,7 +202,7 @@ func (s *userService) logUserAction(ctx context.Context, action string, userID s
 
 // EnsureAdminExists checks if admin exists and creates one if not
 func (s *userService) EnsureAdminExists(ctx context.Context) error {
-	user, err := s.userRepository.FindByName(ctx, AdminName)
+	user, err := s.userRepository.FindByName(ctx, s.adminConfig.Name)
 	if err != nil {
 		return err
 	}
@@ -222,10 +212,10 @@ func (s *userService) EnsureAdminExists(ctx context.Context) error {
 	}
 
 	adminUser := &model.UserCreate{
-		Name:            AdminName,
-		Email:           AdminEmail,
-		Password:        AdminPassword,
-		PasswordConfirm: AdminPassword,
+		Name:            s.adminConfig.Name,
+		Email:           s.adminConfig.Email,
+		Password:        s.adminConfig.Password,
+		PasswordConfirm: s.adminConfig.Password,
 		Role:            string(model.UserRoleAdmin),
 	}
 

@@ -99,7 +99,7 @@ func TestCreate(t *testing.T) {
 				req: req,
 			},
 			want: nil,
-			err:  status.Errorf(codes.Internal, serviceErr.Error()),
+			err:  status.Error(codes.Internal, serviceErr.Error()),
 			userServiceMock: func(mc *minimock.Controller) service.UserService {
 				mock := serviceMocks.NewUserServiceMock(mc)
 				mock.CreateMock.Expect(minimock.AnyContext, userCreate).Return("", serviceErr)
@@ -194,7 +194,7 @@ func TestGet(t *testing.T) {
 				req: req,
 			},
 			want: nil,
-			err:  status.Errorf(codes.NotFound, serviceErr.Error()),
+			err:  status.Error(codes.NotFound, serviceErr.Error()),
 			userServiceMock: func(mc *minimock.Controller) service.UserService {
 				mock := serviceMocks.NewUserServiceMock(mc)
 				mock.GetMock.Expect(minimock.AnyContext, id).Return(nil, serviceErr)
@@ -249,19 +249,10 @@ func TestUpdate(t *testing.T) {
 		}
 
 		userUpdate = &model.UserUpdate{
-			ID: id,
-			Name: sql.NullString{
-				String: name,
-				Valid:  true,
-			},
-			Email: sql.NullString{
-				String: email,
-				Valid:  true,
-			},
-			Role: sql.NullString{
-				String: roleName,
-				Valid:  true,
-			},
+			ID:    id,
+			Name:  &name,
+			Email: &email,
+			Role:  &roleName,
 		}
 
 		res = &empty.Empty{}
@@ -295,7 +286,7 @@ func TestUpdate(t *testing.T) {
 				req: req,
 			},
 			want: nil,
-			err:  status.Errorf(codes.Internal, serviceErr.Error()),
+			err:  status.Error(codes.Internal, serviceErr.Error()),
 			userServiceMock: func(mc *minimock.Controller) service.UserService {
 				mock := serviceMocks.NewUserServiceMock(mc)
 				mock.UpdateMock.Expect(minimock.AnyContext, userUpdate).Return(serviceErr)
@@ -371,7 +362,7 @@ func TestDelete(t *testing.T) {
 				req: req,
 			},
 			want: nil,
-			err:  status.Errorf(codes.NotFound, serviceErr.Error()),
+			err:  status.Error(codes.NotFound, serviceErr.Error()),
 			userServiceMock: func(mc *minimock.Controller) service.UserService {
 				mock := serviceMocks.NewUserServiceMock(mc)
 				mock.DeleteMock.Expect(minimock.AnyContext, id).Return(serviceErr)

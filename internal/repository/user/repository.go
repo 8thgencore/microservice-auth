@@ -119,23 +119,26 @@ func (r *repo) Get(ctx context.Context, id string) (*model.User, error) {
 	return converter.ToUserFromRepo(&user), nil
 }
 
+// Update updates user information
 func (r *repo) Update(ctx context.Context, user *model.UserUpdate) error {
+	userDAO := converter.ToUserUpdateDAO(user)
+
 	builderUpdate := sq.Update(tableName).
 		Set(updatedAtColumn, sq.Expr("NOW()")).
 		PlaceholderFormat(sq.Dollar).
-		Where(sq.Eq{idColumn: user.ID})
+		Where(sq.Eq{idColumn: userDAO.ID})
 
-	if user.Name.Valid {
-		builderUpdate = builderUpdate.Set(nameColumn, user.Name.String)
+	if userDAO.Name.Valid {
+		builderUpdate = builderUpdate.Set(nameColumn, userDAO.Name.String)
 	}
-	if user.Email.Valid {
-		builderUpdate = builderUpdate.Set(emailColumn, user.Email.String)
+	if userDAO.Email.Valid {
+		builderUpdate = builderUpdate.Set(emailColumn, userDAO.Email.String)
 	}
-	if user.Role.Valid {
-		builderUpdate = builderUpdate.Set(roleColumn, user.Role.String)
+	if userDAO.Role.Valid {
+		builderUpdate = builderUpdate.Set(roleColumn, userDAO.Role.String)
 	}
-	if user.Version.Valid {
-		builderUpdate = builderUpdate.Set(versionColumn, user.Version.Int32)
+	if userDAO.Version.Valid {
+		builderUpdate = builderUpdate.Set(versionColumn, userDAO.Version.Int32)
 	}
 
 	query, args, err := builderUpdate.ToSql()

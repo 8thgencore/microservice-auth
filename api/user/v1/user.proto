@@ -71,7 +71,22 @@ service UserV1 {
     };
   }
 
-  // ChangePassword allows users to change their password securely
+  // UpdateMe allows the currently authenticated user to update their own information
+  rpc UpdateMe(UpdateMeRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      patch: "/v1/user/me"
+      body: "*"
+    };
+  }
+
+  // DeleteMe allows the currently authenticated user to delete their account
+  rpc DeleteMe(google.protobuf.Empty) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/user/me"
+    };
+  }
+
+    // ChangePassword allows users to change their password securely
   rpc ChangePassword(ChangePasswordRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
       post: "/v1/user/change-password"
@@ -169,14 +184,25 @@ message DeleteRequest {
   string id = 1 [(validate.rules).string = {uuid: true}];
 }
 
-// GetMeResponse represents the response containing the current user's information
+// GetMeResponse represents the response containing the current user's information.
 message GetMeResponse {
   // Full user information
   User user = 1;
 }
 
+// UpdateMeRequest represents the data that authenticated users can update about themselves.
+message UpdateMeRequest {
+  // [optional] Name of the user to update
+  google.protobuf.StringValue name = 1 [
+    (validate.rules).string = {ignore_empty: true, min_len: 1, max_len: 50}
+  ];
+  // [optional] Email of the user to update
+  google.protobuf.StringValue email = 2 [
+    (validate.rules).string = {email: true, ignore_empty: true}
+  ];
+}
 
-// ChangePasswordRequest represents the request to change a user's password
+// ChangePasswordRequest represents the request to change a user's password.
 message ChangePasswordRequest {
   // Current password for verification
   string current_password = 1 [(validate.rules).string = {min_len: 8, max_len: 256}];

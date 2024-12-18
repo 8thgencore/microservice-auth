@@ -442,6 +442,7 @@
         "parameters": [
           {
             "name": "body",
+            "description": "ChangePasswordRequest represents the request to change a user's password.",
             "in": "body",
             "required": true,
             "schema": {
@@ -472,6 +473,61 @@
             }
           }
         },
+        "tags": [
+          "UserV1"
+        ]
+      },
+      "delete": {
+        "summary": "DeleteMe allows the currently authenticated user to delete their account",
+        "operationId": "UserV1_DeleteMe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "UserV1"
+        ]
+      },
+      "patch": {
+        "summary": "UpdateMe allows the currently authenticated user to update their own information",
+        "operationId": "UserV1_UpdateMe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "UpdateMeRequest represents the data that authenticated users can update about themselves.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/user_v1UpdateMeRequest"
+            }
+          }
+        ],
         "tags": [
           "UserV1"
         ]
@@ -666,7 +722,7 @@
           "title": "New password to set"
         }
       },
-      "title": "ChangePasswordRequest represents the request to change a user's password"
+      "description": "ChangePasswordRequest represents the request to change a user's password."
     },
     "user_v1CreateRequest": {
       "type": "object",
@@ -695,7 +751,7 @@
           "title": "Full user information"
         }
       },
-      "title": "GetMeResponse represents the response containing the current user's information"
+      "description": "GetMeResponse represents the response containing the current user's information."
     },
     "user_v1GetResponse": {
       "type": "object",
@@ -715,6 +771,20 @@
       ],
       "default": "UNKNOWN_UNSPECIFIED",
       "description": "Role defines the various roles a user can have in the system.\n\n - UNKNOWN_UNSPECIFIED: Unknown or unspecified role.\n - USER: Regular user role.\n - ADMIN: Admin user role."
+    },
+    "user_v1UpdateMeRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "[optional] Name of the user to update"
+        },
+        "email": {
+          "type": "string",
+          "title": "[optional] Email of the user to update"
+        }
+      },
+      "description": "UpdateMeRequest represents the data that authenticated users can update about themselves."
     },
     "user_v1UpdateRequest": {
       "type": "object",
