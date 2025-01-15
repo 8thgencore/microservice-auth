@@ -1,0 +1,26 @@
+version: '3'
+
+tasks:
+  create:
+    desc: Create a new migration file
+    deps: [":common:check-env"]
+    cmds:
+      - goose -dir {{.MIGRATION_DIR}} create {{.NAME}} sql
+
+  status:
+    desc: Show current migration status
+    deps: [":common:check-env"]
+    cmds:
+      - goose -dir {{.MIGRATION_DIR}} postgres {{.MIGRATION_DSN}} status -v
+
+  up:
+    desc: Apply all pending migrations
+    deps: [":common:check-env"]
+    cmds:
+      - goose -dir {{.MIGRATION_DIR}} postgres {{.MIGRATION_DSN}} up -v
+
+  down:
+    desc: Rollback last applied migration
+    deps: [":common:check-env"]
+    cmds:
+      - goose -dir {{.MIGRATION_DIR}} postgres {{.MIGRATION_DSN}} down -v

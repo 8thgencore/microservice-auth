@@ -1,0 +1,35 @@
+version: '3'
+
+tasks:
+  network:
+    desc: Create Docker network for services
+    cmds:
+      - docker network create -d bridge service-net
+
+  build:
+    desc: Build all Docker images
+    deps: [build-app, build-migrator]
+
+  build-app:
+    desc: Build application Docker image
+    deps: [":common:check-env"]
+    cmds:
+      - docker buildx build --no-cache --platform linux/amd64 -t auth:{{.APP_IMAGE_TAG}} .
+
+  build-migrator:
+    desc: Build migrator Docker image
+    deps: [":common:check-env"]
+    cmds:
+      - docker buildx build --no-cache --platform linux/amd64 -t migrator-auth:{{.MIGRATOR_IMAGE_TAG}} -f migrator.Dockerfile .
+
+  deploy:
+    desc: Deploy services using Docker Compose
+    deps: [":common:check-env"]
+    cmds:
+      - docker compose --env-file=.env.{{.ENV}} up -d
+
+  stop:
+    desc: Stop all Docker Compose services
+    deps: [":common:check-env"]
+    cmds:
+      - docker compose --env-file=.env.{{.ENV}} down
