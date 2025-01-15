@@ -1,0 +1,10 @@
+version: '3'
+
+tasks:
+  check-env:
+    desc: Check if environment variables are set correctly
+    cmds:
+      - echo "[INFO] Running with environment {{.ENV}}"
+    preconditions:
+      - sh: test -n "{{.ENV}}"
+        msg: "Please run 'export ENV=dev|stage|prod' and 'export $(xargs < .env.ENV)' before executing task"

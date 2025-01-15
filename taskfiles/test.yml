@@ -1,0 +1,48 @@
+version: '3'
+
+tasks:
+  run:
+    desc: Run all tests
+    cmds:
+      - go clean -testcache
+      - go test ./... -v -covermode count -coverpkg={{.TESTS_PATH}} -count {{.TESTS_ATTEMPTS}}
+
+  coverage:
+    desc: Run tests with coverage report
+    cmds:
+      - go clean -testcache
+      - go test ./... -v -coverprofile={{.TESTS_COVERAGE_FILE}}.tmp -covermode count -coverpkg={{.TESTS_PATH}} -count {{.TESTS_ATTEMPTS}}
+      - grep -v "mocks/" {{.TESTS_COVERAGE_FILE}}.tmp > {{.TESTS_COVERAGE_FILE}}
+      - rm {{.TESTS_COVERAGE_FILE}}.tmp
+      - go tool cover -html={{.TESTS_COVERAGE_FILE}} -o coverage.html
+      - go tool cover -func={{.TESTS_COVERAGE_FILE}} | grep "total"
+
+  load:
+    desc: Run load tests for successful scenarios
+    deps: [":common:check-env"]
+    cmds:
+      - |
+        {{.LOCAL_BIN}}/ghz \
+          --proto api/user/v1/user.proto \
+          --import-paths=vendor.protogen/ \
+          --insecure \
+          --call user_v1.UserV1.Get \
+          --data '{"id": "01928c0f-f799-71fb-84f4-89197ae522b0"}' \
+          --rps 100 \
+          --total 3000 \
+          {{.GRPC_HOST}}:{{.GRPC_PORT}}
+
+  load:error:
+    desc: Run load tests for error scenarios
+    deps: [":common:check-env"]
+    cmds:
+      - |
+        {{.LOCAL_BIN}}/ghz \
+          --proto api/user/v1/user.proto \
+          --import-paths=vendor.protogen/ \
+          --insecure \
+          --call user_v1.UserV1.Get \
+          --data '{"id": "9f80dfbf-2ae2-4a9c-a490-3921ca7f2b65"}' \
+          --rps 100 \
+          --total 3000 \
+          {{.GRPC_HOST}}:{{.GRPC_PORT}}

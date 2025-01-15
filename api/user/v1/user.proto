@@ -86,7 +86,7 @@ service UserV1 {
     };
   }
 
-    // ChangePassword allows users to change their password securely
+  // ChangePassword allows users to change their password securely
   rpc ChangePassword(ChangePasswordRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
       post: "/v1/user/change-password"

@@ -1,0 +1,19 @@
+version: '3'
+
+includes:
+  common: ./taskfiles/common.yml
+  deps: ./taskfiles/deps.yml
+  dev: ./taskfiles/dev.yml
+  docker: ./taskfiles/docker.yml
+  generate: ./taskfiles/generate.yml
+  migration: ./taskfiles/migration.yml
+  test: ./taskfiles/test.yml
+
+dotenv: ['.env.{{.ENV}}']
+
+vars:
+  LOCAL_BIN: '{{.PWD}}/bin'
+  MIGRATION_DSN: 'host=localhost port={{.DB_PORT}} dbname={{.DB_NAME}} user={{.DB_USER}} password={{.DB_PASSWORD}} sslmode=disable'
+  TESTS_PATH: './internal/service/...,./internal/api/...'
+  TESTS_ATTEMPTS: 5
+  TESTS_COVERAGE_FILE: coverage.out

@@ -11,23 +11,23 @@ _ENV is used then as a config name. Possible ENV values are now stage and prod a
 2. Make sure docker network service-net is in place for microservices communication. If none exists, then create network:
 
 ```bash
-make docker-net
+task docker:network
 ```
 
 3. Build image
 
 ```bash
-make docker-build
+task docker:build
 ```
 
 4. To deploy Auth Service:
 
 ```bash
-make docker-deploy
+task docker:deploy
 ```
 
 5. To stop Auth Service:
 
 ```bash
-make docker-stop ENV=<environment>
+task docker:stop
 ```
