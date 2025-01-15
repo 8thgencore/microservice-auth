@@ -38,20 +38,20 @@ endif
 # DEPENDENCIES & TOOLS #
 # #################### #
 
-_install-global-deps:
-	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+_install-global-de
 	go install github.com/air-verse/air@latest
 	go install github.com/pressly/goose/v3/cmd/goose@latest
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	go install mvdan.cc/gofumpt@latest
+	go install github.com/yoheimuta/protolint/cmd/protolint@latest
 
 install-deps: _install-global-deps
-	GOBIN=$(LOCAL_BIN) go install github.com/envoyproxy/protoc-gen-validate@v1.1.0
-	GOBIN=$(LOCAL_BIN) go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.24.0
-	GOBIN=$(LOCAL_BIN) go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.24.0
-	GOBIN=$(LOCAL_BIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.0
-	GOBIN=$(LOCAL_BIN) go install mvdan.cc/gofumpt@latest
-	GOBIN=$(LOCAL_BIN) go install github.com/yoheimuta/protolint/cmd/protolint@latest
-	GOBIN=$(LOCAL_BIN) go install github.com/bojand/ghz/cmd/ghz@v0.120.0
+	GOBIN=$(LOCAL_BIN) go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+	GOBIN=$(LOCAL_BIN) go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+	GOBIN=$(LOCAL_BIN) go install github.com/envoyproxy/protoc-gen-validate@latest
+	GOBIN=$(LOCAL_BIN) go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
+	GOBIN=$(LOCAL_BIN) go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
+	GOBIN=$(LOCAL_BIN) go install github.com/bojand/ghz/cmd/ghz@latest
 	GOBIN=$(LOCAL_BIN) go install github.com/gojuno/minimock/v3/cmd/minimock@latest
 
 # Linting

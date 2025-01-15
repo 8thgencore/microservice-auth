@@ -1,0 +1,263 @@
+version: '3'
+
+dotenv: ['.env.{{.ENV}}']
+
+vars:
+  LOCAL_BIN: '{{.PWD}}/bin'
+  MIGRATION_DSN: 'host=localhost port={{.DB_PORT}} dbname={{.DB_NAME}} user={{.DB_USER}} password={{.DB_PASSWORD}} sslmode=disable'
+  TESTS_PATH: './internal/service/...,./internal/api/...'
+  TESTS_ATTEMPTS: 5
+  TESTS_COVERAGE_FILE: coverage.out
+  TLS_PATH: tls
+
+tasks:
+  check-env:
+    desc: Check if environment variables are set correctly
+    cmds:
+      - echo "[INFO] Running with environment {{.ENV}}"
+    preconditions:
+      - sh: test -n "{{.ENV}}"
+        msg: "Please run 'export ENV=dev|stage|prod' and 'export $(xargs < .env.ENV)' before executing task"
+
+  install-global-deps:
+    cmds:
+      - go install github.com/air-verse/air@latest
+      - go install github.com/pressly/goose/v3/cmd/goose@latest
+      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+      - go install mvdan.cc/gofumpt@latest
+      - go install github.com/yoheimuta/protolint/cmd/protolint@latest
+
+  install-deps:
+    deps: [install-global-deps]
+    cmds:
+      - GOBIN={{.LOCAL_BIN}} go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+      - GOBIN={{.LOCAL_BIN}} go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+      - GOBIN={{.LOCAL_BIN}} go install github.com/envoyproxy/protoc-gen-validate@latest
+      - GOBIN={{.LOCAL_BIN}} go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
+      - GOBIN={{.LOCAL_BIN}} go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
+      - GOBIN={{.LOCAL_BIN}} go install github.com/bojand/ghz/cmd/ghz@latest
+      - GOBIN={{.LOCAL_BIN}} go install github.com/gojuno/minimock/v3/cmd/minimock@latest
+
+  lint:
+    cmds:
+      - golangci-lint run ./internal/... ./cmd/... ./pkg/... -c .golangci.yaml --fix
+
+  format:
+    cmds:
+      - gofumpt -l -w .
+
+  protolint:
+    cmds:
+      - protolint lint api/*
+
+  generate-api:
+    deps: [generate-user-api, generate-auth-api, generate-access-api, generate-openapi]
+
+  generate-user-api:
+    cmds:
+      - mkdir -p pkg/pb/user/v1 pkg/swagger
+      - |
+        protoc --proto_path ./api/user/v1 --proto_path vendor.protogen \
+          --go_out=pkg/pb/user/v1 --go_opt=paths=source_relative \
+          --plugin=protoc-gen-go={{.LOCAL_BIN}}/protoc-gen-go \
+          --go-grpc_out=pkg/pb/user/v1 --go-grpc_opt=paths=source_relative \
+          --plugin=protoc-gen-go-grpc={{.LOCAL_BIN}}/protoc-gen-go-grpc \
+          --grpc-gateway_out=pkg/pb/user/v1 --grpc-gateway_opt=paths=source_relative \
+          --plugin=protoc-gen-grpc-gateway={{.LOCAL_BIN}}/protoc-gen-grpc-gateway \
+          --validate_out lang=go:pkg/pb/user/v1 --validate_opt=paths=source_relative \
+          --plugin=protoc-gen-validate={{.LOCAL_BIN}}/protoc-gen-validate \
+          ./api/user/v1/user.proto
+
+  generate-auth-api:
+    cmds:
+      - mkdir -p pkg/pb/auth/v1
+      - |
+        protoc --proto_path ./api/auth/v1 --proto_path vendor.protogen \
+          --go_out=pkg/pb/auth/v1 --go_opt=paths=source_relative \
+          --plugin=protoc-gen-go={{.LOCAL_BIN}}/protoc-gen-go \
+          --go-grpc_out=pkg/pb/auth/v1 --go-grpc_opt=paths=source_relative \
+          --plugin=protoc-gen-go-grpc={{.LOCAL_BIN}}/protoc-gen-go-grpc \
+          --grpc-gateway_out=pkg/pb/auth/v1 --grpc-gateway_opt=paths=source_relative \
+          --plugin=protoc-gen-grpc-gateway={{.LOCAL_BIN}}/protoc-gen-grpc-gateway \
+          --validate_out lang=go:pkg/pb/auth/v1 --validate_opt=paths=source_relative \
+          --plugin=protoc-gen-validate={{.LOCAL_BIN}}/protoc-gen-validate \
+          ./api/auth/v1/auth.proto
+
+  generate-access-api:
+    cmds:
+      - mkdir -p pkg/pb/access/v1
+      - |
+        protoc --proto_path ./api/access/v1 --proto_path ./api/user/v1 --proto_path vendor.protogen \
+          --go_out=pkg/pb/access/v1 --go_opt=paths=source_relative \
+          --plugin=protoc-gen-go={{.LOCAL_BIN}}/protoc-gen-go \
+          --go-grpc_out=pkg/pb/access/v1 --go-grpc_opt=paths=source_relative \
+          --plugin=protoc-gen-go-grpc={{.LOCAL_BIN}}/protoc-gen-go-grpc \
+          --grpc-gateway_out=pkg/pb/access/v1 --grpc-gateway_opt=paths=source_relative \
+          --plugin=protoc-gen-grpc-gateway={{.LOCAL_BIN}}/protoc-gen-grpc-gateway \
+          --validate_out lang=go:pkg/pb/access/v1 --validate_opt=paths=source_relative \
+          --plugin=protoc-gen-validate={{.LOCAL_BIN}}/protoc-gen-validate \
+          ./api/access/v1/access.proto
+
+  generate-openapi:
+    cmds:
+      - mkdir -p pkg/swagger
+      - |
+        protoc --proto_path ./api/auth/v1 --proto_path ./api/access/v1 --proto_path ./api/user/v1 \
+          --proto_path=vendor.protogen \
+          --openapiv2_out=allow_merge=true,merge_file_name=api:pkg/swagger \
+          --openapiv2_opt=logtostderr=true \
+          --plugin=protoc-gen-openapiv2={{.LOCAL_BIN}}/protoc-gen-openapiv2 \
+          ./api/**/**/*.proto
+
+  update-swagger:
+    deps: [check-env]
+    cmds:
+      - sed -i -e 's/{HTTP_HOST}/{{.HTTP_HOST}}/g' pkg/swagger/api.swagger.json
+      - sed -i -e 's/{HTTP_PORT}/{{.HTTP_PORT}}/g' pkg/swagger/api.swagger.json
+
+  vendor-proto:
+    cmds:
+      - |
+        if [ ! -d vendor.protogen/validate ]; then \
+          mkdir -p vendor.protogen/validate && \
+          git clone --depth=1 https://github.com/envoyproxy/protoc-gen-validate vendor.protogen/protoc-gen-validate && \
+          mv vendor.protogen/protoc-gen-validate/validate/*.proto vendor.protogen/validate && \
+          rm -rf vendor.protogen/protoc-gen-validate ; \
+        fi
+      - |
+        if [ ! -d vendor.protogen/google ]; then \
+          git clone --depth=1 https://github.com/googleapis/googleapis vendor.protogen/googleapis && \
+          mkdir -p  vendor.protogen/google/ && \
+          mv vendor.protogen/googleapis/google/api vendor.protogen/google && \
+          rm -rf vendor.protogen/googleapis ; \
+        fi
+      - |
+        if [ ! -d vendor.protogen/protoc-gen-openapiv2 ]; then \
+          mkdir -p vendor.protogen/protoc-gen-openapiv2/options && \
+          git clone --depth=1 https://github.com/grpc-ecosystem/grpc-gateway vendor.protogen/openapiv2 && \
+          mv vendor.protogen/openapiv2/protoc-gen-openapiv2/options/*.proto vendor.protogen/protoc-gen-openapiv2/options && \
+          rm -rf vendor.protogen/openapiv2 ; \
+        fi
+
+  generate-mocks:
+    cmds:
+      - go generate ./internal/repository
+      - go generate ./internal/service
+      - go generate ./internal/tokens
+
+  generate-cert-ca:
+    cmds:
+      - mkdir -p {{.TLS_PATH}}
+      - openssl genpkey -algorithm ed25519 -out {{.TLS_PATH}}/ca.key
+      - openssl req -new -x509 -key {{.TLS_PATH}}/ca.key -out {{.TLS_PATH}}/ca.crt -days 365 -sha256 -subj "/CN=My CA"
+
+  generate-cert-auth:
+    deps: [generate-cert-ca]
+    cmds:
+      - openssl genpkey -algorithm ed25519 -out {{.TLS_PATH}}/auth.key
+      - openssl req -new -key {{.TLS_PATH}}/auth.key -config openssl.cnf -out {{.TLS_PATH}}/auth.csr
+      - |
+        openssl x509 -req -in {{.TLS_PATH}}/auth.csr -CA {{.TLS_PATH}}/ca.crt -CAkey {{.TLS_PATH}}/ca.key \
+        -extfile openssl.cnf -extensions req_ext \
+        -out {{.TLS_PATH}}/auth.crt -days 365 -sha256
+      - rm -rf {{.TLS_PATH}}/auth.csr
+
+  test:
+    cmds:
+      - go clean -testcache
+      - go test ./... -v -covermode count -coverpkg={{.TESTS_PATH}} -count {{.TESTS_ATTEMPTS}}
+
+  test-coverage:
+    cmds:
+      - go clean -testcache
+      - go test ./... -v -coverprofile={{.TESTS_COVERAGE_FILE}}.tmp -covermode count -coverpkg={{.TESTS_PATH}} -count {{.TESTS_ATTEMPTS}}
+      - grep -v "mocks/" {{.TESTS_COVERAGE_FILE}}.tmp > {{.TESTS_COVERAGE_FILE}}
+      - rm {{.TESTS_COVERAGE_FILE}}.tmp
+      - go tool cover -html={{.TESTS_COVERAGE_FILE}} -o coverage.html
+      - go tool cover -func={{.TESTS_COVERAGE_FILE}} | grep "total"
+
+  load-test:
+    deps: [check-env]
+    cmds:
+      - |
+        {{.LOCAL_BIN}}/ghz \
+          --proto api/user/v1/user.proto \
+          --import-paths=vendor.protogen/ \
+          --insecure \
+          --call user_v1.UserV1.Get \
+          --data '{"id": "01928c0f-f799-71fb-84f4-89197ae522b0"}' \
+          --rps 100 \
+          --total 3000 \
+          {{.GRPC_HOST}}:{{.GRPC_PORT}}
+
+  load-test-error:
+    deps: [check-env]
+    cmds:
+      - |
+        {{.LOCAL_BIN}}/ghz \
+          --proto api/user/v1/user.proto \
+          --import-paths=vendor.protogen/ \
+          --insecure \
+          --call user_v1.UserV1.Get \
+          --data '{"id": "9f80dfbf-2ae2-4a9c-a490-3921ca7f2b65"}' \
+          --rps 100 \
+          --total 3000 \
+          {{.GRPC_HOST}}:{{.GRPC_PORT}}
+
+  build-app:
+    env:
+      GOOS: linux
+      GOARCH: amd64
+    cmds:
+      - go build -o {{.LOCAL_BIN}}/main cmd/user/main.go
+
+  docker-net:
+    cmds:
+      - docker network create -d bridge service-net
+
+  docker-build:
+    deps: [docker-build-app, docker-build-migrator]
+
+  docker-build-app:
+    deps: [check-env]
+    cmds:
+      - docker buildx build --no-cache --platform linux/amd64 -t auth:{{.APP_IMAGE_TAG}} .
+
+  docker-build-migrator:
+    deps: [check-env]
+    cmds:
+      - docker buildx build --no-cache --platform linux/amd64 -t migrator-auth:{{.MIGRATOR_IMAGE_TAG}} -f migrator.Dockerfile .
+
+  docker-deploy:
+    deps: [check-env]
+    cmds:
+      - docker compose --env-file=.env.{{.ENV}} up -d
+
+  migration-create:
+    deps: [check-env]
+    cmds:
+      - goose -dir {{.MIGRATION_DIR}} create {{.NAME}} sql
+
+  migration-status:
+    deps: [check-env]
+    cmds:
+      - goose -dir {{.MIGRATION_DIR}} postgres {{.MIGRATION_DSN}} status -v
+
+  migration-up:
+    deps: [check-env]
+    cmds:
+      - goose -dir {{.MIGRATION_DIR}} postgres {{.MIGRATION_DSN}} up -v
+
+  migration-down:
+    deps: [check-env]
+    cmds:
+      - goose -dir {{.MIGRATION_DIR}} postgres {{.MIGRATION_DSN}} down -v
+
+  docker-stop:
+    deps: [check-env]
+    cmds:
+      - docker compose --env-file=.env.{{.ENV}} down
+
+  dev:
+    cmds:
+      - air 
