@@ -3,6 +3,7 @@ version: '3'
 tasks:
   check-env:
     desc: Check if environment variables are set correctly
+    internal: true
     cmds:
       - echo "[INFO] Running with environment {{.ENV}}"
     preconditions:

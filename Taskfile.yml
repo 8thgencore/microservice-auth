@@ -3,7 +3,9 @@ version: '3'
 includes:
   common: ./taskfiles/common.yml
   deps: ./taskfiles/deps.yml
-  dev: ./taskfiles/dev.yml
+  dev: 
+    taskfile: ./taskfiles/dev.yml
+    flatten: true
   docker: ./taskfiles/docker.yml
   generate: ./taskfiles/generate.yml
   migration: ./taskfiles/migration.yml

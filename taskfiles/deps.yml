@@ -4,7 +4,7 @@ vars:
   VENDOR_PROTO_DIR: vendor.protogen
 
 tasks:
-  install:global:
+  global:
     desc: Install global development dependencies
     cmds:
       - go install github.com/air-verse/air@latest
@@ -15,7 +15,7 @@ tasks:
 
   install:
     desc: Install all project dependencies including global ones
-    deps: [install:global]
+    deps: [global]
     cmds:
       - GOBIN={{.LOCAL_BIN}} go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
       - GOBIN={{.LOCAL_BIN}} go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
@@ -31,6 +31,7 @@ tasks:
 
   vendor:proto:validate:
     desc: Vendor validate proto dependencies
+    internal: true    
     cmds:
       - |
         if [ ! -d {{.VENDOR_PROTO_DIR}}/validate ]; then
@@ -42,6 +43,7 @@ tasks:
 
   vendor:proto:google:
     desc: Vendor Google proto dependencies
+    internal: true
     cmds:
       - |
         if [ ! -d {{.VENDOR_PROTO_DIR}}/google ]; then
@@ -53,6 +55,7 @@ tasks:
 
   vendor:proto:openapiv2:
     desc: Vendor OpenAPI v2 proto dependencies
+    internal: true
     cmds:
       - |
         if [ ! -d {{.VENDOR_PROTO_DIR}}/protoc-gen-openapiv2 ]; then

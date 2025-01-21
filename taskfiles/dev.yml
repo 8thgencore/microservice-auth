@@ -16,7 +16,7 @@ tasks:
     cmds:
       - protolint lint api/*
 
-  run:
+  dev:
     desc: Run application in development mode with hot reload
     cmds:
       - air 
