@@ -7,7 +7,6 @@ import (
 	"math"
 
 	"github.com/8thgencore/microservice-auth/internal/model"
-	"github.com/8thgencore/microservice-common/pkg/logger"
 	"github.com/8thgencore/microservice-common/pkg/logger/sl"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -69,7 +68,7 @@ func (s *userService) Create(ctx context.Context, user *model.UserCreate) (strin
 			return "", ErrUserEmailExists
 		}
 
-		logger.Error("failed to create user", sl.Err(err))
+		s.logger.Error("failed to create user", sl.Err(err))
 
 		return "", ErrUserCreate
 	}
@@ -260,7 +259,7 @@ func (s *userService) ChangePassword(ctx context.Context, userID string, current
 		return s.logUserAction(ctx, "Changed password", userID)
 	})
 	if err != nil {
-		logger.Error("failed to change password", sl.Err(err))
+		s.logger.Error("failed to change password", sl.Err(err))
 		return ErrUserChangePassword
 	}
 
