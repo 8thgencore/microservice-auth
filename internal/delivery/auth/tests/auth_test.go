@@ -88,7 +88,7 @@ func TestLogin(t *testing.T) {
 				req: req,
 			},
 			want: nil,
-			err:  status.Errorf(codes.Unauthenticated, serviceErr.Error()),
+			err:  status.Errorf(codes.Unauthenticated, "%s", serviceErr.Error()),
 			authServiceMock: func(mc *minimock.Controller) service.AuthService {
 				mock := serviceMocks.NewAuthServiceMock(mc)
 				mock.LoginMock.Expect(minimock.AnyContext, creds).Return(&model.TokenPair{}, serviceErr)
@@ -173,7 +173,7 @@ func TestRefreshTokens(t *testing.T) {
 				req: req,
 			},
 			want: nil,
-			err:  status.Errorf(codes.Unauthenticated, serviceErr.Error()),
+			err:  status.Errorf(codes.Unauthenticated, "%s", serviceErr.Error()),
 			authServiceMock: func(mc *minimock.Controller) service.AuthService {
 				mock := serviceMocks.NewAuthServiceMock(mc)
 				mock.GetAccessTokenMock.Expect(minimock.AnyContext, oldRefreshToken).
@@ -188,7 +188,7 @@ func TestRefreshTokens(t *testing.T) {
 				req: req,
 			},
 			want: nil,
-			err:  status.Errorf(codes.Unauthenticated, serviceErr.Error()),
+			err:  status.Errorf(codes.Unauthenticated, "%s", serviceErr.Error()),
 			authServiceMock: func(mc *minimock.Controller) service.AuthService {
 				mock := serviceMocks.NewAuthServiceMock(mc)
 				mock.GetAccessTokenMock.Expect(minimock.AnyContext, oldRefreshToken).

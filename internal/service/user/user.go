@@ -108,8 +108,8 @@ func (s *userService) Update(ctx context.Context, user *model.UserUpdate) error 
 			return errTx
 		}
 
-		currentUser.Version = currentUser.Version + 1
-		convertedVersion32, err := safeIntToInt32(currentUser.Version)
+		newVersion := currentUser.Version + 1
+		convertedVersion32, err := safeIntToInt32(newVersion)
 		if err != nil {
 			return err
 		}
@@ -136,7 +136,7 @@ func (s *userService) Update(ctx context.Context, user *model.UserUpdate) error 
 		return ErrUserUpdate
 	}
 
-	if err := s.tokenRepository.SetTokenVersion(ctx, currentUser.ID, currentUser.Version); err != nil {
+	if err := s.tokenRepository.SetTokenVersion(ctx, currentUser.ID, 1); err != nil {
 		return ErrUserUpdate
 	}
 

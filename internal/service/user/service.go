@@ -8,6 +8,7 @@ import (
 	"github.com/8thgencore/microservice-auth/internal/repository"
 	"github.com/8thgencore/microservice-auth/internal/service"
 	"github.com/8thgencore/microservice-auth/internal/tokens"
+	"github.com/8thgencore/microservice-auth/pkg/logger"
 	"github.com/8thgencore/microservice-common/pkg/db"
 )
 
@@ -59,7 +60,10 @@ func newTestService(
 	txManager db.TxManager,
 	adminConfig *config.AdminConfig,
 ) service.UserService {
+	mockLogger := logger.NewMockLogger()
+
 	return &userService{
+		logger:          mockLogger,
 		userRepository:  userRepository,
 		logRepository:   logRepository,
 		tokenRepository: tokenRepository,

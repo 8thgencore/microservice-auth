@@ -1,2 +1,2 @@
 # Example .actrc
--P ubuntu-24.04=catthehacker/ubuntu:act-24.04
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
