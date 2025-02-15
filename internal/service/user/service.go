@@ -8,8 +8,8 @@ import (
 	"github.com/8thgencore/microservice-auth/internal/repository"
 	"github.com/8thgencore/microservice-auth/internal/service"
 	"github.com/8thgencore/microservice-auth/internal/tokens"
-	"github.com/8thgencore/microservice-auth/pkg/logger"
 	"github.com/8thgencore/microservice-common/pkg/db"
+	loggerMocks "github.com/8thgencore/microservice-common/pkg/logger/mocks"
 )
 
 type userService struct {
@@ -60,7 +60,7 @@ func newTestService(
 	txManager db.TxManager,
 	adminConfig *config.AdminConfig,
 ) service.UserService {
-	mockLogger := logger.NewMockLogger()
+	mockLogger := loggerMocks.NewMockLogger()
 
 	return &userService{
 		logger:          mockLogger,

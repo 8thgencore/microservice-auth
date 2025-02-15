@@ -10,7 +10,7 @@ tool (
 )
 
 require (
-	github.com/8thgencore/microservice-common v0.4.0
+	github.com/8thgencore/microservice-common v0.4.2
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/envoyproxy/protoc-gen-validate v1.2.1
 	github.com/gojuno/minimock/v3 v3.4.5
