@@ -18,6 +18,7 @@ import (
 	"github.com/8thgencore/microservice-auth/pkg/swagger"
 	"github.com/8thgencore/microservice-common/pkg/closer"
 	"github.com/8thgencore/microservice-common/pkg/logger"
+	"github.com/8thgencore/microservice-common/pkg/logger/sl"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
@@ -66,31 +67,31 @@ func (a *App) initConfig(_ context.Context) error {
 }
 
 func (a *App) initLogger(_ context.Context) error {
-	logger.Init(string(a.cfg.Env))
+	a.logger = logger.New(string(a.cfg.Env))
 
 	return nil
 }
 
 func (a *App) initServiceProvider(_ context.Context) error {
-	a.serviceProvider = provider.NewServiceProvider(a.cfg)
+	a.serviceProvider = provider.NewServiceProvider(a.cfg, a.logger)
 	return nil
 }
 
 func (a *App) initGRPCServer(ctx context.Context) error {
-	logger.Info("[grpc-server] Initializing...")
+	a.logger.Info("[grpc-server] Initializing...")
 
 	var creds credentials.TransportCredentials
 	var err error
 
 	if a.cfg.TLS.Enable {
-		logger.Info("[grpc-server] Enabling TLS.")
+		a.logger.Info("[grpc-server] Enabling TLS.")
 		creds, err = credentials.NewServerTLSFromFile(a.cfg.TLS.CertPath, a.cfg.TLS.KeyPath)
 		if err != nil {
-			log.Printf("[grpc-server] Failed to create TLS credentials: %v", err)
+			a.logger.Error("[grpc-server] Failed to create TLS credentials", sl.Err(err))
 			return err
 		}
 	} else {
-		logger.Info("[grpc-server] Using insecure credentials.")
+		a.logger.Info("[grpc-server] Using insecure credentials.")
 		creds = insecure.NewCredentials()
 	}
 
@@ -98,7 +99,7 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 	a.grpcServer = grpc.NewServer(
 		grpc.Creds(creds),
 		grpc.ChainUnaryInterceptor(
-			interceptor.LogInterceptor,
+			interceptor.LogInterceptorFactory(a.logger),
 			interceptor.ValidateInterceptor,
 			interceptor.MetricsInterceptor,
 			interceptor.TracingInterceptor,
@@ -112,26 +113,26 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 	authv1.RegisterAuthV1Server(a.grpcServer, a.serviceProvider.AuthImpl(ctx))
 	accessv1.RegisterAccessV1Server(a.grpcServer, a.serviceProvider.AccessImpl(ctx))
 
-	logger.Info("[grpc-server] Initialized successfully.")
+	a.logger.Info("[grpc-server] Initialized successfully.")
 
 	return nil
 }
 
 func (a *App) initHTTPServer(ctx context.Context) error {
-	logger.Info("[http-server] Initializing...")
+	a.logger.Info("[http-server] Initializing...")
 
 	var creds credentials.TransportCredentials
 	var err error
 
 	if a.cfg.TLS.Enable {
-		logger.Info("[http-server] Enabling TLS.")
+		a.logger.Info("[http-server] Enabling TLS.")
 		creds, err = credentials.NewServerTLSFromFile(a.cfg.TLS.CertPath, a.cfg.TLS.KeyPath)
 		if err != nil {
-			log.Printf("[http-server] Failed to create TLS credentials: %v", err)
+			a.logger.Error("[http-server] Failed to create TLS credentials", sl.Err(err))
 			return err
 		}
 	} else {
-		logger.Info("[http-server] Using insecure credentials.")
+		a.logger.Info("[http-server] Using insecure credentials.")
 		creds = insecure.NewCredentials()
 	}
 
@@ -158,7 +159,7 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 		ReadHeaderTimeout: 15 * time.Second,
 	}
 
-	logger.Info("[http-server] Initialized successfully.")
+	a.logger.Info("[http-server] Initialized successfully.")
 
 	return nil
 }
@@ -175,7 +176,7 @@ func (a *App) initSwaggerServer(_ context.Context) error {
 		}
 		defer func() {
 			if err := file.Close(); err != nil {
-				log.Printf("Error closing file: %v", err)
+				a.logger.Error("Error closing file", sl.Err(err))
 			}
 		}()
 
@@ -187,7 +188,7 @@ func (a *App) initSwaggerServer(_ context.Context) error {
 
 		w.Header().Set("Content-Type", contentType)
 		if _, err := w.Write(content); err != nil {
-			log.Printf("Error writing response: %v", err)
+			a.logger.Error("Error writing response", sl.Err(err))
 		}
 	}
 

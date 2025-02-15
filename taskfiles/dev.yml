@@ -1,6 +1,11 @@
 version: '3'
 
 tasks:
+  dev:
+    desc: Run application in development mode with hot reload
+    cmds:
+      - air 
+
   lint:
     desc: Run linter on the codebase
     cmds:
@@ -16,7 +21,7 @@ tasks:
     cmds:
       - protolint lint api/*
 
-  run:
-    desc: Run application in development mode with hot reload
+  gosec:
+    desc: Run gosec on the codebase
     cmds:
-      - air 
+      - gosec -exclude-dir=./pkg/pb ./...

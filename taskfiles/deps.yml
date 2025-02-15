@@ -1,7 +1,10 @@
 version: '3'
 
+vars:
+  VENDOR_PROTO_DIR: vendor.protogen
+
 tasks:
-  install:global:
+  global:
     desc: Install global development dependencies
     cmds:
       - go install github.com/air-verse/air@latest
@@ -12,7 +15,7 @@ tasks:
 
   install:
     desc: Install all project dependencies including global ones
-    deps: [install:global]
+    deps: [global]
     cmds:
       - GOBIN={{.LOCAL_BIN}} go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
       - GOBIN={{.LOCAL_BIN}} go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
@@ -21,3 +24,43 @@ tasks:
       - GOBIN={{.LOCAL_BIN}} go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
       - GOBIN={{.LOCAL_BIN}} go install github.com/bojand/ghz/cmd/ghz@latest
       - GOBIN={{.LOCAL_BIN}} go install github.com/gojuno/minimock/v3/cmd/minimock@latest
+
+  vendor:proto:
+    desc: Vendor all proto dependencies
+    deps: [vendor:proto:validate, vendor:proto:google, vendor:proto:openapiv2]
+
+  vendor:proto:validate:
+    desc: Vendor validate proto dependencies
+    internal: true    
+    cmds:
+      - |
+        if [ ! -d {{.VENDOR_PROTO_DIR}}/validate ]; then
+          mkdir -p {{.VENDOR_PROTO_DIR}}/validate
+          git clone --depth=1 https://github.com/envoyproxy/protoc-gen-validate {{.VENDOR_PROTO_DIR}}/protoc-gen-validate
+          mv {{.VENDOR_PROTO_DIR}}/protoc-gen-validate/validate/*.proto {{.VENDOR_PROTO_DIR}}/validate
+          rm -rf {{.VENDOR_PROTO_DIR}}/protoc-gen-validate
+        fi
+
+  vendor:proto:google:
+    desc: Vendor Google proto dependencies
+    internal: true
+    cmds:
+      - |
+        if [ ! -d {{.VENDOR_PROTO_DIR}}/google ]; then
+          git clone --depth=1 https://github.com/googleapis/googleapis {{.VENDOR_PROTO_DIR}}/googleapis
+          mkdir -p {{.VENDOR_PROTO_DIR}}/google/
+          mv {{.VENDOR_PROTO_DIR}}/googleapis/google/api {{.VENDOR_PROTO_DIR}}/google
+          rm -rf {{.VENDOR_PROTO_DIR}}/googleapis
+        fi
+
+  vendor:proto:openapiv2:
+    desc: Vendor OpenAPI v2 proto dependencies
+    internal: true
+    cmds:
+      - |
+        if [ ! -d {{.VENDOR_PROTO_DIR}}/protoc-gen-openapiv2 ]; then
+          mkdir -p {{.VENDOR_PROTO_DIR}}/protoc-gen-openapiv2/options
+          git clone --depth=1 https://github.com/grpc-ecosystem/grpc-gateway {{.VENDOR_PROTO_DIR}}/openapiv2
+          mv {{.VENDOR_PROTO_DIR}}/openapiv2/protoc-gen-openapiv2/options/*.proto {{.VENDOR_PROTO_DIR}}/protoc-gen-openapiv2/options
+          rm -rf {{.VENDOR_PROTO_DIR}}/openapiv2
+        fi

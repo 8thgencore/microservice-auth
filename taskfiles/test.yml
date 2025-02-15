@@ -1,7 +1,12 @@
 version: '3'
 
+vars:
+  TESTS_PATH: './internal/service/...'
+  TESTS_ATTEMPTS: 5
+  TESTS_COVERAGE_FILE: coverage.out
+
 tasks:
-  run:
+  default:
     desc: Run all tests
     cmds:
       - go clean -testcache

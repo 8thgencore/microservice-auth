@@ -20,7 +20,6 @@ import (
 	repositoryMocks "github.com/8thgencore/microservice-auth/internal/repository/mocks"
 	tokenMocks "github.com/8thgencore/microservice-auth/internal/tokens/mocks"
 	dbMocks "github.com/8thgencore/microservice-common/pkg/db/mocks"
-	"github.com/8thgencore/microservice-common/pkg/logger"
 )
 
 var (
@@ -67,10 +66,6 @@ var (
 		Password: "admin123",
 	}
 )
-
-func init() {
-	logger.Init("")
-}
 
 // TestCreate tests the creation of a new user.
 func TestCreate(t *testing.T) {

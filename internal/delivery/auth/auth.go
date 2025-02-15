@@ -14,7 +14,7 @@ import (
 func (i *Implementation) Login(ctx context.Context, req *authv1.LoginRequest) (*authv1.LoginResponse, error) {
 	tokenPair, err := i.authService.Login(ctx, converter.ToUserLoginFromAPI(req.GetCreds()))
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
 
 	return &authv1.LoginResponse{
@@ -30,12 +30,12 @@ func (i *Implementation) RefreshTokens(
 ) (*authv1.RefreshTokensResponse, error) {
 	accessToken, err := i.authService.GetAccessToken(ctx, req.GetRefreshToken())
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
 
 	refreshToken, err := i.authService.GetRefreshToken(ctx, req.GetRefreshToken())
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
 
 	return &authv1.RefreshTokensResponse{
@@ -51,7 +51,7 @@ func (i *Implementation) Logout(
 ) (*empty.Empty, error) {
 	err := i.authService.Logout(ctx, req.GetRefreshToken())
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
 
 	return &empty.Empty{}, nil

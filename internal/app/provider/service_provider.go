@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/8thgencore/microservice-auth/internal/config"
 	"github.com/8thgencore/microservice-auth/internal/delivery/access"
@@ -14,7 +15,6 @@ import (
 	"github.com/8thgencore/microservice-auth/internal/tokens/jwt"
 	"github.com/8thgencore/microservice-common/pkg/cache"
 	"github.com/8thgencore/microservice-common/pkg/db"
-	"github.com/8thgencore/microservice-common/pkg/logger"
 	"github.com/8thgencore/microservice-common/pkg/logger/sl"
 
 	accessRepository "github.com/8thgencore/microservice-auth/internal/repository/access"
@@ -29,6 +29,8 @@ import (
 // ServiceProvider is a struct that provides access to various services and repositories.
 type ServiceProvider struct {
 	Config *config.Config
+
+	logger *slog.Logger
 
 	dbClient  db.Client
 	txManager db.TxManager
@@ -54,9 +56,10 @@ type ServiceProvider struct {
 }
 
 // NewServiceProvider creates a new instance of ServiceProvider with the given configuration.
-func NewServiceProvider(config *config.Config) *ServiceProvider {
+func NewServiceProvider(config *config.Config, logger *slog.Logger) *ServiceProvider {
 	return &ServiceProvider{
 		Config: config,
+		logger: logger,
 	}
 }
 
@@ -101,6 +104,7 @@ func (s *ServiceProvider) TokenRepository(ctx context.Context) repository.TokenR
 func (s *ServiceProvider) UserService(ctx context.Context) service.UserService {
 	if s.userService == nil {
 		s.userService = userService.NewService(
+			s.logger,
 			s.UserRepository(ctx),
 			s.LogRepository(ctx),
 			s.TokenRepository(ctx),
@@ -136,7 +140,7 @@ func (s *ServiceProvider) AccessService(ctx context.Context) service.AccessServi
 			s.TokenOperations(ctx),
 		)
 		if err != nil {
-			logger.Fatal("failed to run access service: ", sl.Err(err))
+			s.logger.Error("failed to run access service: ", sl.Err(err))
 		}
 	}
 

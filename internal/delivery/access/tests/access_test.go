@@ -70,7 +70,7 @@ func TestCheck(t *testing.T) {
 				req: req,
 			},
 			want: nil,
-			err:  status.Errorf(codes.PermissionDenied, serviceErr.Error()),
+			err:  status.Errorf(codes.PermissionDenied, "%s", serviceErr.Error()),
 			accessServiceMock: func(mc *minimock.Controller) service.AccessService {
 				mock := serviceMocks.NewAccessServiceMock(mc)
 				mock.CheckMock.Expect(minimock.AnyContext, endpoint).Return(serviceErr)

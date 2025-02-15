@@ -9,10 +9,11 @@ import (
 	"github.com/8thgencore/microservice-auth/internal/service"
 	"github.com/8thgencore/microservice-auth/internal/tokens"
 	"github.com/8thgencore/microservice-common/pkg/db"
-	"github.com/8thgencore/microservice-common/pkg/logger"
+	loggerMocks "github.com/8thgencore/microservice-common/pkg/logger/mocks"
 )
 
 type userService struct {
+	logger          *slog.Logger
 	userRepository  repository.UserRepository
 	logRepository   repository.LogRepository
 	tokenRepository repository.TokenRepository
@@ -23,6 +24,7 @@ type userService struct {
 
 // NewService creates new object of service layer and ensures admin user exists.
 func NewService(
+	logger *slog.Logger,
 	userRepository repository.UserRepository,
 	logRepository repository.LogRepository,
 	tokenRepository repository.TokenRepository,
@@ -31,6 +33,7 @@ func NewService(
 	adminConfig *config.AdminConfig,
 ) service.UserService {
 	s := &userService{
+		logger:          logger,
 		userRepository:  userRepository,
 		logRepository:   logRepository,
 		tokenRepository: tokenRepository,
@@ -42,7 +45,7 @@ func NewService(
 	// Ensure admin exists during service initialization
 	if err := s.EnsureAdminExists(context.Background()); err != nil {
 		// Log the error but don't fail the service initialization
-		logger.Error("failed to ensure admin exists", slog.String("error", err.Error()))
+		s.logger.Error("failed to ensure admin exists", slog.String("error", err.Error()))
 	}
 
 	return s
@@ -57,7 +60,10 @@ func newTestService(
 	txManager db.TxManager,
 	adminConfig *config.AdminConfig,
 ) service.UserService {
+	mockLogger := loggerMocks.NewMockLogger()
+
 	return &userService{
+		logger:          mockLogger,
 		userRepository:  userRepository,
 		logRepository:   logRepository,
 		tokenRepository: tokenRepository,
