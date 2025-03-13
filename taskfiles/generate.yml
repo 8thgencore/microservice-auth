@@ -54,6 +54,7 @@ tasks:
           ./api/access/v1/access.proto
 
   openapi:
+    desc: Generate the OpenAPI specification for the project
     cmds:
       - mkdir -p pkg/swagger
       - |
@@ -72,18 +73,21 @@ tasks:
       - sed -i -e 's/{HTTP_PORT}/{{.HTTP_PORT}}/g' pkg/swagger/api.swagger.json
 
   mocks:
+    desc: Generate mocks for the project
     cmds:
       - go generate ./internal/repository
       - go generate ./internal/service
       - go generate ./internal/tokens
 
   cert:ca:
+    desc: Generate a CA certificate and key
     cmds:
       - mkdir -p {{.TLS_PATH}}
       - openssl genpkey -algorithm ed25519 -out {{.TLS_PATH}}/ca.key
       - openssl req -new -x509 -key {{.TLS_PATH}}/ca.key -out {{.TLS_PATH}}/ca.crt -days 365 -sha256 -subj "/CN=My CA"
 
   cert:auth:
+    desc: Generate an certificate and key for the authentication service
     cmds:
       - openssl genpkey -algorithm ed25519 -out {{.TLS_PATH}}/auth.key
       - openssl req -new -key {{.TLS_PATH}}/auth.key -config openssl.cnf -out {{.TLS_PATH}}/auth.csr
