@@ -1,11 +1,6 @@
 version: '3'
 
 tasks:
-  network:
-    desc: Create Docker network for services
-    cmds:
-      - docker network create -d bridge service-net
-
   build:
     desc: Build all Docker images
     deps: [build-app, build-migrator]
@@ -22,14 +17,54 @@ tasks:
     cmds:
       - docker buildx build --no-cache --platform linux/amd64 -t migrator-auth:{{.MIGRATOR_IMAGE_TAG}} -f migrator.Dockerfile .
 
-  deploy:
-    desc: Deploy services using Docker Compose
-    deps: [":common:check-env"]
+  # Development
+  dev:network:
+    desc: Create Docker network for development services
     cmds:
-      - docker compose --env-file=.env.{{.ENV}} up -d
+      - docker network create -d bridge service-net-dev
 
-  stop:
-    desc: Stop all Docker Compose services
+  dev:up:
+    desc: Deploy development services using Docker Compose
     deps: [":common:check-env"]
     cmds:
-      - docker compose --env-file=.env.{{.ENV}} down
+      - |
+        docker compose -p microservice-auth-dev \
+          -f docker-compose.dev.yaml \
+          --env-file=.env.local \
+          up -d
+
+  dev:stop:
+    desc: Stop all development services using Docker Compose
+    deps: [":common:check-env"]
+    cmds:
+      - |
+        docker compose -p microservice-auth-dev \
+          -f docker-compose.dev.yaml \
+          --env-file=.env.local \
+          down
+
+  # Production
+  prod:network:
+    desc: Create Docker network for production services
+    cmds:
+      - docker network create -d bridge service-net
+
+  prod:up:
+    desc: Deploy production services using Docker Compose
+    deps: [":common:check-env"]
+    cmds:
+      - |
+        docker compose -p microservice-auth \
+          -f docker-compose.yaml \
+          --env-file=.env.{{.ENV}} \
+          up -d
+
+  prod:stop:
+    desc: Stop all production services using Docker Compose
+    deps: [":common:check-env"]
+    cmds:
+      - |
+        docker compose -p microservice-auth \
+          -f docker-compose.yaml \
+          --env-file=.env.{{.ENV}} \
+          down

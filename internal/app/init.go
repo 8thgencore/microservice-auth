@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/8thgencore/microservice-auth/internal/app/provider"
@@ -42,8 +43,10 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initGRPCServer,
 		a.initHTTPServer,
 		a.initSwaggerServer,
-		a.initPrometheusServer,
-		a.initTracing,
+	}
+
+	if os.Getenv("ENV") == string(config.Prod) {
+		inits = append(inits, a.initPrometheusServer, a.initTracing)
 	}
 
 	for _, f := range inits {

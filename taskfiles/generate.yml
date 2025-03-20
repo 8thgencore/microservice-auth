@@ -69,8 +69,8 @@ tasks:
     desc: Update the Swagger API JSON file with environment variables for HTTP_HOST and HTTP_PORT
     deps: [":common:check-env"]
     cmds:
-      - sed -i -e 's/{HTTP_HOST}/{{.HTTP_HOST}}/g' pkg/swagger/api.swagger.json
-      - sed -i -e 's/{HTTP_PORT}/{{.HTTP_PORT}}/g' pkg/swagger/api.swagger.json
+      - sed -i -e 's/{HTTP_HOST}/{{.SWAGGER_HOST}}/g' pkg/swagger/api.swagger.json
+      - sed -i -e 's/{HTTP_PORT}/{{.SWAGGER_PORT}}/g' pkg/swagger/api.swagger.json
 
   mocks:
     desc: Generate mocks for the project

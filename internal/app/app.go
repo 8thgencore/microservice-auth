@@ -71,14 +71,16 @@ func (a *App) Run() error {
 		}
 	}()
 
-	go func() {
-		defer wg.Done()
+	if a.cfg.Env == config.Prod {
+		go func() {
+			defer wg.Done()
 
-		err := a.runPrometheusServer()
-		if err != nil {
-			a.logger.Error("failed to run Prometheus server: ", sl.Err(err))
-		}
-	}()
+			err := a.runPrometheusServer()
+			if err != nil {
+				a.logger.Error("failed to run Prometheus server: ", sl.Err(err))
+			}
+		}()
+	}
 
 	wg.Wait()
 

@@ -1,0 +1,70 @@
+services:
+  db-auth:
+    image: postgres:${POSTGRES_IMAGE_TAG}
+    container_name: db-auth
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: "${DB_NAME}"
+      POSTGRES_USER: "${DB_USER}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+    ports:
+      - 127.0.0.1:${DB_EXPOSE_PORT:-15432}:5432
+    networks:
+      - service-network
+    volumes:
+      - postgres_volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 1s
+      timeout: 5s
+      retries: 5
+
+  redis-auth:
+    image: redis:${REDIS_IMAGE_TAG}
+    container_name: redis-auth
+    command:
+      - /bin/sh
+      - -c
+      # - Double dollars, so that the variable is not expanded by Docker Compose
+      # - Surround by quotes, so that the shell does not split the password
+      # - The ${variable:?message} syntax causes shell to exit with a non-zero
+      #   code and print a message, when the variable is not set or empty
+      - redis-server --requirepass "$${REDIS_PASSWORD:?REDIS_PASSWORD variable is not set}"
+    restart: unless-stopped
+    environment:
+      ALLOW_EMPTY_PASSWORD: no
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+    ports:
+      - 127.0.0.1:${REDIS_EXPOSE_PORT:-16379}:6379
+    networks:
+      - service-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+  migrator-auth:
+    image: migrator-auth:${MIGRATOR_IMAGE_TAG}
+    container_name: migrator-auth
+    restart: on-failure
+    environment:
+      DB_HOST: "${DB_HOST}"
+      DB_PORT: "${DB_PORT}"
+      DB_NAME: "${DB_NAME}"
+      DB_USER: "${DB_USER}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      MIGRATION_DIR: "${MIGRATION_DIR}"
+    networks:
+      - service-network
+    depends_on:
+      db-auth:
+        condition: service_healthy
+
+volumes:
+  postgres_volume:
+
+networks:
+  service-network:
+    name: service-net-dev
+    external: true
