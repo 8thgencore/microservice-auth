@@ -66,7 +66,7 @@ func (c *HTTPConfig) Address() string {
 
 // SwaggerConfig represents the configuration for the Swagger server.
 type SwaggerConfig struct {
-	Host string `env:"HTTP_HOST"    env-default:"0.0.0.0"`
+	Host string `env:"SWAGGER_HOST" env-default:"0.0.0.0"`
 	Port int    `env:"SWAGGER_PORT" env-default:"8490"`
 }
 

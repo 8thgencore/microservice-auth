@@ -17,29 +17,29 @@ tasks:
     cmds:
       - docker buildx build --no-cache --platform linux/amd64 -t migrator-auth:{{.MIGRATOR_IMAGE_TAG}} -f migrator.Dockerfile .
 
-  # Development
-  dev:network:
-    desc: Create Docker network for development services
+  # Local
+  local:network:
+    desc: Create Docker network for local services
     cmds:
-      - docker network create -d bridge service-net-dev
+      - docker network create -d bridge service-net-local
 
-  dev:up:
-    desc: Deploy development services using Docker Compose
+  local:up:
+    desc: Deploy local services using Docker Compose
     deps: [":common:check-env"]
     cmds:
       - |
-        docker compose -p microservice-auth-dev \
-          -f docker-compose.dev.yaml \
+        docker compose -p microservice-auth-local \
+          -f docker-compose.local.yaml \
           --env-file=.env.local \
           up -d
 
-  dev:stop:
-    desc: Stop all development services using Docker Compose
+  local:stop:
+    desc: Stop all local services using Docker Compose
     deps: [":common:check-env"]
     cmds:
       - |
-        docker compose -p microservice-auth-dev \
-          -f docker-compose.dev.yaml \
+        docker compose -p microservice-auth-local \
+          -f docker-compose.local.yaml \
           --env-file=.env.local \
           down
 

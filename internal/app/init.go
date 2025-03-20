@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/8thgencore/microservice-auth/internal/app/provider"
@@ -98,16 +100,18 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 		creds = insecure.NewCredentials()
 	}
 
-	c := a.serviceProvider.AuthInterceptorFactory(ctx)
+	interceptors := []grpc.UnaryServerInterceptor{
+		interceptor.LogInterceptorFactory(a.logger),
+		interceptor.ValidateInterceptor,
+		a.serviceProvider.AuthInterceptorFactory(ctx).AuthInterceptor,
+	}
+	if a.cfg.Env == config.Prod {
+		interceptors = append(interceptors, interceptor.MetricsInterceptor, interceptor.TracingInterceptor)
+	}
+
 	a.grpcServer = grpc.NewServer(
 		grpc.Creds(creds),
-		grpc.ChainUnaryInterceptor(
-			interceptor.LogInterceptorFactory(a.logger),
-			interceptor.ValidateInterceptor,
-			interceptor.MetricsInterceptor,
-			interceptor.TracingInterceptor,
-			c.AuthInterceptor,
-		),
+		grpc.ChainUnaryInterceptor(interceptors...),
 	)
 
 	reflection.Register(a.grpcServer)
@@ -188,6 +192,11 @@ func (a *App) initSwaggerServer(_ context.Context) error {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		// Replace the host and port in the swagger file
+		contentStr := strings.Replace(string(content), "{HTTP_HOST}", a.cfg.Swagger.Host, 1)
+		contentStr = strings.Replace(contentStr, "{HTTP_PORT}", strconv.Itoa(a.cfg.HTTP.Port), 1)
+		content = []byte(contentStr)
 
 		w.Header().Set("Content-Type", contentType)
 		if _, err := w.Write(content); err != nil {
