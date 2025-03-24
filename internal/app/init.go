@@ -152,6 +152,12 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	if err := userv1.RegisterUserV1HandlerFromEndpoint(ctx, mux, a.cfg.GRPC.Address(), opts); err != nil {
 		return err
 	}
+	if err := authv1.RegisterAuthV1HandlerFromEndpoint(ctx, mux, a.cfg.GRPC.Address(), opts); err != nil {
+		return err
+	}
+	if err := accessv1.RegisterAccessV1HandlerFromEndpoint(ctx, mux, a.cfg.GRPC.Address(), opts); err != nil {
+		return err
+	}
 
 	corsMiddleware := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
