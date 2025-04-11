@@ -1,11 +1,11 @@
 # Stage 1 - downloading goose
-FROM alpine:3.20 AS goose-downloader
+FROM alpine:3.21 AS goose-downloader
 
 ADD https://github.com/pressly/goose/releases/download/v3.23.0/goose_linux_x86_64 /bin/goose
 RUN chmod +x /bin/goose
 
 # Final stage
-FROM alpine:3.20
+FROM alpine:3.21
 
 # Copy goose from the first stage
 COPY --from=goose-downloader /bin/goose /bin/goose

@@ -55,8 +55,9 @@ func (c *GRPC) Address() string {
 
 // HTTPConfig represents the configuration for the HTTP server.
 type HTTPConfig struct {
-	Host string `env:"HTTP_HOST" env-default:"0.0.0.0"`
-	Port int    `env:"HTTP_PORT" env-default:"8480"`
+	Host         string `env:"HTTP_HOST"          env-default:"0.0.0.0"`
+	Port         int    `env:"HTTP_PORT"          env-default:"8480"`
+	ExternalHost string `env:"HTTP_EXTERNAL_HOST" env-default:"127.0.0.1"`
 }
 
 // Address returns the address of the HTTP server in the format "host:port".

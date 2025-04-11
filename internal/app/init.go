@@ -5,6 +5,9 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/8thgencore/microservice-auth/internal/app/provider"
@@ -27,7 +30,7 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.30.0"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -42,8 +45,10 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initGRPCServer,
 		a.initHTTPServer,
 		a.initSwaggerServer,
-		a.initPrometheusServer,
-		a.initTracing,
+	}
+
+	if os.Getenv("ENV") == string(config.Prod) {
+		inits = append(inits, a.initPrometheusServer, a.initTracing)
 	}
 
 	for _, f := range inits {
@@ -95,16 +100,18 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 		creds = insecure.NewCredentials()
 	}
 
-	c := a.serviceProvider.AuthInterceptorFactory(ctx)
+	interceptors := []grpc.UnaryServerInterceptor{
+		interceptor.LogInterceptorFactory(a.logger),
+		interceptor.ValidateInterceptor,
+		a.serviceProvider.AuthInterceptorFactory(ctx).AuthInterceptor,
+	}
+	if a.cfg.Env == config.Prod {
+		interceptors = append(interceptors, interceptor.MetricsInterceptor, interceptor.TracingInterceptor)
+	}
+
 	a.grpcServer = grpc.NewServer(
 		grpc.Creds(creds),
-		grpc.ChainUnaryInterceptor(
-			interceptor.LogInterceptorFactory(a.logger),
-			interceptor.ValidateInterceptor,
-			interceptor.MetricsInterceptor,
-			interceptor.TracingInterceptor,
-			c.AuthInterceptor,
-		),
+		grpc.ChainUnaryInterceptor(interceptors...),
 	)
 
 	reflection.Register(a.grpcServer)
@@ -143,6 +150,12 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	mux := runtime.NewServeMux()
 
 	if err := userv1.RegisterUserV1HandlerFromEndpoint(ctx, mux, a.cfg.GRPC.Address(), opts); err != nil {
+		return err
+	}
+	if err := authv1.RegisterAuthV1HandlerFromEndpoint(ctx, mux, a.cfg.GRPC.Address(), opts); err != nil {
+		return err
+	}
+	if err := accessv1.RegisterAccessV1HandlerFromEndpoint(ctx, mux, a.cfg.GRPC.Address(), opts); err != nil {
 		return err
 	}
 
@@ -185,6 +198,11 @@ func (a *App) initSwaggerServer(_ context.Context) error {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		// Replace the host and port in the swagger file
+		contentStr := strings.Replace(string(content), "{HTTP_HOST}", a.cfg.HTTP.ExternalHost, 1)
+		contentStr = strings.Replace(contentStr, "{HTTP_PORT}", strconv.Itoa(a.cfg.HTTP.Port), 1)
+		content = []byte(contentStr)
 
 		w.Header().Set("Content-Type", contentType)
 		if _, err := w.Write(content); err != nil {

@@ -41,10 +41,10 @@ var adminEndpoints = map[string]struct{}{
 // AuthInterceptor is used for authorization.
 func (c *Auth) AuthInterceptor(
 	ctx context.Context,
-	req interface{},
+	req any,
 	info *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler,
-) (interface{}, error) {
+) (any, error) {
 	// Checking whether the current method is in the list of public endpoints
 	if _, exists := publicEndpoints[info.FullMethod]; exists {
 		return handler(ctx, req)
