@@ -200,7 +200,7 @@ func (a *App) initSwaggerServer(_ context.Context) error {
 		}
 
 		// Replace the host and port in the swagger file
-		contentStr := strings.Replace(string(content), "{HTTP_HOST}", a.cfg.Swagger.Host, 1)
+		contentStr := strings.Replace(string(content), "{HTTP_HOST}", a.cfg.HTTP.ExternalHost, 1)
 		contentStr = strings.Replace(contentStr, "{HTTP_PORT}", strconv.Itoa(a.cfg.HTTP.Port), 1)
 		content = []byte(contentStr)
 
