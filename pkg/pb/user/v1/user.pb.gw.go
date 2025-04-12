@@ -67,6 +67,7 @@ func request_UserV1_Get_0(ctx context.Context, marshaler runtime.Marshaler, clie
 		protoReq GetRequest
 		metadata runtime.ServerMetadata
 	)
+	io.Copy(io.Discard, req.Body)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
@@ -123,6 +124,7 @@ func request_UserV1_Delete_0(ctx context.Context, marshaler runtime.Marshaler, c
 		protoReq DeleteRequest
 		metadata runtime.ServerMetadata
 	)
+	io.Copy(io.Discard, req.Body)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
@@ -153,6 +155,7 @@ func request_UserV1_GetMe_0(ctx context.Context, marshaler runtime.Marshaler, cl
 		protoReq emptypb.Empty
 		metadata runtime.ServerMetadata
 	)
+	io.Copy(io.Discard, req.Body)
 	msg, err := client.GetMe(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 }
@@ -195,6 +198,7 @@ func request_UserV1_DeleteMe_0(ctx context.Context, marshaler runtime.Marshaler,
 		protoReq emptypb.Empty
 		metadata runtime.ServerMetadata
 	)
+	io.Copy(io.Discard, req.Body)
 	msg, err := client.DeleteMe(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 }
