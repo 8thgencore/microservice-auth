@@ -1,6 +1,6 @@
 // auth.proto
-// This file defines the Auth API v1 for handling authentication operations 
-// such as login, refresh tokens, and logout.
+// This file defines the Auth API v1 for handling authentication operations such as login, refresh
+// tokens, and logout.
 
 syntax = "proto3";
 
@@ -14,47 +14,72 @@ import "validate/validate.proto";
 option go_package = "github.com/8thgencore/microservice-auth/pkg/pb/auth/v1;auth_v1";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
-	info: {
-		title: "Auth API"
-		version: "1.0.0"
-		contact: {
-			name: "Walter White"
-		};
-	};
+  info: {
+    title: "Auth API"
+    version: "1.0.0"
+    contact: { name: "Walter White" }
+  }
+  host: "{HTTP_HOST}:{HTTP_PORT}"
+  schemes: HTTP,
+  schemes: HTTPS,
+  consumes: "application/json",
+  produces: "application/json",
 
-	host: "{HTTP_HOST}:{HTTP_PORT}"
-	schemes: HTTP,
-	schemes: HTTPS,
-	consumes: "application/json",
-	produces: "application/json",
+  security_definitions: {
+    security: {
+      key: "BearerAuth",
+      value: {
+        type: TYPE_API_KEY,
+        in: IN_HEADER,
+        name: "Authorization",
+        description: "JWT Authorization header using the Bearer scheme. "
+                     "Example: \"Authorization: Bearer {token}\""
+      }
+    }
+  }
 };
 
-// AuthV1 defines the Authentication service 
-// which provides methods to log in, refresh tokens, and log out users.
+// AuthV1 defines the Authentication service which provides methods to log in, refresh tokens, and
+// log out users.
 service AuthV1 {
   // Login gives refresh token and access token based on user credentials.
-  rpc Login (LoginRequest) returns (LoginResponse) {
+  rpc Login(LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
-            post: "/v1/auth/login"
-            body: "*"
-        };
+      post: "/v1/auth/login"
+      body: "*"
+    };
   }
 
-
   // RefreshTokens gives both a new access token and a new refresh token.
-  rpc RefreshTokens (RefreshTokensRequest) returns (RefreshTokensResponse) {
+  rpc RefreshTokens(RefreshTokensRequest) returns (RefreshTokensResponse) {
     option (google.api.http) = {
-            post: "/v1/auth/refresh"
-            body: "*"
-        };
+      post: "/v1/auth/refresh"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {
+          key: "BearerAuth",
+          value: {}
+        }
+      }
+    };
   }
 
   // Logout invalidates the refresh token.
-  rpc Logout (LogoutRequest) returns (google.protobuf.Empty) {
+  rpc Logout(LogoutRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
-            post: "/v1/auth/logout"
-            body: "*"
-        };
+      post: "/v1/auth/logout"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {
+          key: "BearerAuth",
+          value: {}
+        }
+      }
+    };
   }
 }
 
@@ -67,38 +92,36 @@ message LoginRequest {
 // Creds represents user credentials required for login.
 message Creds {
   // Username of the user.
-  string username = 1 [
-    (validate.rules).string = {min_len: 4, max_len: 50, pattern: "^[a-zA-Z0-9_]+$"}
-    ];
+  string username = 1
+      [(validate.rules).string = { min_len: 4, max_len: 50, pattern: "^[a-zA-Z0-9_]+$" }];
   // Password of the user.
-  string password = 2 [(validate.rules).string = {min_len: 8, max_len: 100}];
+  string password = 2 [(validate.rules).string = { min_len: 8, max_len: 100 }];
 }
 
 // LoginResponse represents the response after a successful login.
 message LoginResponse {
   // User's refresh token used to obtain an access token.
-  string refresh_token = 1 [(validate.rules).string = {min_len: 10}];
+  string refresh_token = 1 [(validate.rules).string = { min_len: 10 }];
   // User's access token for immediate use.
-  string access_token = 2 [(validate.rules).string = {min_len: 10}];
+  string access_token = 2 [(validate.rules).string = { min_len: 10 }];
 }
 
 // RefreshTokensRequest represents the request to refresh both tokens.
 message RefreshTokensRequest {
   // User's current refresh token used to refresh both tokens.
-  string refresh_token = 1 [(validate.rules).string = {min_len: 10}];
+  string refresh_token = 1 [(validate.rules).string = { min_len: 10 }];
 }
 
 // RefreshTokensResponse represents the response with both refreshed tokens.
 message RefreshTokensResponse {
   // User's new refresh token.
-  string refresh_token = 1 [(validate.rules).string = {min_len: 10}];
+  string refresh_token = 1 [(validate.rules).string = { min_len: 10 }];
   // User's new access token.
-  string access_token = 2 [(validate.rules).string = {min_len: 10}];
+  string access_token = 2 [(validate.rules).string = { min_len: 10 }];
 }
-
 
 // LogoutRequest represents the request to log out a user by invalidating their refresh token.
 message LogoutRequest {
   // The refresh token to invalidate.
-  string refresh_token = 1 [(validate.rules).string = {min_len: 10}];
+  string refresh_token = 1 [(validate.rules).string = { min_len: 10 }];
 }

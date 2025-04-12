@@ -358,13 +358,22 @@ const file_auth_proto_rawDesc = "" +
 	"R\vaccessToken\"=\n" +
 	"\rLogoutRequest\x12,\n" +
 	"\rrefresh_token\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\n" +
-	"R\frefreshToken2\x9e\x02\n" +
+	"R\frefreshToken2\xc9\x02\n" +
 	"\x06AuthV1\x12Q\n" +
-	"\x05Login\x12\x15.auth_v1.LoginRequest\x1a\x16.auth_v1.LoginResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/v1/auth/login\x12k\n" +
-	"\rRefreshTokens\x12\x1d.auth_v1.RefreshTokensRequest\x1a\x1e.auth_v1.RefreshTokensResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/v1/auth/refresh\x12T\n" +
-	"\x06Logout\x12\x16.auth_v1.LogoutRequest\x1a\x16.google.protobuf.Empty\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0f/v1/auth/logoutB\xa7\x01\x92Ad\x12!\n" +
+	"\x05Login\x12\x15.auth_v1.LoginRequest\x1a\x16.auth_v1.LoginResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/v1/auth/login\x12\x80\x01\n" +
+	"\rRefreshTokens\x12\x1d.auth_v1.RefreshTokensRequest\x1a\x1e.auth_v1.RefreshTokensResponse\"0\x92A\x12b\x10\n" +
+	"\x0e\n" +
+	"\n" +
+	"BearerAuth\x12\x00\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/v1/auth/refresh\x12i\n" +
+	"\x06Logout\x12\x16.auth_v1.LogoutRequest\x1a\x16.google.protobuf.Empty\"/\x92A\x12b\x10\n" +
+	"\x0e\n" +
+	"\n" +
+	"BearerAuth\x12\x00\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0f/v1/auth/logoutB\xa9\x02\x92A\xe5\x01\x12!\n" +
 	"\bAuth API\"\x0e\n" +
-	"\fWalter White2\x051.0.0\x1a\x17{HTTP_HOST}:{HTTP_PORT}*\x02\x01\x022\x10application/json:\x10application/jsonZ>github.com/8thgencore/microservice-auth/pkg/pb/auth/v1;auth_v1b\x06proto3"
+	"\fWalter White2\x051.0.0\x1a\x17{HTTP_HOST}:{HTTP_PORT}*\x02\x01\x022\x10application/json:\x10application/jsonZ\x7f\n" +
+	"}\n" +
+	"\n" +
+	"BearerAuth\x12o\b\x02\x12ZJWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"\x1a\rAuthorization \x02Z>github.com/8thgencore/microservice-auth/pkg/pb/auth/v1;auth_v1b\x06proto3"
 
 var (
 	file_auth_proto_rawDescOnce sync.Once

@@ -255,6 +255,11 @@
         ],
         "tags": [
           "AuthV1"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
         ]
       }
     },
@@ -289,6 +294,11 @@
         ],
         "tags": [
           "AuthV1"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
         ]
       }
     },
@@ -874,6 +884,14 @@
         }
       },
       "description": "UserUpdate represents the data required to update an existing user."
+    }
+  },
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "apiKey",
+      "description": "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+      "name": "Authorization",
+      "in": "header"
     }
   }
 }

@@ -1,6 +1,6 @@
 // user.proto
-// This file defines the User API v1 for managing user operations
-// such as create, get, update, and delete.
+// This file defines the User API v1 for managing user operations such as create, get, update, and
+// delete.
 
 syntax = "proto3";
 
@@ -13,55 +13,83 @@ import "google/protobuf/wrappers.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 import "validate/validate.proto";
 
-option go_package =  "github.com/8thgencore/microservice-auth/pkg/pb/user/v1;user_v1";
+option go_package = "github.com/8thgencore/microservice-auth/pkg/pb/user/v1;user_v1";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
-	info: {
-		title: "User API"
-		version: "1.0.0"
-		contact: {
-			name: "Walter White"
-		};
-	};
+  info: {
+    title: "User API"
+    version: "1.0.0"
+    contact: { name: "Walter White" };
+}
+;
 
-	host: "{HTTP_HOST}:{HTTP_PORT}"
-	schemes: HTTP, 
-	schemes: HTTPS,
-	consumes: "application/json",
-	produces: "application/json",
-};
+host: "{HTTP_HOST}:{HTTP_PORT}" schemes: HTTP, schemes: HTTPS, consumes: "application/json",
+produces: "application/json",
+}
+;
 
-// UserV1 defines the User service 
-// which provides methods to create, get, update, and delete users.
+// UserV1 defines the User service which provides methods to create, get, update, and delete users.
 service UserV1 {
   // Create is used for creating a new user.
   rpc Create(CreateRequest) returns (CreateResponse) {
     option (google.api.http) = {
-			post: "/v1/user"
-			body: "*"
-		};
+      post: "/v1/user"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {
+          key: "BearerAuth",
+          value: {}
+        }
+      }
+    };
   }
 
   // Get is used to obtain user info by ID.
   rpc Get(GetRequest) returns (GetResponse) {
     option (google.api.http) = {
-			get: "/v1/user"
-		};
+      get: "/v1/user"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {
+          key: "BearerAuth",
+          value: {}
+        }
+      }
+    };
   }
 
   // Update is used for updating existing user info.
   rpc Update(UpdateRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
-			patch: "/v1/user"
-			body: "*"
-		};
+      patch: "/v1/user"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {
+          key: "BearerAuth",
+          value: {}
+        }
+      }
+    };
   }
 
   // Delete is used for deleting a user by ID.
   rpc Delete(DeleteRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
-			delete: "/v1/user"
-		};
+      delete: "/v1/user"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {
+          key: "BearerAuth",
+          value: {}
+        }
+      }
+    };
   }
 
   // GetMe returns information about the currently authenticated user
@@ -69,13 +97,30 @@ service UserV1 {
     option (google.api.http) = {
       get: "/v1/user/me"
     };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {
+          key: "BearerAuth",
+          value: {}
+        }
+      }
+    };
   }
 
-  // UpdateMe allows the currently authenticated user to update their own information
+  // UpdateMe allows the currently authenticated user to update their own
+  // information
   rpc UpdateMe(UpdateMeRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
       patch: "/v1/user/me"
       body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {
+          key: "BearerAuth",
+          value: {}
+        }
+      }
     };
   }
 
@@ -84,6 +129,14 @@ service UserV1 {
     option (google.api.http) = {
       delete: "/v1/user/me"
     };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {
+          key: "BearerAuth",
+          value: {}
+        }
+      }
+    };
   }
 
   // ChangePassword allows users to change their password securely
@@ -91,6 +144,14 @@ service UserV1 {
     option (google.api.http) = {
       post: "/v1/user/change-password"
       body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {
+          key: "BearerAuth",
+          value: {}
+        }
+      }
     };
   }
 }
@@ -108,7 +169,7 @@ enum Role {
 // User represents a user in the system.
 message User {
   // ID of the user.
-  string id = 1 [(validate.rules).string = {uuid: true}];
+  string id = 1 [(validate.rules).string = { uuid: true }];
   // Name of the user.
   string name = 2;
   // Email of the user.
@@ -124,13 +185,13 @@ message User {
 // UserCreate represents the data required to create a new user.
 message UserCreate {
   // Name of the user to create.
-  string name = 1 [(validate.rules).string = {min_len: 1, max_len: 50}];
+  string name = 1 [(validate.rules).string = { min_len: 1, max_len: 50 }];
   // Email of the user to create.
   string email = 2 [(validate.rules).string.email = true];
   // Password of the user to create.
-  string password = 3 [(validate.rules).string = {min_len: 8, max_len: 256}];
+  string password = 3 [(validate.rules).string = { min_len: 8, max_len: 256 }];
   // Password confirmation of the user to create.
-  string password_confirm = 4 [(validate.rules).string = {min_len: 8, max_len: 256}];
+  string password_confirm = 4 [(validate.rules).string = { min_len: 8, max_len: 256 }];
   // Role of the user to create.
   Role role = 5 [(validate.rules).enum.defined_only = true];
 }
@@ -138,15 +199,13 @@ message UserCreate {
 // UserUpdate represents the data required to update an existing user.
 message UserUpdate {
   // ID of the user to update.
-  string id = 1 [(validate.rules).string = {uuid: true}];
+  string id = 1 [(validate.rules).string = { uuid: true }];
   // [optional] Name of the user to update.
-  google.protobuf.StringValue name = 2 [
-	(validate.rules).string = {ignore_empty: true, min_len: 1, max_len: 50}
-	];
+  google.protobuf.StringValue name = 2
+      [(validate.rules).string = { ignore_empty: true, min_len: 1, max_len: 50 }];
   // [optional] Email of the user to update.
-  google.protobuf.StringValue email = 3 [
-	(validate.rules).string = {email: true, ignore_empty: true}
-	];
+  google.protobuf.StringValue email = 3
+      [(validate.rules).string = { email: true, ignore_empty: true }];
   // Role of the user to update.
   Role role = 4 [(validate.rules).enum.defined_only = true];
 }
@@ -165,7 +224,7 @@ message CreateResponse {
 // GetRequest represents the request to get a user by ID.
 message GetRequest {
   // ID of the user to retrieve.
-  string id = 1 [(validate.rules).string = {uuid: true}];
+  string id = 1 [(validate.rules).string = { uuid: true }];
 }
 
 // GetResponse represents the response containing the user info.
@@ -181,31 +240,31 @@ message UpdateRequest {
 // DeleteRequest represents the request to delete a user by ID.
 message DeleteRequest {
   // ID of the user to delete.
-  string id = 1 [(validate.rules).string = {uuid: true}];
+  string id = 1 [(validate.rules).string = { uuid: true }];
 }
 
-// GetMeResponse represents the response containing the current user's information.
+// GetMeResponse represents the response containing the current user's
+// information.
 message GetMeResponse {
   // Full user information
   User user = 1;
 }
 
-// UpdateMeRequest represents the data that authenticated users can update about themselves.
+// UpdateMeRequest represents the data that authenticated users can update about
+// themselves.
 message UpdateMeRequest {
   // [optional] Name of the user to update
-  google.protobuf.StringValue name = 1 [
-    (validate.rules).string = {ignore_empty: true, min_len: 1, max_len: 50}
-  ];
+  google.protobuf.StringValue name = 1
+      [(validate.rules).string = { ignore_empty: true, min_len: 1, max_len: 50 }];
   // [optional] Email of the user to update
-  google.protobuf.StringValue email = 2 [
-    (validate.rules).string = {email: true, ignore_empty: true}
-  ];
+  google.protobuf.StringValue email = 2
+      [(validate.rules).string = { email: true, ignore_empty: true }];
 }
 
 // ChangePasswordRequest represents the request to change a user's password.
 message ChangePasswordRequest {
   // Current password for verification
-  string current_password = 1 [(validate.rules).string = {min_len: 8, max_len: 256}];
+  string current_password = 1 [(validate.rules).string = { min_len: 8, max_len: 256 }];
   // New password to set
-  string new_password = 2 [(validate.rules).string = {min_len: 8, max_len: 256}];
+  string new_password = 2 [(validate.rules).string = { min_len: 8, max_len: 256 }];
 }

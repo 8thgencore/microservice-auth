@@ -1,5 +1,5 @@
 // access.proto
-// This file defines the Access API v1, 
+// This file defines the Access API v1,
 // which handles user authorization for various service endpoints.
 
 syntax = "proto3";
@@ -13,90 +13,126 @@ import "validate/validate.proto";
 
 option go_package = "github.com/8thgencore/microservice-auth/pkg/pb/access/v1;access_v1";
 
-// AccessV1 defines the service for managing access permissions for endpoints based on user roles.
+// AccessV1 defines the service for managing access permissions for endpoints
+// based on user roles.
 service AccessV1 {
   // Check executes user authorization for an endpoint.
-  rpc Check (CheckRequest) returns (google.protobuf.Empty) {
+  rpc Check(CheckRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
-            post: "/v1/access/check"
-            body: "*"
-        };
+      post: "/v1/access/check"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {
+          key: "BearerAuth",
+          value: {}
+        }
+      }
+    };
   }
 
   // AddRoleEndpoint adds a new endpoint permission with roles.
-  rpc AddRoleEndpoint (AddRoleEndpointRequest) returns (google.protobuf.Empty) {
+  rpc AddRoleEndpoint(AddRoleEndpointRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
-            post: "/v1/access/role-endpoint"
-            body: "*"
-        };
+      post: "/v1/access/role-endpoint"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {
+          key: "BearerAuth",
+          value: {}
+        }
+      }
+    };
   }
 
   // UpdateRoleEndpoint updates an existing endpoint permission.
-  rpc UpdateRoleEndpoint (UpdateRoleEndpointRequest) returns (google.protobuf.Empty) {
+  rpc UpdateRoleEndpoint(UpdateRoleEndpointRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
-            put: "/v1/access/role-endpoint"
-            body: "*"
-        };
+      put: "/v1/access/role-endpoint"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {
+          key: "BearerAuth",
+          value: {}
+        }
+      }
+    };
   }
 
   // DeleteRoleEndpoint removes an existing endpoint permission.
-  rpc DeleteRoleEndpoint (DeleteRoleEndpointRequest) returns (google.protobuf.Empty) {
+  rpc DeleteRoleEndpoint(DeleteRoleEndpointRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
-            delete: "/v1/access/role-endpoint/{endpoint}"
-        };
+      delete: "/v1/access/role-endpoint/{endpoint}"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {
+          key: "BearerAuth",
+          value: {}
+        }
+      }
+    };
   }
 
   // GetRoleEndpoints lists all endpoints and their allowed roles.
-  rpc GetRoleEndpoints (google.protobuf.Empty) returns (GetRoleEndpointsResponse) {
+  rpc GetRoleEndpoints(google.protobuf.Empty) returns (GetRoleEndpointsResponse) {
     option (google.api.http) = {
-            get: "/v1/access/role-endpoints"
-        };
+      get: "/v1/access/role-endpoints"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {
+          key: "BearerAuth",
+          value: {}
+        }
+      }
+    };
   }
 }
 
 // CheckRequest contains the endpoint a user is trying to access.
 message CheckRequest {
   // The endpoint where the user wants access.
-  string endpoint = 1 [
-    (validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$"}
-    ];
+  string endpoint = 1
+      [(validate.rules).string = { min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$" }];
 }
 
 // AddRoleEndpointRequest represents the request to add roles to an endpoint.
 message AddRoleEndpointRequest {
   // The endpoint to which roles will be added.
-  string endpoint = 1 [
-    (validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$"}
-    ];
+  string endpoint = 1
+      [(validate.rules).string = { min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$" }];
   // The roles allowed to access this endpoint.
-  repeated user_v1.Role allowed_roles = 2 [
-        (validate.rules).enum.defined_only = true,
-        (validate.rules).repeated = {min_items: 1}
-    ];
+  repeated user_v1.Role allowed_roles = 2
+      [(validate.rules).enum.defined_only = true, (validate.rules).repeated = { min_items: 1 }];
 }
 
-// UpdateRoleEndpointRequest represents the request to update roles for an endpoint.
+// UpdateRoleEndpointRequest represents the request to update roles for an
+// endpoint.
 message UpdateRoleEndpointRequest {
   // The endpoint to be updated.
-  string endpoint = 1 [
-    (validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$"}
-    ];
+  string endpoint = 1
+      [(validate.rules).string = { min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$" }];
   // The updated roles for this endpoint.
-  repeated user_v1.Role allowed_roles = 2 [
-        (validate.rules).enum.defined_only = true,
-        (validate.rules).repeated = {min_items: 1}
-    ];
+  repeated user_v1.Role allowed_roles = 2
+      [(validate.rules).enum.defined_only = true, (validate.rules).repeated = { min_items: 1 }];
 }
 
-// DeleteRoleEndpointRequest represents the request to delete an endpoint permission.
+// DeleteRoleEndpointRequest represents the request to delete an endpoint
+// permission.
 message DeleteRoleEndpointRequest {
   // The endpoint to be deleted.
-  string endpoint = 1 [
-    (validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$"}
-    ];
+  string endpoint = 1
+      [(validate.rules).string = { min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$" }];
 }
 
-// GetRoleEndpointsResponse represents the response containing a list of endpoint permissions.
+// GetRoleEndpointsResponse represents the response containing a list of
+// endpoint permissions.
 message GetRoleEndpointsResponse {
   // List of endpoint permissions.
   repeated EndpointPermissions endpoint_permissions = 1;
@@ -105,12 +141,9 @@ message GetRoleEndpointsResponse {
 // EndpointPermissions represents the permission settings for an endpoint.
 message EndpointPermissions {
   // The endpoint being described.
-  string endpoint = 1 [
-    (validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$"}
-    ];
+  string endpoint = 1
+      [(validate.rules).string = { min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_/.-]+$" }];
   // The roles allowed to access this endpoint.
-  repeated user_v1.Role allowed_roles = 2 [
-        (validate.rules).enum.defined_only = true,
-        (validate.rules).repeated = {min_items: 1}
-    ];
+  repeated user_v1.Role allowed_roles = 2
+      [(validate.rules).enum.defined_only = true, (validate.rules).repeated = { min_items: 1 }];
 }

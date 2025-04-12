@@ -21,6 +21,11 @@ tasks:
     cmds:
       - protolint lint api/*
 
+  protolint-format:
+    desc: Format protobuf files
+    cmds:
+      - find . -name "*.proto" -exec clang-format -i {} \;
+
   gosec:
     desc: Run gosec on the codebase
     cmds:
