@@ -35,7 +35,8 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// AccessV1 defines the service for managing access permissions for endpoints based on user roles.
+// AccessV1 defines the service for managing access permissions for endpoints
+// based on user roles.
 type AccessV1Client interface {
 	// Check executes user authorization for an endpoint.
 	Check(ctx context.Context, in *CheckRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -111,7 +112,8 @@ func (c *accessV1Client) GetRoleEndpoints(ctx context.Context, in *emptypb.Empty
 // All implementations must embed UnimplementedAccessV1Server
 // for forward compatibility.
 //
-// AccessV1 defines the service for managing access permissions for endpoints based on user roles.
+// AccessV1 defines the service for managing access permissions for endpoints
+// based on user roles.
 type AccessV1Server interface {
 	// Check executes user authorization for an endpoint.
 	Check(context.Context, *CheckRequest) (*emptypb.Empty, error)

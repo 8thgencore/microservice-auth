@@ -13,6 +13,7 @@ package access_v1
 import (
 	v1 "github.com/8thgencore/microservice-auth/pkg/pb/user/v1"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
+	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -130,7 +131,8 @@ func (x *AddRoleEndpointRequest) GetAllowedRoles() []v1.Role {
 	return nil
 }
 
-// UpdateRoleEndpointRequest represents the request to update roles for an endpoint.
+// UpdateRoleEndpointRequest represents the request to update roles for an
+// endpoint.
 type UpdateRoleEndpointRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The endpoint to be updated.
@@ -185,7 +187,8 @@ func (x *UpdateRoleEndpointRequest) GetAllowedRoles() []v1.Role {
 	return nil
 }
 
-// DeleteRoleEndpointRequest represents the request to delete an endpoint permission.
+// DeleteRoleEndpointRequest represents the request to delete an endpoint
+// permission.
 type DeleteRoleEndpointRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The endpoint to be deleted.
@@ -231,7 +234,8 @@ func (x *DeleteRoleEndpointRequest) GetEndpoint() string {
 	return ""
 }
 
-// GetRoleEndpointsResponse represents the response containing a list of endpoint permissions.
+// GetRoleEndpointsResponse represents the response containing a list of
+// endpoint permissions.
 type GetRoleEndpointsResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// List of endpoint permissions.
@@ -336,7 +340,7 @@ var File_access_proto protoreflect.FileDescriptor
 
 const file_access_proto_rawDesc = "" +
 	"\n" +
-	"\faccess.proto\x12\taccess_v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\n" +
+	"\faccess.proto\x12\taccess_v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\x1a\n" +
 	"user.proto\x1a\x17validate/validate.proto\"J\n" +
 	"\fCheckRequest\x12:\n" +
 	"\bendpoint\x18\x01 \x01(\tB\x1e\xfaB\x1br\x19\x10\x01\x18\xff\x012\x12^[a-zA-Z0-9_/.-]+$R\bendpoint\"\x92\x01\n" +
@@ -352,13 +356,28 @@ const file_access_proto_rawDesc = "" +
 	"\x14endpoint_permissions\x18\x01 \x03(\v2\x1e.access_v1.EndpointPermissionsR\x13endpointPermissions\"\x8f\x01\n" +
 	"\x13EndpointPermissions\x12:\n" +
 	"\bendpoint\x18\x01 \x01(\tB\x1e\xfaB\x1br\x19\x10\x01\x18\xff\x012\x12^[a-zA-Z0-9_/.-]+$R\bendpoint\x12<\n" +
-	"\rallowed_roles\x18\x02 \x03(\x0e2\r.user_v1.RoleB\b\xfaB\x05\x92\x01\x02\b\x01R\fallowedRoles2\xc2\x04\n" +
-	"\bAccessV1\x12U\n" +
-	"\x05Check\x12\x17.access_v1.CheckRequest\x1a\x16.google.protobuf.Empty\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/v1/access/check\x12q\n" +
-	"\x0fAddRoleEndpoint\x12!.access_v1.AddRoleEndpointRequest\x1a\x16.google.protobuf.Empty\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/v1/access/role-endpoint\x12w\n" +
-	"\x12UpdateRoleEndpoint\x12$.access_v1.UpdateRoleEndpointRequest\x1a\x16.google.protobuf.Empty\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\x1a\x18/v1/access/role-endpoint\x12\x7f\n" +
-	"\x12DeleteRoleEndpoint\x12$.access_v1.DeleteRoleEndpointRequest\x1a\x16.google.protobuf.Empty\"+\x82\xd3\xe4\x93\x02%*#/v1/access/role-endpoint/{endpoint}\x12r\n" +
-	"\x10GetRoleEndpoints\x12\x16.google.protobuf.Empty\x1a#.access_v1.GetRoleEndpointsResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/v1/access/role-endpointsBDZBgithub.com/8thgencore/microservice-auth/pkg/pb/access/v1;access_v1b\x06proto3"
+	"\rallowed_roles\x18\x02 \x03(\x0e2\r.user_v1.RoleB\b\xfaB\x05\x92\x01\x02\b\x01R\fallowedRoles2\xaf\x05\n" +
+	"\bAccessV1\x12j\n" +
+	"\x05Check\x12\x17.access_v1.CheckRequest\x1a\x16.google.protobuf.Empty\"0\x92A\x12b\x10\n" +
+	"\x0e\n" +
+	"\n" +
+	"BearerAuth\x12\x00\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/v1/access/check\x12\x86\x01\n" +
+	"\x0fAddRoleEndpoint\x12!.access_v1.AddRoleEndpointRequest\x1a\x16.google.protobuf.Empty\"8\x92A\x12b\x10\n" +
+	"\x0e\n" +
+	"\n" +
+	"BearerAuth\x12\x00\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/v1/access/role-endpoint\x12\x8c\x01\n" +
+	"\x12UpdateRoleEndpoint\x12$.access_v1.UpdateRoleEndpointRequest\x1a\x16.google.protobuf.Empty\"8\x92A\x12b\x10\n" +
+	"\x0e\n" +
+	"\n" +
+	"BearerAuth\x12\x00\x82\xd3\xe4\x93\x02\x1d:\x01*\x1a\x18/v1/access/role-endpoint\x12\x94\x01\n" +
+	"\x12DeleteRoleEndpoint\x12$.access_v1.DeleteRoleEndpointRequest\x1a\x16.google.protobuf.Empty\"@\x92A\x12b\x10\n" +
+	"\x0e\n" +
+	"\n" +
+	"BearerAuth\x12\x00\x82\xd3\xe4\x93\x02%*#/v1/access/role-endpoint/{endpoint}\x12\x87\x01\n" +
+	"\x10GetRoleEndpoints\x12\x16.google.protobuf.Empty\x1a#.access_v1.GetRoleEndpointsResponse\"6\x92A\x12b\x10\n" +
+	"\x0e\n" +
+	"\n" +
+	"BearerAuth\x12\x00\x82\xd3\xe4\x93\x02\x1b\x12\x19/v1/access/role-endpointsBDZBgithub.com/8thgencore/microservice-auth/pkg/pb/access/v1;access_v1b\x06proto3"
 
 var (
 	file_access_proto_rawDescOnce sync.Once

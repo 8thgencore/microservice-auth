@@ -62,6 +62,11 @@
         ],
         "tags": [
           "AccessV1"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
         ]
       }
     },
@@ -97,6 +102,11 @@
         ],
         "tags": [
           "AccessV1"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
         ]
       },
       "put": {
@@ -120,7 +130,7 @@
         "parameters": [
           {
             "name": "body",
-            "description": "UpdateRoleEndpointRequest represents the request to update roles for an endpoint.",
+            "description": "UpdateRoleEndpointRequest represents the request to update roles for an\nendpoint.",
             "in": "body",
             "required": true,
             "schema": {
@@ -130,6 +140,11 @@
         ],
         "tags": [
           "AccessV1"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
         ]
       }
     },
@@ -163,6 +178,11 @@
         ],
         "tags": [
           "AccessV1"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
         ]
       }
     },
@@ -186,6 +206,11 @@
         },
         "tags": [
           "AccessV1"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
         ]
       }
     },
@@ -331,6 +356,11 @@
         ],
         "tags": [
           "UserV1"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
         ]
       },
       "delete": {
@@ -362,6 +392,11 @@
         ],
         "tags": [
           "UserV1"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
         ]
       },
       "post": {
@@ -394,6 +429,11 @@
         ],
         "tags": [
           "UserV1"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
         ]
       },
       "patch": {
@@ -427,6 +467,11 @@
         ],
         "tags": [
           "UserV1"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
         ]
       }
     },
@@ -462,6 +507,11 @@
         ],
         "tags": [
           "UserV1"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
         ]
       }
     },
@@ -485,6 +535,11 @@
         },
         "tags": [
           "UserV1"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
         ]
       },
       "delete": {
@@ -507,10 +562,15 @@
         },
         "tags": [
           "UserV1"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
         ]
       },
       "patch": {
-        "summary": "UpdateMe allows the currently authenticated user to update their own information",
+        "summary": "UpdateMe allows the currently authenticated user to update their own\ninformation",
         "operationId": "UserV1_UpdateMe",
         "responses": {
           "200": {
@@ -530,7 +590,7 @@
         "parameters": [
           {
             "name": "body",
-            "description": "UpdateMeRequest represents the data that authenticated users can update about themselves.",
+            "description": "UpdateMeRequest represents the data that authenticated users can update about\nthemselves.",
             "in": "body",
             "required": true,
             "schema": {
@@ -540,6 +600,11 @@
         ],
         "tags": [
           "UserV1"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
         ]
       }
     }
@@ -601,7 +666,7 @@
           "description": "List of endpoint permissions."
         }
       },
-      "description": "GetRoleEndpointsResponse represents the response containing a list of endpoint permissions."
+      "description": "GetRoleEndpointsResponse represents the response containing a list of\nendpoint permissions."
     },
     "access_v1UpdateRoleEndpointRequest": {
       "type": "object",
@@ -618,7 +683,7 @@
           "description": "The updated roles for this endpoint."
         }
       },
-      "description": "UpdateRoleEndpointRequest represents the request to update roles for an endpoint."
+      "description": "UpdateRoleEndpointRequest represents the request to update roles for an\nendpoint."
     },
     "auth_v1Creds": {
       "type": "object",
@@ -761,7 +826,7 @@
           "title": "Full user information"
         }
       },
-      "description": "GetMeResponse represents the response containing the current user's information."
+      "description": "GetMeResponse represents the response containing the current user's\ninformation."
     },
     "user_v1GetResponse": {
       "type": "object",
@@ -794,7 +859,7 @@
           "title": "[optional] Email of the user to update"
         }
       },
-      "description": "UpdateMeRequest represents the data that authenticated users can update about themselves."
+      "description": "UpdateMeRequest represents the data that authenticated users can update about\nthemselves."
     },
     "user_v1UpdateRequest": {
       "type": "object",
